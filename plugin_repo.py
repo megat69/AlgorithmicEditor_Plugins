@@ -78,19 +78,42 @@ class PluginRepo(Plugin):
 		# Gives a list of all the available apps
 		github_url = 'https://github.com/megat69/AlgorithmicEditor_Plugins/tree/master/'
 
-		r = requests.get(github_url)
-		if r.status_code != 200:
+		def wrong_return_code_inconvenience():
+			"""
+			Tells the user about an inconvenience during download attempt.
+			"""
 			msg_str = f"There have been a problem during the fetching of"
 			self.cls.stdscr.addstr(self.cls.rows // 2, self.cls.cols // 2 - len(msg_str) // 2, msg_str)
 			msg_str = f"the plugins list online. We apologize for the inconvenience."
 			self.cls.stdscr.addstr(self.cls.rows // 2 + 1, self.cls.cols // 2 - len(msg_str) // 2, msg_str)
 			self.cls.stdscr.getch()
+
+		r = requests.get(github_url)
+		if r.status_code != 200:
+			wrong_return_code_inconvenience()
 		else:
 			soup = BeautifulSoup(r.text, 'html.parser')
 			plugins = soup.find_all(title=re.compile("\.py$"))
 
 			# Lists the available plugins to the user
-			self.list_plugins([e.extract().get_text() for e in plugins])
+			plugins_list = [e.extract().get_text() for e in plugins]
+			self.list_plugins(plugins_list)
+
+			# Asks the user to input the plugin name
+			self.cls.stdscr.addstr(self.cls.rows - 2, 0, "Input the name of the plugin to download, or leave blank to cancel.")
+			user_wanted_plugin = input_text(self.cls.stdscr)
+			if user_wanted_plugin != "":
+				if user_wanted_plugin in plugins_list:
+					r = requests.get("https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/plugin_repo.py")
+					if r.status_code != 200:
+						wrong_return_code_inconvenience()
+					else:
+						with open(os.path.join(os.path.dirname(__file__), f"{user_wanted_plugin}.py"),
+						          "w", encoding="utf-8") as f:
+							f.write(r.text)
+				else:
+					msg_str = f"The plugin '{user_wanted_plugin}' doesn't seem to exist."
+					self.cls.stdscr.addstr(self.cls.rows // 2, self.cls.cols // 2 - len(msg_str) // 2, msg_str)
 
 
 

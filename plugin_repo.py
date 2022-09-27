@@ -91,6 +91,8 @@ class PluginRepo(Plugin):
 			self.cls.stdscr.addstr(self.cls.rows // 2 + 1, self.cls.cols // 2 - len(msg_str) // 2, msg_str)
 			self.cls.stdscr.getch()
 
+		# TODO : Async this to create the UI before the download
+
 		r = requests.get(github_url)
 		if r.status_code != 200:
 			wrong_return_code_inconvenience()

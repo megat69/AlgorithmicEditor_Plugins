@@ -96,8 +96,8 @@ class PluginRepo(Plugin):
 			plugins = soup.find_all(title=re.compile("\.py$"))
 
 			# Lists the available plugins to the user
-			plugins_list = [e.extract().get_text() for e in plugins]
-			self.list_plugins(plugins_list)
+			plugins_list = [e.extract().get_text()[:-3] for e in plugins]
+			self.list_plugins(plugins_list, getch=False)
 
 			# Asks the user to input the plugin name
 			self.cls.stdscr.addstr(self.cls.rows - 2, 0, "Input the name of the plugin to download, or leave blank to cancel.")
@@ -111,10 +111,12 @@ class PluginRepo(Plugin):
 						with open(os.path.join(os.path.dirname(__file__), f"{user_wanted_plugin}.py"),
 						          "w", encoding="utf-8") as f:
 							f.write(r.text)
+						msg_str = f"The plugin '{user_wanted_plugin}' has been successfully installed !"
+						self.cls.stdscr.addstr(self.cls.rows // 2, self.cls.cols // 2 - len(msg_str) // 2, msg_str)
 				else:
 					msg_str = f"The plugin '{user_wanted_plugin}' doesn't seem to exist."
 					self.cls.stdscr.addstr(self.cls.rows // 2, self.cls.cols // 2 - len(msg_str) // 2, msg_str)
-
+			self.cls.stdscr.getch()
 
 
 	def delete_plugins(self):

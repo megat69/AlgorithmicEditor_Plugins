@@ -52,7 +52,9 @@ class PluginRepo(Plugin):
 		if plist is None:
 			self.cls.stdscr.addstr(1, 20, "Faulty plugins displayed in red.", curses.A_BOLD)
 		for plugin in (os.listdir(os.path.dirname(__file__)) if plist is None else plist):
-			if plugin.startswith("__"): continue  # Python folders/files
+			if not plugin.startswith("__") or os.path.isdir(os.path.join(os.path.dirname(__file__), plugin))\
+				or not plugin.endswith(".py"):
+				continue  # Python folders/files
 
 			# Cleaning the name
 			plugin = plugin.replace(".py", "")
@@ -137,6 +139,8 @@ class PluginRepo(Plugin):
 		if plugin_name != "":
 			plugins_list = tuple(
 				plugin.replace(".py", "") for plugin in os.listdir(os.path.dirname(__file__)) if not plugin.startswith("__")
+				or os.path.isdir(os.path.join(os.path.dirname(__file__), plugin))
+				or not plugin.endswith(".py")
 			)
 			if plugin_name in plugins_list:  # If the plugin exists
 				def delete_plugin():

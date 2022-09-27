@@ -1,7 +1,9 @@
 import curses
 import requests
+from bs4 import BeautifulSoup
 import os
 import importlib
+import re
 
 from plugin import Plugin
 from utils import display_menu, input_text
@@ -35,7 +37,7 @@ class PluginRepo(Plugin):
 		self.manage_plugins_menu = False
 
 
-	def list_plugins(self):
+	def list_plugins(self, plist:list=None):
 		"""
 		Lists all the installed plugins, and displays in red the faulty ones.
 		"""
@@ -43,16 +45,17 @@ class PluginRepo(Plugin):
 		self.selected_menu_item = 0
 
 		i = 0
-		self.cls.stdscr.addstr(0, 20, "-- PLUGINS LIST --".center(32), curses.A_BOLD)
-		self.cls.stdscr.addstr(1, 20, "Faulty plugins displayed in red.", curses.A_BOLD)
-		for plugin in os.listdir(os.path.dirname(__file__)):
+		self.cls.stdscr.addstr(0, 20, f"-- {'AVAILABLE' if plist is not None else ''} PLUGINS LIST --".center(32), curses.A_BOLD)
+		if plist is None:
+			self.cls.stdscr.addstr(1, 20, "Faulty plugins displayed in red.", curses.A_BOLD)
+		for plugin in (os.listdir(os.path.dirname(__file__)) if plist is None else plist):
 			if plugin.startswith("__"): continue  # Python folders/files
 
 			# Cleaning the name
 			plugin = plugin.replace(".py", "")
 
 			# Displaying each plugin name at the left of the screen
-			if plugin in self.cls.plugins.keys():
+			if plugin in self.cls.plugins.keys() or plist is not None:
 				self.cls.stdscr.addstr(i + 3, 20, plugin.center(32))
 			else:
 				self.cls.stdscr.addstr(i + 3, 20, plugin.center(32), curses.color_pair(1))
@@ -71,7 +74,24 @@ class PluginRepo(Plugin):
 		# Selects this function by default from the menu
 		self.selected_menu_item = 1
 
-		pass
+		# Gives a list of all the available apps
+		github_url = 'https://github.com/megat69/AlgorithmicEditor_Plugins/tree/master/'
+
+		r = requests.get(github_url)
+		if r.status_code != 200:
+			msg_str = f"There have been a problem during the fetching of"
+			self.cls.stdscr.addstr(self.cls.rows // 2, self.cls.cols // 2 - len(msg_str) // 2, msg_str)
+			msg_str = f"the plugins list online. We apologize for the inconvenience."
+			self.cls.stdscr.addstr(self.cls.rows // 2 + 1, self.cls.cols // 2 - len(msg_str) // 2, msg_str)
+			self.cls.stdscr.getch()
+		else:
+			soup = BeautifulSoup(r.text, 'html.parser')
+			plugins = soup.find_all(title=re.compile("\.py$"))
+
+			# Lists the available plugins to the user
+			self.list_plugins([e.extract().get_text() for e in plugins])
+
+
 
 	def delete_plugins(self):
 		"""

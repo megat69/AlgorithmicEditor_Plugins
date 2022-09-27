@@ -16,8 +16,10 @@ class PluginRepo(Plugin):
 		self.selected_menu_item = 0
 		self.add_command("r", self.manage_plugins, "Manage plugins")
 
+
 	def init(self):
 		print("PluginRepo plugin loaded !")
+
 
 	def manage_plugins(self):
 		"""
@@ -32,6 +34,7 @@ class PluginRepo(Plugin):
 				#("Reload plugins", self.reload_plugins),  #Left on the side for later implementation
 				("Leave", self.leave)
 			), self.selected_menu_item)
+
 
 	def leave(self):
 		self.manage_plugins_menu = False
@@ -127,25 +130,26 @@ class PluginRepo(Plugin):
 		self.selected_menu_item = 2
 
 		self.list_plugins(getch=False)
-		self.cls.stdscr.addstr(self.cls.rows - 3, 0, "Input the name of the plugin you want to delete :")
+		self.cls.stdscr.addstr(self.cls.rows - 3, 0, "Input the name of the plugin you want to delete (or leave blank to cancel) :")
 		plugin_name = input_text(self.cls.stdscr, position_y=self.cls.rows - 2)
-		plugins_list = tuple(
-			plugin.replace(".py", "") for plugin in os.listdir(os.path.dirname(__file__)) if not plugin.startswith("__")
-		)
-		if plugin_name in plugins_list:  # If the plugin exists
-			def delete_plugin():
-				os.remove(os.path.join(os.path.dirname(__file__), f"{plugin_name}.py"))
-				msg_str = f"Plugin {plugin_name} deleted."
-				self.cls.stdscr.addstr(self.cls.rows // 2, self.cls.cols // 2 - len(msg_str) // 2, msg_str)
+		if plugin_name != "":
+			plugins_list = tuple(
+				plugin.replace(".py", "") for plugin in os.listdir(os.path.dirname(__file__)) if not plugin.startswith("__")
+			)
+			if plugin_name in plugins_list:  # If the plugin exists
+				def delete_plugin():
+					os.remove(os.path.join(os.path.dirname(__file__), f"{plugin_name}.py"))
+					msg_str = f"Plugin {plugin_name} deleted."
+					self.cls.stdscr.addstr(self.cls.rows // 2, self.cls.cols // 2 - len(msg_str) // 2, msg_str)
 
-			display_menu(self.cls.stdscr, (
-				("Yes", delete_plugin),
-				("No", lambda: None)
-			), label=f"Are you sure you want to delete the plugin '{plugin_name}' ?")
-		else:
-			msg_str = f"The plugin '{plugin_name}' doesn't seem to be installed."
-			self.cls.stdscr.addstr(self.cls.rows // 2, self.cls.cols // 2 - len(msg_str) // 2, msg_str)
-			self.cls.stdscr.getch()
+				display_menu(self.cls.stdscr, (
+					("Yes", delete_plugin),
+					("No", lambda: None)
+				), label=f"Are you sure you want to delete the plugin '{plugin_name}' ?")
+			else:
+				msg_str = f"The plugin '{plugin_name}' doesn't seem to be installed."
+				self.cls.stdscr.addstr(self.cls.rows // 2, self.cls.cols // 2 - len(msg_str) // 2, msg_str)
+				self.cls.stdscr.getch()
 
 
 	def reload_plugins(self):

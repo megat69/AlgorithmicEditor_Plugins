@@ -99,6 +99,7 @@ class PluginRepo(Plugin):
 		else:
 			msg_str = f"The plugin '{plugin_name}' doesn't seem to be installed."
 			self.cls.stdscr.addstr(self.cls.rows // 2, self.cls.cols // 2 - len(msg_str) // 2, msg_str)
+			self.cls.stdscr.getch()
 
 
 	def reload_plugins(self):

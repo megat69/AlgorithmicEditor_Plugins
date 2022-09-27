@@ -37,7 +37,7 @@ class PluginRepo(Plugin):
 		self.manage_plugins_menu = False
 
 
-	def list_plugins(self, plist:list=None):
+	def list_plugins(self, plist:list=None, getch:bool=True):
 		"""
 		Lists all the installed plugins, and displays in red the faulty ones.
 		"""
@@ -65,7 +65,8 @@ class PluginRepo(Plugin):
 			i += 1
 
 		# Makes a pause
-		self.cls.stdscr.getch()
+		if getch:
+			self.cls.stdscr.getch()
 
 	def download_plugins(self):
 		"""
@@ -100,7 +101,7 @@ class PluginRepo(Plugin):
 		# Selects this function by default from the menu
 		self.selected_menu_item = 2
 
-		self.list_plugins()
+		self.list_plugins(getch=False)
 		self.cls.stdscr.addstr(self.cls.rows - 3, 0, "Input the name of the plugin you want to delete :")
 		plugin_name = input_text(self.cls.stdscr, position_y=self.cls.rows - 2)
 		plugins_list = tuple(

@@ -102,7 +102,13 @@ class PluginRepo(Plugin):
 
 		# TODO : Async this to create the UI before the download
 
-		r = requests.get(github_url)
+		try:
+			r = requests.get(github_url)
+		except requests.exceptions.ConnectionError:
+			wrong_return_code_inconvenience()
+			msg_str = f"Please check your connection and try again."
+			self.app.stdscr.addstr(self.app.rows // 2 + 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+			return
 		if r.status_code != 200:
 			wrong_return_code_inconvenience()
 		else:

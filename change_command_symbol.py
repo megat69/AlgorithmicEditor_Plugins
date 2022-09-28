@@ -38,5 +38,5 @@ class ChangeCommandSymbol(Plugin):
 			self.app.stdscr.getch()
 
 
-def init(app):
+def init(app) -> ChangeCommandSymbol:
 	return ChangeCommandSymbol(app)

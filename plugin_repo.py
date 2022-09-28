@@ -160,6 +160,7 @@ class PluginRepo(Plugin):
 					os.remove(os.path.join(os.path.dirname(__file__), f"{plugin_name}.py"))
 					msg_str = f"Plugin {plugin_name} deleted."
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+					self.app.stdscr.getch()
 
 				display_menu(self.app.stdscr, (
 					("Yes", delete_plugin),
@@ -239,6 +240,7 @@ class PluginRepo(Plugin):
 					)
 					msg_str = f"Plugin {plugin_name} disabled."
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+					self.app.stdscr.getch()
 
 				display_menu(self.app.stdscr, (
 					("Yes", disable_plugin),
@@ -292,6 +294,7 @@ class PluginRepo(Plugin):
 					msg_str = f"Plugin {plugin_name} enabled !"
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 					print(msg_str)
+					self.app.stdscr.getch()
 
 				display_menu(self.app.stdscr, (
 					("Yes", enable_plugin),

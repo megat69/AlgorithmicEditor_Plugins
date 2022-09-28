@@ -16,10 +16,12 @@ class CtrlDel(Plugin):
 		"""
 		Removes a whole world backwards.
 		"""
-		if self.app.current_text[self.app.current_index - 1] == " ":
-			self._remove_current_char()
-		while self.app.current_text[self.app.current_index - 1] in string.ascii_letters and self.app.current_index - 1 > 0:
-			self._remove_current_char()
+		try:
+			if self.app.current_text[self.app.current_index - 1] == " ":
+				self._remove_current_char()
+			while self.app.current_text[self.app.current_index - 1] in string.ascii_letters and self.app.current_index - 1 > 0:
+				self._remove_current_char()
+		except IndexError: return
 		self.app.stdscr.clear()
 
 	def _remove_current_char(self):

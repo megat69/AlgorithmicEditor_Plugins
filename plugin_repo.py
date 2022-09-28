@@ -54,9 +54,11 @@ class PluginRepo(Plugin):
 		self.selected_menu_item = 0
 
 		i = 0
-		self.app.stdscr.addstr(0, 20, f"-- {'AVAILABLE' if plist is not None else ''} PLUGINS LIST --".center(32), curses.A_BOLD)
+		msg = f"-- {'AVAILABLE' if plist is not None else ''} PLUGINS LIST --"
+		self.app.stdscr.addstr(0, self.app.cols // 2 - len(msg) // 2, msg, curses.A_BOLD)
 		if plist is None:
-			self.app.stdscr.addstr(1, 20, "Faulty plugins displayed in red.", curses.A_BOLD)
+			msg = "Faulty plugins displayed in red."
+			self.app.stdscr.addstr(1, self.app.cols // 2 - len(msg) // 2, msg, curses.A_BOLD)
 		for plugin in (os.listdir(os.path.dirname(__file__)) if plist is None else plist):
 			if plugin.startswith("__") or \
 				os.path.isdir(os.path.join(os.path.dirname(__file__), plugin))\
@@ -68,9 +70,9 @@ class PluginRepo(Plugin):
 
 			# Displaying each plugin name at the left of the screen
 			if plugin in self.app.plugins.keys() or plist is not None:
-				self.app.stdscr.addstr(i + 3, 20, plugin.center(32))
+				self.app.stdscr.addstr(i + 3, self.app.cols // 2 - len(plugin) // 2, plugin)
 			else:
-				self.app.stdscr.addstr(i + 3, 20, plugin.center(32), curses.color_pair(1))
+				self.app.stdscr.addstr(i + 3, self.app.cols // 2 - len(plugin) // 2, plugin, curses.color_pair(1))
 
 			# Incrementing i by 1, we are forced to do this because we ignore some files at the
 			# start of the loop.
@@ -116,8 +118,9 @@ class PluginRepo(Plugin):
 			plugins = soup.find_all(title=re.compile("\.py$"))
 
 			# Lists the available plugins to the user
-			plugins_list = [e.extract().get_text()[:-3] for e in plugins]
+			plugins_list = [e.extract().get_text() for e in plugins]
 			self.list_plugins(plugins_list, getch=False)
+			plugins_list = [e[:-3] for e in plugins_list]
 
 			# Asks the user to input the plugin name
 			self.app.stdscr.addstr(self.app.rows - 2, 0, "Input the name of the plugin to download, or leave blank to cancel.")
@@ -133,10 +136,19 @@ class PluginRepo(Plugin):
 							f.write(r.text)
 						msg_str = f"The plugin '{user_wanted_plugin}' has been successfully installed !"
 						self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+						self.app.stdscr.getch()
+						display_menu(
+							self.app.stdscr,
+							(
+								("Yes", self.reload_plugins),
+								("No", lambda: None)
+							),
+							label = "Do you want to reload the plugins ?"
+						)
 				else:
 					msg_str = f"The plugin '{user_wanted_plugin}' doesn't seem to exist."
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
-				self.app.stdscr.getch()
+					self.app.stdscr.getch()
 
 
 	def delete_plugins(self):

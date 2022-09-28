@@ -22,7 +22,7 @@ class PluginRepo(Plugin):
 
 
 	def init(self):
-		print("PluginRepo plugin loaded !")
+		self.app.log("PluginRepo plugin loaded !")
 
 
 	def manage_plugins(self):
@@ -195,13 +195,13 @@ class PluginRepo(Plugin):
 				try:
 					self.app.plugins[plugin] = [importlib.import_module(f"plugins.{plugin}")]
 				except Exception as e:
-					print(f"Failed to (re)load plugin {plugin} :\n{e}")
+					self.app.log(f"Failed to (re)load plugin {plugin} :\n{e}")
 					continue
 			else:
 				try:
 					self.app.plugins[plugin] = [importlib.reload(self.app.plugins[plugin][0])]
 				except Exception as e:
-					print(f"Failed to reload plugin {plugin} :\n{e}")
+					self.app.log(f"Failed to reload plugin {plugin} :\n{e}")
 					del self.app.plugins[plugin]
 					continue
 
@@ -209,7 +209,7 @@ class PluginRepo(Plugin):
 			try:
 				self.app.plugins[plugin].append(self.app.plugins[plugin][0].init(self.app))
 			except Exception as e:
-				print(f"An error occurred while importing the plugin '{plugin}' :\n{e}")
+				self.app.log(f"An error occurred while importing the plugin '{plugin}' :\n{e}")
 				del self.app.plugins[plugin]
 
 		self.list_plugins()
@@ -281,7 +281,7 @@ class PluginRepo(Plugin):
 					try:
 						self.app.plugins[plugin_name] = [importlib.import_module(f"plugins.{plugin_name}")]
 					except Exception as e:
-						print(f"Failed to load plugin {plugin_name} :\n{e}")
+						self.app.log(f"Failed to load plugin {plugin_name} :\n{e}")
 						return
 
 					# Initializes the plugins init function
@@ -289,11 +289,11 @@ class PluginRepo(Plugin):
 						self.app.plugins[plugin_name].append(self.app.plugins[plugin_name][0].init(self.app))
 					except Exception as e:
 						del self.app.plugins[plugin_name]
-						print(f"An error occurred while importing the plugin '{plugin_name}' :\n{e}")
+						self.app.log(f"An error occurred while importing the plugin '{plugin_name}' :\n{e}")
 
 					msg_str = f"Plugin {plugin_name} enabled !"
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
-					print(msg_str)
+					self.app.log(msg_str)
 					self.app.stdscr.getch()
 
 				display_menu(self.app.stdscr, (

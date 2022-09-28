@@ -80,6 +80,7 @@ class PluginRepo(Plugin):
 		if getch:
 			self.app.stdscr.getch()
 
+
 	def download_plugins(self):
 		"""
 		Downloads a plugin from the plugins repository.
@@ -100,8 +101,6 @@ class PluginRepo(Plugin):
 			self.app.stdscr.addstr(self.app.rows // 2 + 1, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 			self.app.stdscr.getch()
 
-		# TODO : Async this to create the UI before the download
-
 		try:
 			r = requests.get(github_url)
 		except requests.exceptions.ConnectionError:
@@ -109,6 +108,7 @@ class PluginRepo(Plugin):
 			msg_str = f"Please check your connection and try again."
 			self.app.stdscr.addstr(self.app.rows // 2 + 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 			return
+
 		if r.status_code != 200:
 			wrong_return_code_inconvenience()
 		else:
@@ -124,7 +124,7 @@ class PluginRepo(Plugin):
 			user_wanted_plugin = input_text(self.app.stdscr)
 			if user_wanted_plugin != "":
 				if user_wanted_plugin in plugins_list:
-					r = requests.get("https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/plugin_repo.py")
+					r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{user_wanted_plugin}.py")
 					if r.status_code != 200:
 						wrong_return_code_inconvenience()
 					else:
@@ -214,6 +214,7 @@ class PluginRepo(Plugin):
 
 		self.list_plugins()
 
+
 	def disable_plugins(self):
 		"""
 		Disables an existing plugin.
@@ -250,6 +251,7 @@ class PluginRepo(Plugin):
 				msg_str = f"The plugin '{plugin_name}' doesn't seem to be installed."
 				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 				self.app.stdscr.getch()
+
 
 	def enable_plugins(self):
 		"""

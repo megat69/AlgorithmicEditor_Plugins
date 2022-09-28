@@ -37,7 +37,7 @@ class PluginRepo(Plugin):
 				("Delete plugins", self.delete_plugins),
 				("Disable plugins", self.disable_plugins),
 				("Enable plugins", self.enable_plugins),
-				("Reload plugins", self.reload_plugins),  #Left on the side for later implementation
+				("Reload plugins", self.reload_plugins),
 				("Leave", self.leave)
 			), self.selected_menu_item)
 

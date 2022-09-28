@@ -19,19 +19,17 @@ class ChangeCommandSymbol(Plugin):
 		self.app.stdscr.addstr(self.app.rows - 1, 0, message)
 		key = self.app.stdscr.getkey()
 		if len(key) == 1 and key not in ("\n", "\b"):
-			for i, e in enumerate(self.app.commands):
-				if e[0] == self.app.command_symbol:
-					# Changes the command symbol
-					self.app.command_symbol = key
-					# Changes the command allowing the user to type the command symbol into the text
-					self.app.commands[i] = (
-						self.app.command_symbol,
-						partial(
-							self.app.add_char_to_text,
-							self.app.command_symbol
-						),
-						self.app.command_symbol
-					)
+			del self.app.commands[self.app.command_symbol]
+			# Changes the command symbol
+			self.app.command_symbol = key
+			# Changes the command allowing the user to type the command symbol into the text
+			self.app.commands[self.app.command_symbol] = (
+				partial(
+					self.app.add_char_to_text,
+					self.app.command_symbol
+				),
+				self.app.command_symbol
+			)
 			# Tells the user about the change
 			message2 = "Command character changed to : "
 			self.app.stdscr.addstr(self.app.rows - 1, 0, message2 + key + (" " * (len(message) - len(message2))))

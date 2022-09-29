@@ -19,7 +19,7 @@ class AutocompletionPlugin(Plugin):
 
 		# Variable to determine whether to add a space after autompletion or not
 		self.auto_add_space = False
-		self.add_command("+", self.toggle_auto_add_space, "Autocomplete Toggle Auto Add Space")
+		self.add_command("+", self.toggle_auto_add_space, "Autocomplete Toggle Auto Add Space", True)
 
 
 	def update_on_keypress(self, key:str):

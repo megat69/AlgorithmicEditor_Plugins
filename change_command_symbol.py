@@ -28,7 +28,7 @@ class ChangeCommandSymbol(Plugin):
 					self.app.add_char_to_text,
 					self.app.command_symbol
 				),
-				self.app.command_symbol
+				self.app.command_symbol, True
 			)
 			# Tells the user about the change
 			message2 = "Command character changed to : "

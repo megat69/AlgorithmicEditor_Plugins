@@ -17,6 +17,10 @@ class AutocompletionPlugin(Plugin):
 		# Creates an autcomplete variable
 		self.ac = None
 
+		# Variable to determine whether to add a space after autompletion or not
+		self.auto_add_space = False
+		self.add_command("+", self.toggle_auto_add_space, "Autocomplete Toggle Auto Add Space")
+
 
 	def update_on_keypress(self, key:str):
 		"""
@@ -28,7 +32,7 @@ class AutocompletionPlugin(Plugin):
 			                        + self.app.current_text[self.app.current_index:]
 			self.app.current_index -= 1
 			# Adding the autocompleted words to the text
-			self.app.add_char_to_text(self.ac[0][0][len(self.ac[1]):])
+			self.app.add_char_to_text(self.ac[0][0][len(self.ac[1]):] + " " * self.auto_add_space)
 
 		# Updates the word list, in case any plugins adds syntax highlighting on the go
 		"""for e in self.app.color_control_flow.values():
@@ -60,6 +64,14 @@ class AutocompletionPlugin(Plugin):
 				self.ac.append(splitted_line[0])
 			else:
 				self.ac = None
+
+
+	def toggle_auto_add_space(self):
+		"""
+		Toggles whether to automatically add a space after the autocompletion.
+		"""
+		self.auto_add_space = not self.auto_add_space
+		self.app.stdscr.addstr(self.app.rows - 1, 4, f"Toggled auto add space to {self.auto_add_space} ")
 
 
 def init(app) -> AutocompletionPlugin:

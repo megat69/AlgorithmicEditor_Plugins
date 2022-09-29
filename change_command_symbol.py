@@ -8,7 +8,7 @@ class ChangeCommandSymbol(Plugin):
 	"""
 	def __init__(self, app):
 		super().__init__(app)
-		self.add_command("?", self.change_command_symbol, "Change command symbol")
+		self.add_command("?", self.change_command_symbol, "Change command symbol", True)
 
 
 	def change_command_symbol(self):

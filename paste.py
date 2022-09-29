@@ -17,7 +17,6 @@ class PastePlugin(Plugin):
 		"""
 		clipboard_contents = pyperclip.paste()
 		self.app.add_char_to_text(clipboard_contents)
-		self.app.current_index += len(clipboard_contents) - 1
 
 
 def init(app) -> PastePlugin:

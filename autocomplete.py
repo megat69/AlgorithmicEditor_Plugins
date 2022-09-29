@@ -14,10 +14,10 @@ class AutocompletionPlugin(Plugin):
 		# Initializing the autocomplete
 		self.autocomplete = AutoComplete(words=self.words)
 
-		# Creates an autcomplete variable
+		# Creates an autocomplete variable
 		self.ac = None
 
-		# Variable to determine whether to add a space after autompletion or not
+		# Variable to determine whether to add a space after autocompletion or not
 		self.auto_add_space = False
 		self.add_command("+", self.toggle_auto_add_space, "Autocomplete Toggle Auto Add Space", True)
 

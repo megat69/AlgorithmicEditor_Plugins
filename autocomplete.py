@@ -55,12 +55,16 @@ class AutocompletionPlugin(Plugin):
 			self.ac = self.autocomplete.search(splitted_line[0], size=1)
 			# If a word was autocompleted
 			if len(self.ac) != 0:
-				self.app.stdscr.addstr(
-					self.app.cur[0],
-					self.app.cur[1],
-					self.ac[0][0][len(splitted_line[0])-1:],
-					curses.color_pair(self.app.color_pairs["autocomplete"]) | curses.A_ITALIC
-				)
+				try:
+					self.app.stdscr.addstr(
+						self.app.cur[0],
+						self.app.cur[1],
+						self.ac[0][0][len(splitted_line[0])-1:],
+						curses.color_pair(self.app.color_pairs["autocomplete"]) | curses.A_ITALIC
+					)
+				except curses.error:
+					self.ac = None
+					return
 				self.ac.append(splitted_line[0])
 			else:
 				self.ac = None

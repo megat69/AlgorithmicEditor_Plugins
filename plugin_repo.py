@@ -38,6 +38,7 @@ class PluginRepo(Plugin):
 				("Disable plugins", self.disable_plugins),
 				("Enable plugins", self.enable_plugins),
 				("Reload plugins", self.reload_plugins),
+				("Read online plugins doc", self.docs_plugins),
 				("Leave", self.leave)
 			), self.selected_menu_item)
 
@@ -83,13 +84,10 @@ class PluginRepo(Plugin):
 			self.app.stdscr.getch()
 
 
-	def download_plugins(self):
+	def list_online_plugins(self):
 		"""
-		Downloads a plugin from the plugins repository.
+		Lists the online plugins available.
 		"""
-		# Selects this function by default from the menu
-		self.selected_menu_item = 1
-
 		# Gives a list of all the available apps
 		github_url = 'https://github.com/megat69/AlgorithmicEditor_Plugins/tree/master/'
 
@@ -120,35 +118,99 @@ class PluginRepo(Plugin):
 			# Lists the available plugins to the user
 			plugins_list = [e.extract().get_text() for e in plugins]
 			self.list_plugins(plugins_list, getch=False)
-			plugins_list = [e[:-3] for e in plugins_list]
+			return [e[:-3] for e in plugins_list]
 
-			# Asks the user to input the plugin name
-			self.app.stdscr.addstr(self.app.rows - 2, 0, "Input the name of the plugin to download, or leave blank to cancel.")
-			user_wanted_plugin = input_text(self.app.stdscr)
-			if user_wanted_plugin != "":
-				if user_wanted_plugin in plugins_list:
-					r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{user_wanted_plugin}.py")
-					if r.status_code != 200:
-						wrong_return_code_inconvenience()
-					else:
-						with open(os.path.join(os.path.dirname(__file__), f"{user_wanted_plugin}.py"),
-						          "w", encoding="utf-8") as f:
-							f.write(r.text)
-						msg_str = f"The plugin '{user_wanted_plugin}' has been successfully installed !"
-						self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
-						self.app.stdscr.getch()
-						display_menu(
-							self.app.stdscr,
-							(
-								("Yes", self.reload_plugins),
-								("No", lambda: None)
-							),
-							label = "Do you want to reload the plugins ?"
-						)
+
+	def download_plugins(self):
+		"""
+		Downloads a plugin from the plugins repository.
+		"""
+		# Selects this function by default from the menu
+		self.selected_menu_item = 1
+
+		def wrong_return_code_inconvenience():
+			"""
+			Tells the user about an inconvenience during download attempt.
+			"""
+			msg_str = f"There have been a problem during the fetching of"
+			self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+			msg_str = f"the plugins list online. We apologize for the inconvenience."
+			self.app.stdscr.addstr(self.app.rows // 2 + 1, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+			self.app.stdscr.getch()
+
+
+		plugins_list = self.list_online_plugins()
+
+		# Asks the user to input the plugin name
+		self.app.stdscr.addstr(self.app.rows - 2, 0, "Input the name of the plugin to download, or leave blank to cancel.")
+		user_wanted_plugin = input_text(self.app.stdscr)
+		if user_wanted_plugin != "":
+			if user_wanted_plugin in plugins_list:
+				r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{user_wanted_plugin}.py")
+				if r.status_code != 200:
+					wrong_return_code_inconvenience()
 				else:
-					msg_str = f"The plugin '{user_wanted_plugin}' doesn't seem to exist."
+					with open(os.path.join(os.path.dirname(__file__), f"{user_wanted_plugin}.py"),
+					          "w", encoding="utf-8") as f:
+						f.write(r.text)
+					# Trying to download the docs
+					r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{user_wanted_plugin}.md")
+					if r.status_code == 200:
+						with open(os.path.join(os.path.dirname(__file__), f"{user_wanted_plugin}.md"), "w", encoding="utf-8") as f:
+							f.write(r.text)
+					msg_str = f"The plugin '{user_wanted_plugin}' has been successfully installed !"
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 					self.app.stdscr.getch()
+					display_menu(
+						self.app.stdscr,
+						(
+							("Yes", self.reload_plugins),
+							("No", lambda: None)
+						),
+						label = "Do you want to reload the plugins ?"
+					)
+			else:
+				msg_str = f"The plugin '{user_wanted_plugin}' doesn't seem to exist."
+				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+				self.app.stdscr.getch()
+
+
+	def docs_plugins(self):
+		"""
+		Reads the documentation of a plugin from the repository
+		"""
+		# Selects this function by default from the menu
+		self.selected_menu_item = 6
+
+		def wrong_return_code_inconvenience():
+			"""
+			Tells the user about an inconvenience during download attempt.
+			"""
+			msg_str = f"There have been a problem during the fetching of"
+			self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+			msg_str = f"the plugins list online. We apologize for the inconvenience."
+			self.app.stdscr.addstr(self.app.rows // 2 + 1, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+			self.app.stdscr.getch()
+
+
+		plugins_list = self.list_online_plugins()
+
+		# Asks the user to input the plugin name
+		self.app.stdscr.addstr(self.app.rows - 2, 0, "Input the name of the plugin to download, or leave blank to cancel.")
+		user_wanted_plugin = input_text(self.app.stdscr)
+		if user_wanted_plugin != "":
+			if user_wanted_plugin in plugins_list:
+				r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{user_wanted_plugin}.md")
+				if r.status_code != 200:
+					wrong_return_code_inconvenience()
+				else:
+					self.app.stdscr.clear()  #TODO Markdown
+					self.app.stdscr.addstr(0, 0, r.text)
+					self.app.stdscr.getch()
+			else:
+				msg_str = f"The plugin documentation for '{user_wanted_plugin}' doesn't seem to exist."
+				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+				self.app.stdscr.getch()
 
 
 	def delete_plugins(self):
@@ -170,6 +232,9 @@ class PluginRepo(Plugin):
 			if plugin_name in plugins_list:  # If the plugin exists
 				def delete_plugin():
 					os.remove(os.path.join(os.path.dirname(__file__), f"{plugin_name}.py"))
+					try:
+						os.remove(os.path.join(os.path.dirname(__file__), f"{plugin_name}.md"))
+					except FileNotFoundError: pass
 					msg_str = f"Plugin {plugin_name} deleted."
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 					self.app.stdscr.getch()

@@ -42,6 +42,12 @@ Then, you should create a Python file within the `plugins` folder of the editor,
 
 This file will contain all your plugin's code, as plugins are *(at least at the moment)* single-file only.
 
+If you need to work with multiple files, you may create/download them yourself from the plugin file.<br>
+*Tip : The `requests` module is great for this purpose, and is already a dependency of the editor.*
+
+If you need to install dependencies, you may install them yourself.<br>
+*Tip : The `os.system()` function can serve this purpose.*
+
 Once the file is created, copy this boilerplate into it :
 ```python
 from plugin import Plugin
@@ -61,6 +67,12 @@ Tout d'abord, vous devriez télécharger le `plugin_repo`. Il vous permettra de 
 Ensuite, il vous faudra créer un fichier Python dans le dossier `plugins` de l'éditeur, avec le nom que vous voulez, tant qu'il a l'extension `.py`.<br>
 
 Ce fichier va contenir le code de votre Plugin, vu que les plugins sont *(au moins pour le moment)* single-file (fichier unique) uniquement.
+
+Si vous devez travailler avec plusieurs fichiers, vous devrez les créer/télécharger vous-même depuis le fichier du plugin.<br>
+*Conseil : Le module `requests` est parfait pour cette utilisation, et est déjà une dépendance de l'éditeur.*
+
+Si vous devez installer des dépendances, il vous faudra les faire installer vous-même.<br>
+*Conseil : La fonction `os.system()` peut servir à ça.*
 
 Une fois que ce fichier est créé, copiez ce code par défaut dedans :
 ```python

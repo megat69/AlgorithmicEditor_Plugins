@@ -35,10 +35,10 @@ class AutocompletionPlugin(Plugin):
 			self.app.add_char_to_text(self.ac[0][0][len(self.ac[1]):] + " " * self.auto_add_space)
 
 		# Updates the word list, in case any plugins adds syntax highlighting on the go
-		"""for e in self.app.color_control_flow.values():
+		for e in self.app.color_control_flow.values():
 			for element in e:
 				if element not in self.words.keys():
-					self.words[element] = {}""" # Not working, awaiting fix
+					self.words[element] = {}
 
 
 	def update_on_syntax_highlight(self, line:str, splitted_line:list, i:int):

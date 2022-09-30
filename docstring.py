@@ -1,4 +1,5 @@
 from plugin import Plugin
+from utils import input_text
 
 
 class DocstringPlugin(Plugin):
@@ -18,7 +19,17 @@ class DocstringPlugin(Plugin):
 		"""
 		Adds the docstring to the text.
 		"""
-		self.app.add_char_to_text(" \n".join(self.docstring_components))
+		for component in self.docstring_components:
+			if component != "vars":
+				self.app.stdscr.addstr(self.app.rows - 2, 0, component)
+				contents = input_text(self.app.stdscr + " " * 10)
+				if contents != "":
+					self.app.add_char_to_text(component + " " + contents + "\n")
+				else:
+					self.app.add_char_to_text("\n")
+			else:
+				self.app.add_char_to_text(component + "\n")
+
 
 	def update_on_syntax_highlight(self, line:str, splitted_line:list, i:int):
 		"""

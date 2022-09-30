@@ -37,7 +37,7 @@ Avant de créer un plugin, vous devriez jeter un coup d'oeil à la classe `Plugi
 
 ### Getting started
 ***ENGLISH***<br>
-First of all, you should download the `plugin_repo`. It will allow you to reload your plugin within the editor instead of having to reboot it every time.<br>
+First of all, you should download the `plugin_repo`. It will allow you to reload your plugin within the editor instead of having to reboot it every time you change something.<br>
 Then, you should create a Python file within the `plugins` folder of the editor, with whichever name you want, as long as it has the `.py` extension.<br>
 
 This file will contain all your plugin's code, as plugins are *(at least at the moment)* single-file only.
@@ -56,6 +56,26 @@ def init(app):
 ```
 *(Obviously replace `YourPluginName` with the name of your plugin.)*
 
+***FRANÇAIS***<br>
+Tout d'abord, vous devriez télécharger le `plugin_repo`. Il vous permettra de recharger votre plugin depuis l'éditeur au lieu d'avoir à le redémarrer à chaque modification.<br>
+Ensuite, il vous faudra créer un fichier Python dans le dossier `plugins` de l'éditeur, avec le nom que vous voulez, tant qu'il a l'extension `.py`.<br>
+
+Ce fichier va contenir le code de votre Plugin, vu que les plugins sont *(au moins pour le moment)* single-file (fichier unique) uniquement.
+
+Une fois que ce fichier est créé, copiez ce code par défaut dedans :
+```python
+from plugin import Plugin
+
+class NomDeVotrePlugin(Plugin):
+    def __init__(self, app):
+        super().__init__(app)
+
+
+def init(app):
+    return NomDeVotrePlugin(app)
+```
+*(Évidemment, remplacez `NomDeVotrePlugin` par le nom de votre plugin.)*
+
 ### The Plugin class
 ***ENGLISH***<br>
 As you can see, you get access to an attribute named `app`. Well, it is none other than the main application class itself. So, if you use `self.app`, you can access any of the app's attributes and methods. I recommend you to check them out, they're all documented in the code.
@@ -63,7 +83,7 @@ As you can see, you get access to an attribute named `app`. Well, it is none oth
 The `Plugin` class will grant you access to a few functions that you might find useful when creating a plugin. It's up to you to use them or not, please also note that you can also create your own methods for your class.<br>
 Those functions include :
 - `init()` : Allows you to log a message, or basically do any task once the plugin is loaded.
-  - Beware, just like `__init__(app)`, it is ran BEFORE curses wraps around main. Accessing curses methods at this point will simply crash the editor. *This behaviour might get changed in the future.*
+  - Beware, just like `__init__(app)`, it is ran BEFORE curses wraps around `main`. Accessing curses methods at this point will simply crash the editor. *This behaviour might get changed in the future.*
 - `add_command(character:str, function:Callable, description:str, hidden:bool = False)` : Probably the most interesting method, the `add_command` method will simply... Well, create a command.
   - Most official plugins do that, if you want to check on how they do.
   - It takes as arguments : 
@@ -76,7 +96,29 @@ Those functions include :
 - `update_on_syntax_highlight(line:str, splitted_line:list, i:int)` : This method will be called n times each frame, where n is the amount of lines in the `app.current_text` variable.
   - This method will allow you to add custom syntax highlighting to any line.
   - `line` represents the current line, `splitted_line`, a version split on spaces, and `i` its y coordinate.
-  - A great example of how to use this method is in the `docstring` plugin.
 - `update_on_compilation(final_compiled_code:str, compilation_type:str)` : This method will be called upon compilation of the pseudocode in either algorithmic code or C++.
   - It takes as argument the final compiled code, which is one very long string.
   - The second argument is the compilation type, so whether it was compiled in C++ or Algorithmic. It will thus either take the value "cpp" or "algo".
+
+***FRANÇAIS***<br>
+Comme vous pouvez le voir, vous recevez l'accès à un attribut nommé `app`. Eh bien, il s'agit de l'application principale. Ainsi, si vous utilisez `self.app`, vous pouvez accéder à n'importe lequel des attributs ou méthodes de l'éditeur. Je vous recommande d'aller regarder la classe `App` et ses attributs, ils sont tous documentés dans le code *(en anglais uniquement)*.
+
+La classe `Plugin` vous donnera accès à quelques fonctions qui pourront vous être utiles lors de la création d'un Plugin. Vous pouvez les utiliser ou non, veuillez noter que vous pouvez aussi créer vos propres méthodes pour votre classe.<br>
+Ces fonctions sont :
+- `init()` : Vous permet de logger un message, ou faire ce que vous voulez dès que le plugin est chargé.
+  - Attention, de la même manière que `__init__(app)`, la fonction est lancée AVANT que curses n'injecte ses variables dans `main`. Accéder à des méthodes/variables curses dans cette fonction va simplement crasher l'éditer. *Ce fonctionnement pourra être changé dans le futur.*
+- `add_command(character:str, function:Callable, description:str, hidden:bool = False)` : Probablement la méthode la plus intéressante, la méthode `add_command` va simplement... Eh bien, créer une commande.
+  - La plupart des plugins officiels l'utilisent, si vous souhaitez regarder comment ils fonctionnent.
+  - Elle prend comme paramètres : 
+    - Le caractère qui suivra le symbole de commande pour déclencher la commande (e.g. si votre commande est déclenchée par `:a`, alors ce caractère `'a'`) ; 
+    - Ensuite se trouve la fonction qui sera appelée quand la commande sera déclenchée (il peut s'agir d'une lambda, une partial, une méthode de classe, ou une fonction classique, n'importe quel Callable/fonction callback) ;
+    - Suivi par un *TRÈS* court titre pour la fonction (vu le peu d'espace à l'écran, ne la faites pas plus longue que 20 caractères, même si c'est possible et permis) ;
+    - Et pour finir un booléen indicant si la fonction devrait être cachée ou non (si vous trouvez que cette fonction n'est pas si importante, veuillez mettre cette option à True, et votre commande ne sera affichée que dans la liste des commandes).
+- `update_on_keypress(key:str)` : Cette méthode est exécutée chaque fois que l'utilisateur presse une touche. La touche pressée par l'utilisateur vous sera aussi donnée.
+  - Notez que si vous décidez de ne pas utiliser la touche, cette méthode peut devenir une méthode update executée à chaque frame.
+- `update_on_syntax_highlight(line:str, splitted_line:list, i:int)` : Cette méthode sera appellée n fois à chaque frame, où n correspond en au nombre de lignes dans la variable `app.current_text`.
+  - Cette méthode va vous permettre d'ajouter une coloration syntaxique personnalisée sur n'importe quelle ligne.
+  - `line` représente la ligne courante, `splitted_line`, une version de cette même ligne séparée sur les espaces, et `i` sa coordonnée y.
+- `update_on_compilation(final_compiled_code:str, compilation_type:str)` : Cette méthode sera appelée à la fin de la compilation de pseudocode vers algorithmique ou C++.
+  - Le premier argument est le code compilé final, qui est une très longue chaîne de caractères.
+  - Le deuxième argument est le type de compilation, donc si il s'agit d'une compilation vers C++ ou Algorithmique. Il prendra donc la valeur "cpp" ou "algo".

@@ -204,8 +204,11 @@ class PluginRepo(Plugin):
 				if r.status_code != 200:
 					wrong_return_code_inconvenience()
 				else:
-					self.app.stdscr.clear()  #TODO Markdown
-					self.app.stdscr.addstr(0, 0, r.text)
+					self.app.stdscr.clear()
+					# Puts text into shape with markdown
+					for i, line in enumerate(r.text.split("\n")):
+						color = line.count("#")
+						self.app.stdscr.addstr(i, 0, line, curses.color_pair(color))
 					self.app.stdscr.getch()
 			else:
 				msg_str = f"The plugin documentation for '{user_wanted_plugin}' doesn't seem to exist."

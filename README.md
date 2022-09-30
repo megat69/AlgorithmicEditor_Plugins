@@ -1,5 +1,9 @@
 # AlgorithmicEditor_Plugins
 
+![image](https://img.shields.io/github/languages/code-size/megat69/AlgorithmicEditor_Plugins)
+![image](https://img.shields.io/tokei/lines/github/megat69/AlgorithmicEditor_Plugins)
+![image](https://img.shields.io/github/commit-activity/m/megat69/AlgorithmicEditor_Plugins)
+
 ## Plugins
 See [in the main repository](https://github.com/megat69/AlgorithmicEditor_Plugins) for the app.
 

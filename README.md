@@ -122,3 +122,11 @@ Ces fonctions sont :
 - `update_on_compilation(final_compiled_code:str, compilation_type:str)` : Cette méthode sera appelée à la fin de la compilation de pseudocode vers algorithmique ou C++.
   - Le premier argument est le code compilé final, qui est une très longue chaîne de caractères.
   - Le deuxième argument est le type de compilation, donc si il s'agit d'une compilation vers C++ ou Algorithmique. Il prendra donc la valeur "cpp" ou "algo".
+
+
+## Uploading your plugin
+***ENGLISH***<br>
+Simply fork and clone this repo, then add your plugin, and create a pull request. I will then have to manually merge it to the repo. At this point, it will be accessible for anyone to download from the `plugin_repo`.
+
+***FRANÇAIS***<br>
+Créez un fork de ce dépôt, puis clonez-le, ajoutez votre plugin, et créez une pull request. J'aurai ensuite à le fusionner manuellement vers le dépôt. À partir de là, il sera accessible pour n'importe qui de le télécharger depuis le `plugin_repo`.

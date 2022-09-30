@@ -28,4 +28,10 @@ Au moment de l'écriture de ces lignes, les plugins officiels contiennent, mais 
 ## How to create a plugin ?
 ***ENGLISH***<br>
 Creating a plugin requires very little knowledge of Python. If you know about classes and inheritance, then you should be good to go.<br>
-Before creating a plugin, you should look into the `Plugin` class (`plugin.py`) and the source code of official plugins to see how they work behind the hood.
+Before creating a plugin, you should look into the `Plugin` class (`plugin.py`) and the source code of official plugins to see how they work behind the hood ; `paste` and `autocomplete` are pretty good examples. *Some are poorly made though, so be aware.*
+
+***FRANÇAIS***<br>
+Créer un plugin demande assez peu de connaissances de Python. Si vous connaissez les notions de classes et d'héritage, vous devriez pouvoir vous en sortir.<br>
+Avant de créer un plugin, vous devriez jeter un coup d'oeil à la classe `Plugin` (`plugin.py`) et le code source de quelques plugins officiels pour voir leur manière de fonctionner ; `paste` et `autocomplete` sont de bons exemples. *Attention, certains plugins sont fais à la va-vite et mal codés, ne prenez pas exemple sur eux.*
+
+

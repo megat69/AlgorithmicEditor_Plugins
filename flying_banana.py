@@ -29,7 +29,8 @@ class FlyingBanana(Plugin):
 			for j in range(len(self.banana[i])):
 				try:
 					self.app.stdscr.addstr(10 + i, j + self.x_pos, self.banana[i][j])
-				except curses.error: pass
+				except curses.error:
+					self.app.stdscr.addstr(10 + i, (j + self.x_pos) - self.app.cols, self.banana[i][j])
 
 		self.x_pos += 1
 		if self.x_pos > self.app.cols:

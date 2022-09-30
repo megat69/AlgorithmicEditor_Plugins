@@ -364,6 +364,8 @@ class PluginRepo(Plugin):
 		"""
 		if key == "KEY_F(6)":
 			self.manage_plugins()
+		elif key == "KEY_F(5)":
+			self.reload_plugins()
 
 
 	def _wrong_return_code_inconvenience(self):

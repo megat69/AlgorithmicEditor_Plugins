@@ -22,7 +22,7 @@ class DocstringPlugin(Plugin):
 		for component in self.docstring_components:
 			if component != "vars":
 				self.app.stdscr.addstr(self.app.rows - 2, 0, component)
-				contents = input_text(self.app.stdscr + " " * 10)
+				contents = input_text(self.app.stdscr)
 				if contents != "":
 					self.app.add_char_to_text(component + " " + contents + "\n")
 				else:

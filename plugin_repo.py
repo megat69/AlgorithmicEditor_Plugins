@@ -91,26 +91,16 @@ class PluginRepo(Plugin):
 		# Gives a list of all the available apps
 		github_url = 'https://github.com/megat69/AlgorithmicEditor_Plugins/tree/master/'
 
-		def wrong_return_code_inconvenience():
-			"""
-			Tells the user about an inconvenience during download attempt.
-			"""
-			msg_str = f"There have been a problem during the fetching of"
-			self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
-			msg_str = f"the plugins list online. We apologize for the inconvenience."
-			self.app.stdscr.addstr(self.app.rows // 2 + 1, self.app.cols // 2 - len(msg_str) // 2, msg_str)
-			self.app.stdscr.getch()
-
 		try:
 			r = requests.get(github_url)
 		except requests.exceptions.ConnectionError:
-			wrong_return_code_inconvenience()
+			self._wrong_return_code_inconvenience()
 			msg_str = f"Please check your connection and try again."
 			self.app.stdscr.addstr(self.app.rows // 2 + 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 			return
 
 		if r.status_code != 200:
-			wrong_return_code_inconvenience()
+			self._wrong_return_code_inconvenience()
 		else:
 			soup = BeautifulSoup(r.text, 'html.parser')
 			plugins = soup.find_all(title=re.compile("\.py$"))
@@ -128,16 +118,6 @@ class PluginRepo(Plugin):
 		# Selects this function by default from the menu
 		self.selected_menu_item = 1
 
-		def wrong_return_code_inconvenience():
-			"""
-			Tells the user about an inconvenience during download attempt.
-			"""
-			msg_str = f"There have been a problem during the fetching of"
-			self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
-			msg_str = f"the plugins list online. We apologize for the inconvenience."
-			self.app.stdscr.addstr(self.app.rows // 2 + 1, self.app.cols // 2 - len(msg_str) // 2, msg_str)
-			self.app.stdscr.getch()
-
 
 		plugins_list = self.list_online_plugins()
 
@@ -148,7 +128,7 @@ class PluginRepo(Plugin):
 			if user_wanted_plugin in plugins_list:
 				r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{user_wanted_plugin}.py")
 				if r.status_code != 200:
-					wrong_return_code_inconvenience()
+					self._wrong_return_code_inconvenience()
 				else:
 					with open(os.path.join(os.path.dirname(__file__), f"{user_wanted_plugin}.py"),
 					          "w", encoding="utf-8") as f:
@@ -182,16 +162,6 @@ class PluginRepo(Plugin):
 		# Selects this function by default from the menu
 		self.selected_menu_item = 6
 
-		def wrong_return_code_inconvenience():
-			"""
-			Tells the user about an inconvenience during download attempt.
-			"""
-			msg_str = f"There have been a problem during the fetching of"
-			self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
-			msg_str = f"the plugins list online. We apologize for the inconvenience."
-			self.app.stdscr.addstr(self.app.rows // 2 + 1, self.app.cols // 2 - len(msg_str) // 2, msg_str)
-			self.app.stdscr.getch()
-
 
 		plugins_list = self.list_online_plugins()
 
@@ -202,7 +172,7 @@ class PluginRepo(Plugin):
 			if user_wanted_plugin in plugins_list:
 				r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{user_wanted_plugin}.md")
 				if r.status_code != 200:
-					wrong_return_code_inconvenience()
+					self._wrong_return_code_inconvenience()
 				else:
 					self.app.stdscr.clear()
 					# Puts text into shape with markdown
@@ -386,6 +356,25 @@ class PluginRepo(Plugin):
 				msg_str = f"The plugin '{plugin_name}' doesn't seem to be installed."
 				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 				self.app.stdscr.getch()
+
+
+	def update_on_keypress(self, key:str):
+		"""
+		Triggers the :r if F6 is hit.
+		"""
+		if key == "KEY_F(6)":
+			self.manage_plugins()
+
+
+	def _wrong_return_code_inconvenience(self):
+		"""
+		Tells the user about an inconvenience during download attempt.
+		"""
+		msg_str = f"There have been a problem during the fetching of"
+		self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+		msg_str = f"the plugins list online. We apologize for the inconvenience."
+		self.app.stdscr.addstr(self.app.rows // 2 + 1, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+		self.app.stdscr.getch()
 
 
 def init(app) -> PluginRepo:

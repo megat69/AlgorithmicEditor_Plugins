@@ -7,6 +7,7 @@ from plugin import Plugin
 class CompilationSyntaxHighlights(Plugin):
 	"""
 	Creates a syntax highlighting during compilation.
+	Pretty janky and poorly coded, not the plugin I'm the most proud of.
 	"""
 	def __init__(self, app):
 		super().__init__(app)
@@ -26,7 +27,7 @@ class CompilationSyntaxHighlights(Plugin):
 			curses.init_pair(7, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
 			self.app.color_pairs["magenta"] = 7
 
-		if compilation_type == "cpp":
+		if compilation_type == "cpp" and self.app.tab_char == "\t":
 			for i, line in enumerate(final_compiled_code.split("\n")):
 				# Highlights for #include and preprocessor directives
 				if line.startswith("#"):

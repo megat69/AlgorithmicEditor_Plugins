@@ -12,7 +12,7 @@ from utils import display_menu, input_text
 if not os.path.exists(os.path.join(os.path.dirname(__file__), 'disabled_plugins')):
 	os.mkdir(os.path.join(os.path.dirname(__file__), 'disabled_plugins'))
 
-
+# TODO Plugin documentation
 class PluginRepo(Plugin):
 	def __init__(self, app):
 		super().__init__(app)
@@ -22,6 +22,9 @@ class PluginRepo(Plugin):
 
 
 	def init(self):
+		"""
+		Initializes the plugin with a message to tell you it was correctly loaded.
+		"""
 		self.app.log("PluginRepo plugin loaded !")
 
 
@@ -44,23 +47,36 @@ class PluginRepo(Plugin):
 
 
 	def leave(self):
+		"""
+		Closes the menu by setting the variable controlling the while loop to False.
+		"""
 		self.manage_plugins_menu = False
 
 
 	def list_plugins(self, plist:list=None, getch:bool=True):
 		"""
 		Lists all the installed plugins, and displays in red the faulty ones.
+		:param plist: A list of plugins to show the user. If None, will look into the plugins folder. Default is None.
+		:param getch: Whether to do a getch at the after the list is fully displayed.
 		"""
 		# Selects this function by default from the menu
 		self.selected_menu_item = 0
 
+		# Initializing a counter
 		i = 0
+
+		# Creating the message displayed to the user
 		msg = f"-- {'AVAILABLE' if plist is not None else ''} PLUGINS LIST --"
 		self.app.stdscr.addstr(0, self.app.cols // 2 - len(msg) // 2, msg, curses.A_BOLD)
+
+		# If no plugins list was provided to the function, we add another message
 		if plist is None:
 			msg = "Faulty plugins displayed in red."
 			self.app.stdscr.addstr(1, self.app.cols // 2 - len(msg) // 2, msg, curses.A_BOLD)
+
+		# We fetch each plugin in the list of plugins or in the plugins folder, depending on plist
 		for plugin in (os.listdir(os.path.dirname(__file__)) if plist is None else plist):
+			# We eject non-conforming files
 			if plugin.startswith("__") or \
 				os.path.isdir(os.path.join(os.path.dirname(__file__), plugin))\
 				or not plugin.endswith(".py"):
@@ -91,16 +107,21 @@ class PluginRepo(Plugin):
 		# Gives a list of all the available apps
 		github_url = 'https://github.com/megat69/AlgorithmicEditor_Plugins/tree/master/'
 
+		# Tries to connect to the URL on GitHub
 		try:
 			r = requests.get(github_url)
+		# If the connection fails, it tells the user and exits the function
 		except requests.exceptions.ConnectionError:
 			self._wrong_return_code_inconvenience()
 			msg_str = f"Please check your connection and try again."
 			self.app.stdscr.addstr(self.app.rows // 2 + 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
-			return
+			return None
 
+		# If the status code is not HTTP 200 (OK), we tell the user that something went wrong.
 		if r.status_code != 200:
 			self._wrong_return_code_inconvenience()
+
+		# If everything worked, we parse the webpage to find all references to .py files
 		else:
 			soup = BeautifulSoup(r.text, 'html.parser')
 			plugins = soup.find_all(title=re.compile("\.py$"))
@@ -108,6 +129,7 @@ class PluginRepo(Plugin):
 			# Lists the available plugins to the user
 			plugins_list = [e.extract().get_text() for e in plugins]
 			self.list_plugins(plugins_list, getch=False)
+			# We return the list of plugins, cleaning up their extension as well.
 			return [e[:-3] for e in plugins_list]
 
 
@@ -118,29 +140,46 @@ class PluginRepo(Plugin):
 		# Selects this function by default from the menu
 		self.selected_menu_item = 1
 
-
+		# Gets the list of available plugins from online
 		plugins_list = self.list_online_plugins()
+		# Leaves the function if self.list_online_plugins() returned None (an error occured)
+		if plugins_list is None: return None
 
 		# Asks the user to input the plugin name
 		self.app.stdscr.addstr(self.app.rows - 2, 0, "Input the name of the plugin to download, or leave blank to cancel.")
 		user_wanted_plugin = input_text(self.app.stdscr)
+
+		# If the user wrote nothing, it means he wants to cancel, so we stop the function there
 		if user_wanted_plugin != "":
+			# If the user specified an existing plugin name
 			if user_wanted_plugin in plugins_list:
+				# We download the contents of the file from GitHub
 				r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{user_wanted_plugin}.py")
+
+				# If something went wrong with the request (the webpage didn't return an HTTP 200 (OK) code), we warn the user and exit the function
 				if r.status_code != 200:
 					self._wrong_return_code_inconvenience()
+
+				# If everything went well
 				else:
-					with open(os.path.join(os.path.dirname(__file__), f"{user_wanted_plugin}.py"),
-					          "w", encoding="utf-8") as f:
+					# We dump the contents of the plugin file into a file of the corresponding name
+					with open(os.path.join(os.path.dirname(__file__), f"{user_wanted_plugin}.py"), "w", encoding="utf-8") as f:
 						f.write(r.text)
-					# Trying to download the docs
+
+					# We then try to download the plugin's docs
 					r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{user_wanted_plugin}.md")
+					# If everything went well, we simply dump the contents of the documentation file into another file
+					# And if something went wrong, we simply don't do it and don't warn the user, he'll download it later
 					if r.status_code == 200:
 						with open(os.path.join(os.path.dirname(__file__), f"{user_wanted_plugin}.md"), "w", encoding="utf-8") as f:
 							f.write(r.text)
+
+					# We tell the user that the plugin has been successfully installed
 					msg_str = f"The plugin '{user_wanted_plugin}' has been successfully installed !"
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 					self.app.stdscr.getch()
+
+					# We ask the user if he wants to reload the plugins, and if so, we do it
 					display_menu(
 						self.app.stdscr,
 						(
@@ -149,6 +188,8 @@ class PluginRepo(Plugin):
 						),
 						label = "Do you want to reload the plugins ?"
 					)
+
+			# If the user specified a non-existing plugin name, we show him an error and exit the function
 			else:
 				msg_str = f"The plugin '{user_wanted_plugin}' doesn't seem to exist."
 				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
@@ -162,24 +203,39 @@ class PluginRepo(Plugin):
 		# Selects this function by default from the menu
 		self.selected_menu_item = 6
 
-
+		# Gets the list of available plugins from online
 		plugins_list = self.list_online_plugins()
+		# Leaves the function if self.list_online_plugins() returned None (an error occured)
+		if plugins_list is None: return None
 
 		# Asks the user to input the plugin name
 		self.app.stdscr.addstr(self.app.rows - 2, 0, "Input the name of the plugin to download, or leave blank to cancel.")
 		user_wanted_plugin = input_text(self.app.stdscr)
+
+		# If the user wrote nothing, it means he wants to cancel, so we stop the function there
 		if user_wanted_plugin != "":
+			# If the user specified an existing plugin name
 			if user_wanted_plugin in plugins_list:
+				# We download the contents of the file from GitHub
 				r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{user_wanted_plugin}.md")
+
+				# If something went wrong with the request (the webpage didn't return an HTTP 200 (OK) code), we warn the user and exit the function
 				if r.status_code != 200:
 					self._wrong_return_code_inconvenience()
+
+				# If everything went well
 				else:
+					# We clear the screen to make room for the docs display
 					self.app.stdscr.clear()
 					# Puts text into shape with markdown
 					for i, line in enumerate(r.text.split("\n")):
 						color = line.count("#")
+						# Adds the markdown line by line
 						self.app.stdscr.addstr(i, 0, line, curses.color_pair(color))
+					# Awaits a character input to make a pause
 					self.app.stdscr.getch()
+
+			# If the user specified a non-existing plugin name, we show him an error and exit the function
 			else:
 				msg_str = f"The plugin documentation for '{user_wanted_plugin}' doesn't seem to exist."
 				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)

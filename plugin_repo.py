@@ -249,29 +249,47 @@ class PluginRepo(Plugin):
 		# Selects this function by default from the menu
 		self.selected_menu_item = 2
 
+		# Lists all the plugins available
 		self.list_plugins(getch=False)
+
+		# Shows a message to the user about the plugins he can delete
 		self.app.stdscr.addstr(self.app.rows - 3, 0, "Input the name of the plugin you want to delete (or leave blank to cancel) :")
+
+		# Asks the user to input the name of the plugin he wants to delete
 		plugin_name = input_text(self.app.stdscr, position_y=self.app.rows - 2)
+
+		# If the user inputted nothing, we cancel the operation
 		if plugin_name != "":
+			# We list all the plugins available
 			plugins_list = tuple(
 				plugin.replace(".py", "") for plugin in os.listdir(os.path.dirname(__file__)) if not (plugin.startswith("__")
 				or os.path.isdir(os.path.join(os.path.dirname(__file__), plugin))
 				or not plugin.endswith(".py"))
 			)
-			if plugin_name in plugins_list:  # If the plugin exists
+
+			# If the plugin exists
+			if plugin_name in plugins_list:
 				def delete_plugin():
+					# Deletes the plugin file
 					os.remove(os.path.join(os.path.dirname(__file__), f"{plugin_name}.py"))
+
+					# If the documentation exists, deletes it as well
 					try:
 						os.remove(os.path.join(os.path.dirname(__file__), f"{plugin_name}.md"))
 					except FileNotFoundError: pass
+
+					# Shows a message to the user indicating that a plugin was deleted
 					msg_str = f"Plugin {plugin_name} deleted."
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 					self.app.stdscr.getch()
 
+				# We display a confirmation menu for the user
 				display_menu(self.app.stdscr, (
 					("Yes", delete_plugin),
 					("No", lambda: None)
 				), label=f"Are you sure you want to delete the plugin '{plugin_name}' ?")
+
+			# If the plugin doesn't exist, we show an error message and exit
 			else:
 				msg_str = f"The plugin '{plugin_name}' doesn't seem to be installed."
 				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
@@ -332,27 +350,38 @@ class PluginRepo(Plugin):
 		self.list_plugins(getch=False)
 		self.app.stdscr.addstr(self.app.rows - 3, 0, "Input the name of the plugin you want to disable (or leave blank to cancel) :")
 		plugin_name = input_text(self.app.stdscr, position_y=self.app.rows - 2)
+
+		# If the user inputted nothing, we cancel the action
 		if plugin_name != "":
+			# We list all available plugins
 			plugins_list = tuple(
 				plugin.replace(".py", "") for plugin in os.listdir(os.path.dirname(__file__)) if not \
 				(plugin.startswith("__")
 				or os.path.isdir(os.path.join(os.path.dirname(__file__), plugin))
 				or not plugin.endswith(".py"))
 			)
-			if plugin_name in plugins_list:  # If the plugin exists
+
+			# If the plugin exists
+			if plugin_name in plugins_list:
 				def disable_plugin():
+					# We move the plugin to the disabled_plugins folder
 					os.rename(
 						os.path.join(os.path.dirname(__file__), f"{plugin_name}.py"),
 						os.path.join(os.path.dirname(__file__), "disabled_plugins", f"{plugin_name}.py")
 					)
+
+					# We display a message confirming that the plugin was disabled
 					msg_str = f"Plugin {plugin_name} disabled."
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 					self.app.stdscr.getch()
 
+				# We display a confirmation menu
 				display_menu(self.app.stdscr, (
 					("Yes", disable_plugin),
 					("No", lambda: None)
 				), label=f"Are you sure you want to disable the plugin '{plugin_name}' ?")
+
+			# If the plugin doesn't seem to exist, we tell the user and exit
 			else:
 				msg_str = f"The plugin '{plugin_name}' doesn't seem to be installed."
 				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
@@ -366,7 +395,7 @@ class PluginRepo(Plugin):
 		# Selects this function by default from the menu
 		self.selected_menu_item = 4
 
-		# Lists all plugins and asks to select the plugin to disable
+		# Lists all disabled plugins and asks to select the plugin to disable
 		plugins_list = tuple(
 			plugin for plugin in
 			os.listdir(os.path.join(os.path.dirname(__file__), "disabled_plugins")) if
@@ -374,12 +403,18 @@ class PluginRepo(Plugin):
 			or os.path.isdir(os.path.join(os.path.dirname(__file__), "disabled_plugins", plugin))
 			or not plugin.endswith(".py")) is False
 		)
+
 		self.list_plugins(getch=False, plist=list(plugins_list))
+
 		self.app.stdscr.addstr(self.app.rows - 3, 0, "Input the name of the plugin you want to enable (or leave blank to cancel) :")
 		plugin_name = input_text(self.app.stdscr, position_y=self.app.rows - 2)
+
+		# If the user typed nothing, we cancel the action
 		if plugin_name != "":
-			if plugin_name + ".py" in plugins_list:  # If the plugin exists
+			# If the plugin exists
+			if plugin_name + ".py" in plugins_list:
 				def enable_plugin():
+					# We move the plugin from the disabled_plugins folder to the active one
 					os.rename(
 						os.path.join(os.path.dirname(__file__), "disabled_plugins", f"{plugin_name}.py"),
 						os.path.join(os.path.dirname(__file__), f"{plugin_name}.py")
@@ -399,15 +434,19 @@ class PluginRepo(Plugin):
 						del self.app.plugins[plugin_name]
 						self.app.log(f"An error occurred while importing the plugin '{plugin_name}' :\n{e}")
 
+					# Showing a message indicating that the plugin has been loaded
 					msg_str = f"Plugin {plugin_name} enabled !"
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 					self.app.log(msg_str)
 					self.app.stdscr.getch()
 
+				# Displaying a confirmation menu
 				display_menu(self.app.stdscr, (
 					("Yes", enable_plugin),
 					("No", lambda: None)
 				), label=f"Are you sure you want to enable the plugin '{plugin_name}' ?")
+
+			# If the plugin doesn't seem to be installed, we tell the user and exit
 			else:
 				msg_str = f"The plugin '{plugin_name}' doesn't seem to be installed."
 				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)

@@ -12,7 +12,6 @@ from utils import display_menu, input_text
 if not os.path.exists(os.path.join(os.path.dirname(__file__), 'disabled_plugins')):
 	os.mkdir(os.path.join(os.path.dirname(__file__), 'disabled_plugins'))
 
-# TODO Plugin documentation
 class PluginRepo(Plugin):
 	def __init__(self, app):
 		super().__init__(app)

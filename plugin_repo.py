@@ -109,9 +109,10 @@ class PluginRepo(Plugin):
 			self.app.stdscr.getch()
 
 
-	def list_online_plugins(self):
+	def list_online_plugins(self, show_user:bool=True):
 		"""
 		Lists the online plugins available.
+		:param show_user: Whether to show the user the list of plugins or not.
 		"""
 		# Gives a list of all the available apps
 		github_url = 'https://github.com/megat69/AlgorithmicEditor_Plugins/tree/master/'
@@ -143,7 +144,8 @@ class PluginRepo(Plugin):
 				if not (file.startswith("__") or os.path.isdir(os.path.join(os.path.dirname(__file__), file))) \
 					and file.endswith(".py")
 			]
-			self.list_plugins(plugins_list, getch=False, highlighted_plugins=installed_plugins_list)
+			if show_user:
+				self.list_plugins(plugins_list, getch=False, highlighted_plugins=installed_plugins_list)
 			# We return the list of plugins, cleaning up their extension as well.
 			return [e[:-3] for e in plugins_list]
 
@@ -168,41 +170,51 @@ class PluginRepo(Plugin):
 		if user_wanted_plugin != "":
 			# If the user specified an existing plugin name
 			if user_wanted_plugin in plugins_list:
-				# We download the contents of the file from GitHub
-				r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{user_wanted_plugin}.py")
+				# We call the install plugin function
+				self._install_plugin(user_wanted_plugin)
 
-				# If something went wrong with the request (the webpage didn't return an HTTP 200 (OK) code), we warn the user and exit the function
-				if r.status_code != 200:
-					self._wrong_return_code_inconvenience()
+				# We tell the user that the plugin has been successfully installed
+				msg_str = f"The plugin '{user_wanted_plugin}' has been successfully installed !"
+				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+				self.app.stdscr.getch()
 
-				# If everything went well
-				else:
-					# We dump the contents of the plugin file into a file of the corresponding name
-					with open(os.path.join(os.path.dirname(__file__), f"{user_wanted_plugin}.py"), "w", encoding="utf-8") as f:
-						f.write(r.text)
+				# We ask the user if he wants to reload the plugins, and if so, we do it
+				display_menu(
+					self.app.stdscr,
+					(
+						("Yes", self.reload_plugins),
+						("No", lambda: None)
+					),
+					label = "Do you want to reload the plugins ?"
+				)
 
-					# We then try to download the plugin's docs
-					r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{user_wanted_plugin}.md")
-					# If everything went well, we simply dump the contents of the documentation file into another file
-					# And if something went wrong, we simply don't do it and don't warn the user, he'll download it later
-					if r.status_code == 200:
-						with open(os.path.join(os.path.dirname(__file__), f"{user_wanted_plugin}.md"), "w", encoding="utf-8") as f:
-							f.write(r.text)
+			# If the user wants to download all plugins
+			elif user_wanted_plugin == "all":
+				def _install_all_plugins():
+					for plugin in self.list_online_plugins(show_user=False):
+						self._install_plugin(plugin)
 
-					# We tell the user that the plugin has been successfully installed
-					msg_str = f"The plugin '{user_wanted_plugin}' has been successfully installed !"
-					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
-					self.app.stdscr.getch()
+				display_menu(self.app.stdscr, (
+					("Yes", _install_all_plugins),
+					("No", lambda: None)
+				),
+				label = "Do you want to install all plugins ? This will update every plugin you have installed."
+				)
 
-					# We ask the user if he wants to reload the plugins, and if so, we do it
-					display_menu(
-						self.app.stdscr,
-						(
-							("Yes", self.reload_plugins),
-							("No", lambda: None)
-						),
-						label = "Do you want to reload the plugins ?"
-					)
+				# We tell the user that the plugin has been successfully installed
+				msg_str = f"The plugins have been successfully installed !"
+				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+				self.app.stdscr.getch()
+
+				# We ask the user if he wants to reload the plugins, and if so, we do it
+				display_menu(
+					self.app.stdscr,
+					(
+						("Yes", self.reload_plugins),
+						("No", lambda: None)
+					),
+					label="Do you want to reload the plugins ?"
+				)
 
 			# If the user specified a non-existing plugin name, we show him an error and exit the function
 			else:
@@ -517,6 +529,33 @@ class PluginRepo(Plugin):
 		msg_str = f"the plugins list online. We apologize for the inconvenience."
 		self.app.stdscr.addstr(self.app.rows // 2 + 1, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 		self.app.stdscr.getch()
+
+
+	def _install_plugin(self, plugin_name:str):
+		"""
+		Installs the given plugin from GitHub.
+		:param plugin_name: The name of the plugin to install.
+		"""
+		# We download the contents of the file from GitHub
+		r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{plugin_name}.py")
+
+		# If something went wrong with the request (the webpage didn't return an HTTP 200 (OK) code), we warn the user and exit the function
+		if r.status_code != 200:
+			self._wrong_return_code_inconvenience()
+
+		# If everything went well
+		else:
+			# We dump the contents of the plugin file into a file of the corresponding name
+			with open(os.path.join(os.path.dirname(__file__), f"{plugin_name}.py"), "w", encoding="utf-8") as f:
+				f.write(r.text)
+
+			# We then try to download the plugin's docs
+			r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{plugin_name}.md")
+			# If everything went well, we simply dump the contents of the documentation file into another file
+			# And if something went wrong, we simply don't do it and don't warn the user, he'll download it later
+			if r.status_code == 200:
+				with open(os.path.join(os.path.dirname(__file__), f"{plugin_name}.md"), "w", encoding="utf-8") as f:
+					f.write(r.text)
 
 
 def init(app) -> PluginRepo:

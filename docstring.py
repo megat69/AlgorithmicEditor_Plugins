@@ -8,7 +8,7 @@ class DocstringPlugin(Plugin):
 	"""
 	def __init__(self, app):
 		super().__init__(app)
-		self.docstring_components = ("precond", "data", "result", "desc", "vars")
+		self.docstring_components = ("precond", "data", "datar", "result", "desc", "vars")
 		self.add_command("d", self.add_docstring, "Docstring")
 		self.app.color_control_flow["instruction"] = (
 			*self.app.color_control_flow["instruction"],
@@ -25,8 +25,6 @@ class DocstringPlugin(Plugin):
 				contents = input_text(self.app.stdscr)
 				if contents != "":
 					self.app.add_char_to_text(component + " " + contents + "\n")
-				else:
-					self.app.add_char_to_text("\n")
 			else:
 				self.app.add_char_to_text(component + "\n")
 

@@ -27,7 +27,7 @@ class AutocompletionPlugin(Plugin):
 		Remembers the last pressed key by the user.
 		"""
 		# If the key is a tab, we remove it and add the autocompletion
-		if self.ac is not None and key == "\t":
+		if self.ac is not None and key in ("KEY_STAB", "\t"):
 			self.app.current_text = self.app.current_text[:self.app.current_index - 1] \
 			                        + self.app.current_text[self.app.current_index:]
 			self.app.current_index -= 1

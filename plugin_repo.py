@@ -8,7 +8,6 @@ import re
 from plugin import Plugin
 from utils import display_menu, input_text
 
-# TODO Install all plugins
 
 # Creates the 'disabled_plugins' folder if it doesn't exist
 if not os.path.exists(os.path.join(os.path.dirname(__file__), 'disabled_plugins')):

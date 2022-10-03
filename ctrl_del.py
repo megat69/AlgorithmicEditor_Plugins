@@ -10,6 +10,7 @@ class CtrlDel(Plugin):
 	def __init__(self, app):
 		super().__init__(app)
 		self.add_command("e", self.delete_word, "Delete Word")
+		self.add_command("dl", self.delete_line, "Delete Line")
 
 
 	def delete_word(self):
@@ -20,6 +21,19 @@ class CtrlDel(Plugin):
 			if self.app.current_text[self.app.current_index - 1] == " ":
 				self._remove_current_char()
 			while self.app.current_text[self.app.current_index - 1] in string.ascii_letters and self.app.current_index - 1 > 0:
+				self._remove_current_char()
+		except IndexError: return
+		self.app.stdscr.clear()
+
+
+	def delete_line(self):
+		"""
+		Removes a whole line backwards.
+		"""
+		try:
+			while self.app.current_text[self.app.current_index - 1] != "\n" and self.app.current_index - 1 > 0:
+				self._remove_current_char()
+			else:
 				self._remove_current_char()
 		except IndexError: return
 		self.app.stdscr.clear()

@@ -52,11 +52,12 @@ class PluginRepo(Plugin):
 		self.manage_plugins_menu = False
 
 
-	def list_plugins(self, plist:list=None, getch:bool=True):
+	def list_plugins(self, plist:list=None, getch:bool=True,check_py:bool=True):
 		"""
 		Lists all the installed plugins, and displays in red the faulty ones.
 		:param plist: A list of plugins to show the user. If None, will look into the plugins folder. Default is None.
 		:param getch: Whether to do a getch at the after the list is fully displayed.
+		:param check_py: Whether to ask for py files.
 		"""
 		# Selects this function by default from the menu
 		self.selected_menu_item = 0
@@ -78,7 +79,7 @@ class PluginRepo(Plugin):
 			# We eject non-conforming files
 			if plugin.startswith("__") or \
 				os.path.isdir(os.path.join(os.path.dirname(__file__), plugin))\
-				or not plugin.endswith(".py"):
+				or (not plugin.endswith(".py") and check_py):
 				continue  # Python folders/files
 
 			# Cleaning the name
@@ -204,8 +205,27 @@ class PluginRepo(Plugin):
 
 		# Gets the list of available plugins from online
 		plugins_list = self.list_online_plugins()
-		# Leaves the function if self.list_online_plugins() returned None (an error occured)
-		if plugins_list is None: return None
+		force_local = False
+		# Tries to fetch already downloaded docs if self.list_online_plugins() returned None (an error occured)
+		if plugins_list is None:
+			msg_str = (
+				"We are listing all library documentations you have downloaded.",
+				"(They might not be up to date.)"
+			)
+			for i in range(len(msg_str)):
+				self.app.stdscr.addstr(self.app.rows // 2 + 3 + i, self.app.cols // 2 - len(msg_str[i]) // 2, msg_str[i])
+
+			# Lists all the files in the folder
+			plugins_list = [
+				file[:-3] for file in os.listdir(os.path.dirname(__file__))
+				if not (file.startswith("__") or os.path.isdir(file)) and file.endswith(".md")
+			]
+
+			# Uses that as the plugins list
+			force_local = True
+
+			# Shows the user the list of available docs
+			self.list_plugins(plist=plugins_list, getch=False, check_py=False)
 
 		# Asks the user to input the plugin name
 		self.app.stdscr.addstr(self.app.rows - 2, 0, "Input the name of the plugin to download, or leave blank to cancel.")
@@ -215,24 +235,35 @@ class PluginRepo(Plugin):
 		if user_wanted_plugin != "":
 			# If the user specified an existing plugin name
 			if user_wanted_plugin in plugins_list:
-				# We download the contents of the file from GitHub
-				r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{user_wanted_plugin}.md")
+				# If force local is True, we just get the docs from the file
+				if force_local is True:
+					with open(
+						os.path.join(os.path.dirname(__file__), f"{plugins_list[plugins_list.index(user_wanted_plugin)]}.md"),
+						"r", encoding="utf-8"
+					) as f:
+						final_text = f.read()
 
-				# If something went wrong with the request (the webpage didn't return an HTTP 200 (OK) code), we warn the user and exit the function
-				if r.status_code != 200:
-					self._wrong_return_code_inconvenience()
-
-				# If everything went well
 				else:
-					# We clear the screen to make room for the docs display
-					self.app.stdscr.clear()
-					# Puts text into shape with markdown
-					for i, line in enumerate(r.text.split("\n")):
-						color = line.count("#")
-						# Adds the markdown line by line
-						self.app.stdscr.addstr(i, 0, line, curses.color_pair(color))
-					# Awaits a character input to make a pause
-					self.app.stdscr.getch()
+					# We download the contents of the file from GitHub
+					r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{user_wanted_plugin}.md")
+
+					# If something went wrong with the request (the webpage didn't return an HTTP 200 (OK) code), we warn the user and exit the function
+					if r.status_code != 200:
+						return self._wrong_return_code_inconvenience()
+
+					# If everything went well
+					else:
+						final_text = r.text
+
+				# We clear the screen to make room for the docs display
+				self.app.stdscr.clear()
+				# Puts text into shape with markdown
+				for i, line in enumerate(final_text.split("\n")):
+					color = line.count("#")
+					# Adds the markdown line by line
+					self.app.stdscr.addstr(i, 0, line, curses.color_pair(color))
+				# Awaits a character input to make a pause
+				self.app.stdscr.getch()
 
 			# If the user specified a non-existing plugin name, we show him an error and exit the function
 			else:

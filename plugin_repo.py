@@ -8,6 +8,8 @@ import re
 from plugin import Plugin
 from utils import display_menu, input_text
 
+# TODO Install all plugins
+
 # Creates the 'disabled_plugins' folder if it doesn't exist
 if not os.path.exists(os.path.join(os.path.dirname(__file__), 'disabled_plugins')):
 	os.mkdir(os.path.join(os.path.dirname(__file__), 'disabled_plugins'))
@@ -52,12 +54,13 @@ class PluginRepo(Plugin):
 		self.manage_plugins_menu = False
 
 
-	def list_plugins(self, plist:list=None, getch:bool=True,check_py:bool=True):
+	def list_plugins(self, plist:list=None, getch:bool=True, check_py:bool=True, highlighted_plugins:list=None):
 		"""
 		Lists all the installed plugins, and displays in red the faulty ones.
 		:param plist: A list of plugins to show the user. If None, will look into the plugins folder. Default is None.
 		:param getch: Whether to do a getch at the after the list is fully displayed.
 		:param check_py: Whether to ask for py files.
+		:param highlighted_plugins: Will highlight the plugins in this list. None by default.
 		"""
 		# Selects this function by default from the menu
 		self.selected_menu_item = 0
@@ -86,10 +89,16 @@ class PluginRepo(Plugin):
 			plugin = plugin.replace(".py", "")
 
 			# Displaying each plugin name at the left of the screen
-			if plugin in self.app.plugins.keys() or plist is not None:
-				self.app.stdscr.addstr(i + 3, self.app.cols // 2 - len(plugin) // 2, plugin)
+			if highlighted_plugins is None:
+				if plugin in self.app.plugins.keys() or plist is not None:
+					self.app.stdscr.addstr(i + 3, self.app.cols // 2 - len(plugin) // 2, plugin)
+				else:
+					self.app.stdscr.addstr(i + 3, self.app.cols // 2 - len(plugin) // 2, plugin, curses.color_pair(1))
 			else:
-				self.app.stdscr.addstr(i + 3, self.app.cols // 2 - len(plugin) // 2, plugin, curses.color_pair(1))
+				if plugin in highlighted_plugins:
+					self.app.stdscr.addstr(i + 3, self.app.cols // 2 - len(plugin) // 2, plugin, curses.color_pair(4))
+				else:
+					self.app.stdscr.addstr(i + 3, self.app.cols // 2 - len(plugin) // 2, plugin)
 
 			# Incrementing i by 1, we are forced to do this because we ignore some files at the
 			# start of the loop.
@@ -128,7 +137,13 @@ class PluginRepo(Plugin):
 
 			# Lists the available plugins to the user
 			plugins_list = [e.extract().get_text() for e in plugins]
-			self.list_plugins(plugins_list, getch=False)
+			# Listing all plugins already installed
+			installed_plugins_list = [
+				file[:-3] for file in os.listdir(os.path.dirname(__file__)) \
+				if not (file.startswith("__") or os.path.isdir(os.path.join(os.path.dirname(__file__), file))) \
+					and file.endswith(".py")
+			]
+			self.list_plugins(plugins_list, getch=False, highlighted_plugins=installed_plugins_list)
 			# We return the list of plugins, cleaning up their extension as well.
 			return [e[:-3] for e in plugins_list]
 

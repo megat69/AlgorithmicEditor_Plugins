@@ -33,17 +33,25 @@ class ChangeCommandSymbol(Plugin):
 		else:
 			key = symbol
 		if len(key) == 1 and key not in ("\n", "\b"):
-			del self.app.commands[self.app.command_symbol]
+			# Regenerates a whole new dict for the commands
+			new_commands = {}
+			for ckey, value in self.app.commands.items():
+				if ckey != key:
+					new_commands[ckey] = value
+				else:
+					new_commands[key] = (
+						partial(
+							self.app.add_char_to_text,
+							self.app.command_symbol
+						),
+						self.app.command_symbol, True
+					)
+			self.app.commands = new_commands
+
 			# Changes the command symbol
 			self.app.command_symbol = key
-			# Changes the command allowing the user to type the command symbol into the text
-			self.app.commands[self.app.command_symbol] = (
-				partial(
-					self.app.add_char_to_text,
-					self.app.command_symbol
-				),
-				self.app.command_symbol, True
-			)
+
+
 			# Tells the user about the change
 			if symbol is None:
 				message2 = "Command character changed to : "

@@ -7,9 +7,13 @@ class InsertModePlugin(Plugin):
 	"""
 	def __init__(self, app):
 		super().__init__(app)
+		# Initializes the variable indicating whether the insert mode is enabled
 		self.insert_mode_enabled = False
+		# Adds the command to toggle the insert mode
 		self.add_command("i", self.toggle_insert_mode, "Insert")
+		# Assigns the regular add_char_to_text function to a variable
 		self._regular_add_char_to_text = self.app.add_char_to_text
+		# Replaces the add_char_to_text function with a custom one
 		self.app.add_char_to_text = self._add_char_to_text
 
 
@@ -17,7 +21,9 @@ class InsertModePlugin(Plugin):
 		"""
 		Toggles the insert mode.
 		"""
+		# Toggles insert mode
 		self.insert_mode_enabled = not self.insert_mode_enabled
+		# Shows a message to the user indicating the current state of the variable
 		self.app.stdscr.addstr(self.app.rows - 1, 4, f"Toggled insert mode to {self.insert_mode_enabled} ")
 
 
@@ -26,8 +32,11 @@ class InsertModePlugin(Plugin):
 		Adds the given character to the text if the insert mode is disabled, or inserts if enabled.
 		:param key: The character to be inserted.
 		"""
+		# If insert mode is disabled, we just use the regular function
 		if self.insert_mode_enabled is False:
 			self._regular_add_char_to_text(key)
+
+		# If insert mode is enabled, we fetch each character from 'key' and replace the current one with this new character
 		else:
 			for character in key:
 				self.app.current_text = self.app.current_text[:self.app.current_index] + character + self.app.current_text[self.app.current_index+1:]

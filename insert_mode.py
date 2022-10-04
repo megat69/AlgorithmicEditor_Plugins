@@ -1,3 +1,5 @@
+import curses
+
 from plugin import Plugin
 
 
@@ -11,10 +13,16 @@ class InsertModePlugin(Plugin):
 		self.insert_mode_enabled = False
 		# Adds the command to toggle the insert mode
 		self.add_command("i", self.toggle_insert_mode, "Insert")
+
 		# Assigns the regular add_char_to_text function to a variable
 		self._regular_add_char_to_text = self.app.add_char_to_text
 		# Replaces the add_char_to_text function with a custom one
 		self.app.add_char_to_text = self._add_char_to_text
+
+		# Assigns the regular display_text function to a variable
+		self._regular_display_text = self.app.display_text
+		# Replaces the display_text function with a custom one
+		self.app.display_text = self._display_text
 
 
 	def toggle_insert_mode(self):
@@ -41,6 +49,21 @@ class InsertModePlugin(Plugin):
 			for character in key:
 				self.app.current_text = self.app.current_text[:self.app.current_index] + character + self.app.current_text[self.app.current_index+1:]
 				self.app.current_index += 1
+
+
+	def _display_text(self):
+		"""
+		Highlights the cursor in red if we are in insert mode.
+		"""
+		# Displays the text
+		self._regular_display_text()
+
+		# If insert mode is enabled, displays the cursor in red
+		if self.insert_mode_enabled and self.app.cur is not None:
+			try:
+				self.app.stdscr.addstr(*self.app.cur, curses.A_REVERSE | curses.color_pair(1))
+			except curses.error:
+				pass
 
 
 def init(app):

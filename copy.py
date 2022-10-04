@@ -40,7 +40,7 @@ class CopyPlugin(Plugin):
 				pyperclip.copy(
 					self.app.current_text[
 						min(self.start_index, self.app.current_index) :
-						max(self.start_index, self.app.current_index)
+						max(self.start_index, self.app.current_index) + 1
 					]
 				)
 				# We remember that we are no longer copying
@@ -49,8 +49,13 @@ class CopyPlugin(Plugin):
 				# If we want to cut, we remove all text between the selection areas
 				if self.do_cut:
 					self.app.current_text = self.app.current_text[:min(self.start_index, self.app.current_index)] + \
-						self.app.current_text[max(self.start_index, self.app.current_index):]
+						self.app.current_text[max(self.start_index, self.app.current_index)+1:]
 					self.app.current_index -= len(pyperclip.paste())
+
+				# Removes the enter that was added due to the keypress
+				self.app.current_text = self.app.current_text[:self.app.current_index - 1] +\
+						self.app.current_text[self.app.current_index:]
+				self.app.current_index -= 1
 
 
 			# Shows a message telling the user that he's still copying

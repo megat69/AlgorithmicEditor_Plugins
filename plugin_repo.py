@@ -380,7 +380,10 @@ class PluginRepo(Plugin):
 			else:
 				try:
 					self.app.plugins[plugin] = [importlib.reload(self.app.plugins[plugin][0])]
-					plugins[plugin][-1].plugin_name = plugin
+					self.app.plugins[plugin][-1].plugin_name = plugin
+					if plugin not in self.app.plugins_config.keys():
+						self.app.plugins_config[plugin] = {}
+					self.app.plugins[plugin][-1].config = self.app.plugins_config[plugin]
 				except Exception as e:
 					self.app.log(f"Failed to reload plugin {plugin} :\n{e}")
 					del self.app.plugins[plugin]

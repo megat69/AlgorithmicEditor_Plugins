@@ -7,7 +7,7 @@ class CompileToPython(Plugin):
 	"""
 	def __init__(self, app):
 		super().__init__(app)
-		self.add_command("y", self.compile_to_python, "Compile to Python")
+		#self.add_command("y", self.compile_to_python, "Compile to Python")
 
 	def compile_to_python(self):
 		"""

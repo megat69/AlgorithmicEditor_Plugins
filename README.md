@@ -96,6 +96,11 @@ def init(app):
 ***ENGLISH***<br>
 As you can see, you get access to an attribute named `app`. Well, it is none other than the main application class itself. So, if you use `self.app`, you can access any of the app's attributes and methods. I recommend you to check them out, they're all documented in the code.
 
+You will also get access to two other attributes : `plugin_name` and `config`, and this as soon as `Plugin.init()` is called (see below).<br>
+The first attribute grants you access to the name of your plugin (litterally the name of the file), and the second is a dictionary containing all the config options you already created or set.<br>
+Those options are saved upon editor closing.<br>
+For a good example of their use, look at how the `autocomplete` plugin works.
+
 The `Plugin` class will grant you access to a few functions that you might find useful when creating a plugin. It's up to you to use them or not, please also note that you can also create your own methods for your class.<br>
 Those functions include :
 - `init()` : Allows you to log a message, or basically do any task once the plugin is loaded.
@@ -118,6 +123,11 @@ Those functions include :
 
 ***FRANÇAIS***<br>
 Comme vous pouvez le voir, vous recevez l'accès à un attribut nommé `app`. Eh bien, il s'agit de l'application principale. Ainsi, si vous utilisez `self.app`, vous pouvez accéder à n'importe lequel des attributs ou méthodes de l'éditeur. Je vous recommande d'aller regarder la classe `App` et ses attributs, ils sont tous documentés dans le code *(en anglais uniquement)*.
+
+Vous aurez aussi accès à deux autre attributs : `plugin_name` et `config`, et ce dès l'appel de `Plugin.init()` (voir plus bas).<br>
+Le premier donne accès au nom de votre plugin (littéralement le nom du fichier), et le second est un dictionnaire contenant les options de config que vous avez déjà créées ou modifiées.<br>
+Ces options sont enregistrées lors de la fermeture de l'éditeur.<br>
+Pour un bon exemple de leur utilisation, regardez comment le plugin `autocomplete` fonctionne.
 
 La classe `Plugin` vous donnera accès à quelques fonctions qui pourront vous être utiles lors de la création d'un Plugin. Vous pouvez les utiliser ou non, veuillez noter que vous pouvez aussi créer vos propres méthodes pour votre classe.<br>
 Ces fonctions sont :

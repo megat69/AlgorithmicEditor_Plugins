@@ -11,13 +11,27 @@ class ChangeCommandSymbol(Plugin):
 		self.add_command("?", self.change_command_symbol, "Change command symbol", True)
 
 
-	def change_command_symbol(self):
+	def init(self):
+		"""
+		Loads the config and changes the command symbol to what it was last set.
+		"""
+		if "command_symbol" in self.config.keys():
+			self.change_command_symbol(self.config["command_symbol"])
+			self.app.apply_stylings()
+		else:
+			self.config["command_symbol"] = self.app.command_symbol
+
+
+	def change_command_symbol(self, symbol:str=None):
 		"""
 		Changes the command symbol to whatever the user wants.
 		"""
-		message = "Type the new character to change to : "
-		self.app.stdscr.addstr(self.app.rows - 1, 0, message)
-		key = self.app.stdscr.getkey()
+		if symbol is None:
+			message = "Type the new character to change to : "
+			self.app.stdscr.addstr(self.app.rows - 1, 0, message)
+			key = self.app.stdscr.getkey()
+		else:
+			key = symbol
 		if len(key) == 1 and key not in ("\n", "\b"):
 			del self.app.commands[self.app.command_symbol]
 			# Changes the command symbol
@@ -31,9 +45,12 @@ class ChangeCommandSymbol(Plugin):
 				self.app.command_symbol, True
 			)
 			# Tells the user about the change
-			message2 = "Command character changed to : "
-			self.app.stdscr.addstr(self.app.rows - 1, 0, message2 + key + (" " * (len(message) - len(message2))))
-			self.app.stdscr.getch()
+			if symbol is None:
+				message2 = "Command character changed to : "
+				self.app.stdscr.addstr(self.app.rows - 1, 0, message2 + key + (" " * (len(message) - len(message2))))
+				self.app.stdscr.getch()
+			# Saves the change into the config
+			self.config["command_symbol"] = self.app.command_symbol
 
 
 def init(app) -> ChangeCommandSymbol:

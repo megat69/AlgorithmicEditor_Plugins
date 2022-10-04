@@ -22,6 +22,15 @@ class AutocompletionPlugin(Plugin):
 		self.add_command("+", self.toggle_auto_add_space, "Autocomplete Toggle Auto Add Space", True)
 
 
+	def init(self):
+		"""
+		Gets the config for the plugin (creates it if non-existent).
+		"""
+		if "auto_add_space" in self.config:
+			self.auto_add_space = self.config["auto_add_space"]
+		else:
+			self.config["auto_add_space"] = self.auto_add_space
+
 	def update_on_keypress(self, key:str):
 		"""
 		Remembers the last pressed key by the user.
@@ -80,8 +89,12 @@ class AutocompletionPlugin(Plugin):
 		"""
 		Toggles whether to automatically add a space after the autocompletion.
 		"""
+		# Toggles the automatic addition of a space upon autocompletion
 		self.auto_add_space = not self.auto_add_space
+		# Shows a message to the user indicating the state of the variable
 		self.app.stdscr.addstr(self.app.rows - 1, 4, f"Toggled auto add space to {self.auto_add_space} ")
+		# Saving the variable's contents in the config
+		self.config["auto_add_space"] = self.auto_add_space
 
 
 def init(app) -> AutocompletionPlugin:

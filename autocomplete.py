@@ -60,27 +60,23 @@ class AutocompletionPlugin(Plugin):
 			self.app.color_pairs["autocomplete"] = 6
 
 		# If the cursor exists and we are on the cursor line
-		if self.app.cur != tuple() and self.app.cur[1] - (len(str(self.app.lines)) + 1) <= len(line):
-			n = splitted_line[0] in ("fx", "const", "arr") and len(splitted_line) > 1
-			self.ac = self.autocomplete.search(splitted_line[n], size=1)
+		if self.app.cur != tuple() and self.app.cur[1] - (len(str(self.app.lines)) + 1) <= len(splitted_line[0]):
+			self.ac = self.autocomplete.search(splitted_line[0], size=1)
 
 			# If a word was autocompleted
 			if len(self.ac) != 0:
 				try:
-					# No autocomplete if we are in a function, constant, or array and the suggestion is not a variable type
-					if splitted_line[0] in ("fx", "const", "arr") and self.ac[0][0] not in self.app.color_control_flow["variable"]:
-						raise curses.error
 					# Shows the autocomplete results on the screen
 					self.app.stdscr.addstr(
 						self.app.cur[0],
 						self.app.cur[1],
-						self.ac[0][0][len(splitted_line[n])-1:],
+						self.ac[0][0][len(splitted_line[0])-1:],
 						curses.color_pair(self.app.color_pairs["autocomplete"]) | curses.A_ITALIC
 					)
 				except curses.error:
 					self.ac = None
 					return
-				self.ac.append(splitted_line[n])
+				self.ac.append(splitted_line[0])
 			else:
 				self.ac = None
 

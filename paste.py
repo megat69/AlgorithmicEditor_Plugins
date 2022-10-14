@@ -13,7 +13,7 @@ class PastePlugin(Plugin):
 
 	def paste(self):
 		"""
-		Changes the command symbol to whatever the user wants.
+		Pastes the contents of the clipboard to the cursor position.
 		"""
 		clipboard_contents = pyperclip.paste()
 		self.app.add_char_to_text(clipboard_contents)

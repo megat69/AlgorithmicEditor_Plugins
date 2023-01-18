@@ -43,6 +43,7 @@ class PluginRepo(Plugin):
 				("Enable plugins", self.enable_plugins),
 				("Reload plugins", self.reload_plugins),
 				("Read online plugins doc", self.docs_plugins),
+				("Download theme", self.download_theme),
 				("Leave", self.leave)
 			), self.selected_menu_item)
 
@@ -54,13 +55,15 @@ class PluginRepo(Plugin):
 		self.manage_plugins_menu = False
 
 
-	def list_plugins(self, plist:list=None, getch:bool=True, check_py:bool=True, highlighted_plugins:list=None):
+	def list_plugins(self, plist:list=None, getch:bool=True, check_py:bool=True, highlighted_plugins:list=None,
+	                    listed_element:str="PLUGINS"):
 		"""
 		Lists all the installed plugins, and displays in red the faulty ones.
 		:param plist: A list of plugins to show the user. If None, will look into the plugins folder. Default is None.
 		:param getch: Whether to do a getch at the after the list is fully displayed.
 		:param check_py: Whether to ask for py files.
 		:param highlighted_plugins: Will highlight the plugins in this list. None by default.
+		:param listed_element: The name of what is listed. "Plugins" by default.
 		"""
 		# Selects this function by default from the menu
 		self.selected_menu_item = 0
@@ -69,7 +72,7 @@ class PluginRepo(Plugin):
 		i = 0
 
 		# Creating the message displayed to the user
-		msg = f"-- {'AVAILABLE' if plist is not None else ''} PLUGINS LIST --"
+		msg = f"-- {'AVAILABLE' if plist is not None else ''} {listed_element} LIST --"
 		self.app.stdscr.addstr(0, self.app.cols // 2 - len(msg) // 2, msg, curses.A_BOLD)
 
 		# If no plugins list was provided to the function, we add another message
@@ -512,6 +515,73 @@ class PluginRepo(Plugin):
 				msg_str = f"The plugin '{plugin_name}' doesn't seem to be installed."
 				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 				self.app.stdscr.getch()
+
+
+	def download_theme(self):
+		"""
+		Allows the user to download a theme to replace the new one.
+		"""
+		# Gives a list of all the available themes
+		github_url = 'https://github.com/megat69/AlgorithmicEditor_Themes/tree/master/'
+
+		# Tries to connect to the URL on GitHub
+		try:
+			r = requests.get(github_url)
+		# If the connection fails, it tells the user and exits the function
+		except requests.exceptions.ConnectionError:
+			self._wrong_return_code_inconvenience()
+			msg_str = f"Please check your connection and try again."
+			self.app.stdscr.addstr(self.app.rows // 2 + 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+			return None
+
+		# If the status code is not HTTP 200 (OK), we tell the user that something went wrong.
+		if r.status_code != 200:
+			self._wrong_return_code_inconvenience()
+
+		# If everything worked, we parse the webpage to find all references to .ini files (themes)
+		else:
+			soup = BeautifulSoup(r.text, 'html.parser')
+			themes = soup.find_all(title=re.compile("\.ini$"))
+
+			# Lists the available plugins to the user
+			themes_list = [e.extract().get_text()[:-4] for e in themes]
+
+			# We show this list to the user
+			self.list_plugins(themes_list, listed_element="THEMES", check_py=False, getch=False)
+
+			# Asks the user to input the plugin name
+			self.app.stdscr.addstr(self.app.rows - 2, 0, "Input the name of the theme to download, or leave blank to cancel.")
+			user_wanted_theme = input_text(self.app.stdscr)
+
+			# If the user wrote nothing, it means he wants to cancel, so we stop the function there
+			if user_wanted_theme != "":
+				# If the user specified an existing theme name
+				if user_wanted_theme in themes_list:
+					# We download the contents of the file from GitHub
+					r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Themes/main/{user_wanted_theme}.ini")
+
+					# If something went wrong with the request (the webpage didn't return an HTTP 200 (OK) code), we warn the user and exit the function
+					if r.status_code != 200:
+						self._wrong_return_code_inconvenience()
+
+					# If everything went well
+					else:
+						# We dump the contents of the theme file into the softwares theme file
+						with open(os.path.join(os.path.dirname(__file__), "../theme.ini"), "w", encoding="utf-8") as f:
+							f.write(r.text)
+
+						# We tell the user that the theme has been successfully installed
+						msg_str = f"The plugin '{user_wanted_theme}' has been successfully installed !"
+						self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+						msg_str = "Please reload the app to see the changes."
+						self.app.stdscr.addstr(self.app.rows // 2 + 1, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+						self.app.stdscr.getch()
+
+				# If the user specified a non-existing theme name, we show him an error and exit the function
+				else:
+					msg_str = f"The theme '{user_wanted_theme}' doesn't seem to exist."
+					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+					self.app.stdscr.getch()
 
 
 	def update_on_keypress(self, key:str):

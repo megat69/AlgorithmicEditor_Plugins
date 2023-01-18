@@ -570,10 +570,18 @@ class PluginRepo(Plugin):
 						with open(os.path.join(os.path.dirname(__file__), "../theme.ini"), "w", encoding="utf-8") as f:
 							f.write(r.text)
 
+						# Reloads the changes
+						self.app._theme_parser.read("theme.ini")
+						self.app.color_pairs = {
+							pair_name: self.app._theme_parser["PAIRS"].getint(pair_name, fallback_value)
+							for pair_name, fallback_value in self.app.color_pairs.items()
+						}
+						self.app._declare_color_pairs()
+
 						# We tell the user that the theme has been successfully installed
 						msg_str = f"The plugin '{user_wanted_theme}' has been successfully installed !"
 						self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
-						msg_str = "Please reload the app to see the changes."
+						msg_str = f"Changes should have already taken effect."
 						self.app.stdscr.addstr(self.app.rows // 2 + 1, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 						self.app.stdscr.getch()
 

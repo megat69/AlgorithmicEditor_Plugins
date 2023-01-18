@@ -571,12 +571,7 @@ class PluginRepo(Plugin):
 							f.write(r.text)
 
 						# Reloads the changes
-						self.app._theme_parser.read("theme.ini")
-						self.app.color_pairs = {
-							pair_name: self.app._theme_parser["PAIRS"].getint(pair_name, fallback_value)
-							for pair_name, fallback_value in self.app.color_pairs.items()
-						}
-						self.app._declare_color_pairs()
+						self.app.reload_theme()
 
 						# We tell the user that the theme has been successfully installed
 						msg_str = f"The plugin '{user_wanted_theme}' has been successfully installed !"

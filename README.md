@@ -66,6 +66,8 @@ def init(app):
 ```
 *(Obviously replace `YourPluginName` with the name of your plugin.)*
 
+You should also create a Markdown (`.md` extension) file with the same name as the Python file. It will contain the documentation of your plugin, and you can put whatever you want inside.
+
 ***FRANÇAIS***<br>
 Tout d'abord, vous devriez télécharger le `plugin_repo`. Il vous permettra de recharger votre plugin depuis l'éditeur au lieu d'avoir à le redémarrer à chaque modification.<br>
 Ensuite, il vous faudra créer un fichier Python dans le dossier `plugins` de l'éditeur, avec le nom que vous voulez, tant qu'il a l'extension `.py`.<br>
@@ -91,6 +93,8 @@ def init(app):
     return NomDeVotrePlugin(app)
 ```
 *(Évidemment, remplacez `NomDeVotrePlugin` par le nom de votre plugin.)*
+
+Vous devez aussi créer un fichier Markdown (extension `.md`) avec le même nom que le fichier Python. Il contiendra la documentation de votre plugin, et vous pouvez mettre ce que vous voulez à l'intérieur.
 
 ### The Plugin class
 ***ENGLISH***<br>

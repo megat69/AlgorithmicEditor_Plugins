@@ -5,7 +5,7 @@
 ![image](https://img.shields.io/github/commit-activity/m/megat69/AlgorithmicEditor_Plugins)
 
 ## Plugins
-See [in the main repository](https://github.com/megat69/AlgorithmicEditor_Plugins) for the app.
+See [in the main repository](https://github.com/megat69/AlgorithmicEditor) for the app.
 
 ***ENGLISH***
 Plugins are a great tool offered to you by the editor, and allow to extend its functionality with official or third-party applets.<br>

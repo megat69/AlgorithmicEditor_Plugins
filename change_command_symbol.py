@@ -8,7 +8,23 @@ class ChangeCommandSymbol(Plugin):
 	"""
 	def __init__(self, app):
 		super().__init__(app)
-		self.add_command("?", self.change_command_symbol, "Change command symbol", True)
+
+		# Sets up the translation
+		self.translations = {
+			"en": {
+				"change_command_symbol": "Change command symbol",
+				"type_new_char": "Type the new character to change to : ",
+				"symbol_changed_to": "Command character changed to : "
+			},
+			"fr": {
+				"change_command_symbol": "Changer le symbole de commande",
+				"type_new_char": "Tapez le nouveau caractère vers lequel changer : ",
+				"symbol_changed_to": "Caractère de commande modifié vers : "
+			}
+		}
+
+		# Creates a command
+		self.add_command("?", self.change_command_symbol, self.translate("change_command_symbol"), True)
 
 
 	def init(self):
@@ -27,7 +43,7 @@ class ChangeCommandSymbol(Plugin):
 		Changes the command symbol to whatever the user wants.
 		"""
 		if symbol is None:
-			message = "Type the new character to change to : "
+			message = self.translate("type_new_char")
 			self.app.stdscr.addstr(self.app.rows - 1, 0, message)
 			key = self.app.stdscr.getkey()
 		else:
@@ -54,7 +70,7 @@ class ChangeCommandSymbol(Plugin):
 
 			# Tells the user about the change
 			if symbol is None:
-				message2 = "Command character changed to : "
+				message2 = self.translate("symbol_changed_to")
 				self.app.stdscr.addstr(self.app.rows - 1, 0, message2 + key + (" " * (len(message) - len(message2))))
 				self.app.stdscr.getch()
 			# Saves the change into the config

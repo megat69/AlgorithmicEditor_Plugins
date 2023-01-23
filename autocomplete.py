@@ -17,9 +17,21 @@ class AutocompletionPlugin(Plugin):
 		# Creates an autocomplete variable
 		self.ac = None
 
+		# Determines the plugin translation
+		self.translations = {
+			"en": {
+				"autocomplete_cmd": "Autocomplete Toggle Auto Add Space",
+				"toggled_auto_add_space": "Toggled auto add space to {state} "
+			},
+			"fr": {
+				"autocomplete_cmd": "Activer/Désactiver l'ajout d'espace post-autocomplétion",
+				"toggled_auto_add_space": "Basculé l'ajout automatique d'espaces vers {state} "
+			}
+		}
+
 		# Variable to determine whether to add a space after autocompletion or not
 		self.auto_add_space = False
-		self.add_command("+", self.toggle_auto_add_space, "Autocomplete Toggle Auto Add Space", True)
+		self.add_command("+", self.toggle_auto_add_space, self.translate("autocomplete_cmd"), True)
 
 
 	def init(self):
@@ -88,7 +100,7 @@ class AutocompletionPlugin(Plugin):
 		# Toggles the automatic addition of a space upon autocompletion
 		self.auto_add_space = not self.auto_add_space
 		# Shows a message to the user indicating the state of the variable
-		self.app.stdscr.addstr(self.app.rows - 1, 4, f"Toggled auto add space to {self.auto_add_space} ")
+		self.app.stdscr.addstr(self.app.rows - 1, 4, self.translate("toggle_auto_add_space"))
 		# Saving the variable's contents in the config
 		self.config["auto_add_space"] = self.auto_add_space
 

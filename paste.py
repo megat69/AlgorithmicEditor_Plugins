@@ -8,7 +8,19 @@ class PastePlugin(Plugin):
 	"""
 	def __init__(self, app):
 		super().__init__(app)
-		self.add_command("v", self.paste, "Paste")
+
+		# Sets up the translation
+		self.translation = {
+			"en": {
+				"paste": "Paste"
+			},
+			"fr": {
+				"paste": "Coller"
+			}
+		}
+
+		# Adds the command
+		self.add_command("v", self.paste, self.translate("paste"))
 
 
 	def paste(self):

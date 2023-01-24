@@ -8,18 +8,166 @@ import re
 from plugin import Plugin
 from utils import display_menu, input_text
 
-
 # Creates the 'disabled_plugins' folder if it doesn't exist
 if not os.path.exists(os.path.join(os.path.dirname(__file__), 'disabled_plugins')):
 	os.mkdir(os.path.join(os.path.dirname(__file__), 'disabled_plugins'))
 
 
+# ------------ TRANSLATIONS ------------
+translations = {
+	"en": {
+		"manage_plugins": "Manage plugins",
+		"manage_plugins_menu": {
+			"list_plugins": "List plugins",
+			"download_plugins": "Download plugins",
+			"delete_plugins": "Delete plugins",
+			"disable_plugins": "Disable plugins",
+			"enable_plugins": "Enable plugins",
+			"reload_plugins": "Reload plugins",
+			"read_online_plugins_doc": "Read online plugins documentation",
+			"download_theme": "Download theme",
+			"leave": "Leave"
+		},
+		"list_plugins": {
+			"available": "available",
+			"title": "-- {available} {listed_element} list --",
+			"faulty_plugins": "Faulty plugins displayed in red."
+		},
+		"list_online_plugins": {
+			"connection_error": "Please check your connection and try again."
+		},
+		"plugin_fetching_error": [
+			"There have been a problem during the fetching of",
+			"the plugins list online. We apologize for the inconvenience."
+		],
+		"download_plugins": {
+			"input_plugin_name": "Input the name of the plugin to download, or leave blank to cancel.",
+			"plugin_installed": "The plugin '{user_wanted_plugin}' has been successfully installed !",
+			"reload_plugins_option": "Do you want to reload the plugins ?",
+			"install_all_plugins_option": "Do you want to install all plugins ? This will update every plugin you have installed.",
+			"successfully_installed_all": "The plugins have been successfully installed !",
+			"nonexistent_plugin": "The plugin '{user_wanted_plugin}' doesn't seem to exist."
+		},
+		"docs_plugin": {
+			"docs_list": [
+				"We are listing all library documentations you have downloaded.",
+				"(They might not be up to date.)"
+			],
+			"input_name": "Input the name of the plugin to download, or leave blank to cancel.",
+			"nonexistent_docs": "The plugin documentation for '{user_wanted_plugin}' doesn't seem to exist."
+		},
+		"delete_plugin": {
+			"input_name": "Input the name of the plugin you want to delete (or leave blank to cancel) :",
+			"plugin_deleted_confirm": "Plugin {plugin_name} deleted.",
+			"confirm_delete_plugin": "Are you sure you want to delete the plugin '{plugin_name}' ?",
+			"non_installed_plugin": "The plugin '{plugin_name}' doesn't seem to be installed."
+		},
+		"disable_plugins": {
+			"input_name": "Input the name of the plugin you want to {state} (or leave blank to cancel) :",
+			"plugin_disabled": "Plugin {plugin_name} {state}.",
+			"confirm_disable_plugins": "Are you sure you want to {state} the plugin '{plugin_name}' ?",
+			"disable": "disable",
+			"disabled": "disabled"
+		},
+		"enable_plugins": {
+			"enable": "enable",
+			"enabled": "enabled"
+		},
+		"download": {
+			"check_connection": "Please check your connection and try again."
+		},
+		"download_theme": {
+			"input_name": "Input the name of the theme to download, or leave blank to cancel.",
+			"successfully_installed": "The theme '{user_wanted_theme}' has been successfully installed !",
+			"changes_taken_effect": "Changes should have already taken effect.",
+			"non_existent_theme": "The theme '{user_wanted_theme}' doesn't seem to exist."
+		}
+	},
+	"fr": {
+		"manage_plugins": "Gérer les plugins",
+		"manage_plugins_menu": {
+			"list_plugins": "Liste des plugins",
+			"download_plugins": "Télécharger des plugins",
+			"delete_plugins": "Supprimer des plugins",
+			"disable_plugins": "Désactiver des plugins",
+			"enable_plugins": "Activer des plugins",
+			"reload_plugins": "Actualiser les plugins",
+			"read_online_plugins_doc": "Lire la documentation de plugins en ligne",
+			"download_theme": "Télécharger un thème",
+			"leave": "Quitter"
+		},
+		"list_plugins": {
+			"available": "disponibles",
+			"title": "-- liste des {listed_element} {available} --",
+			"faulty_plugins": "Plugins avec une erreur affichés en rouge."
+		},
+		"list_online_plugins": {
+			"connection_error": "Vérifiez votre connection et réessayez."
+		},
+		"plugin_fetching_error": [
+			"Un problème est survenu durant la récupération de",
+			"la liste des plugins en ligne. Veuillez nous excuser de la gène occasionnée."
+		],
+		"download_plugins": {
+			"input_plugin_name": "Entrez le nom du plugin a télécharger, ou laissez-vide pour annuler.",
+			"plugin_installed": "Le plugin '{user_wanted_plugin}' a été installé avec succès !",
+			"reload_plugins_option": "Voulez-vous recharger les plugins ?",
+			"install_all_plugins_option": "Voulez-vous installer tous les plugins ? Cela mettra à jour tous vos plugins.",
+			"successfully_installed_all": "Les plugins ont été installés avec succès !",
+			"nonexistent_plugin": "Le plugin '{user_wanted_plugin}' n'a pas l'air d'exister."
+		},
+		"docs_plugin": {
+			"docs_list": [
+				"Nous listons la documentation de tous les plugins que vous avez téléchargé.",
+				"(Elles peuvent être obsolète.)"
+			],
+			"input_name": "Entrez le nom du plugin à télécharger, ou laissez vide pour annuler.",
+			"nonexistent_docs": "La documentation du plugin '{user_wanted_plugin}' n'a pas l'air d'exister."
+		},
+		"delete_plugin": {
+			"input_name": "Entrez le nom du plugin que vous souhaitez supprimer (ou laissez vide pour annuler) :",
+			"plugin_deleted_confirm": "Le plugin {plugin_name} a été supprimé.",
+			"confirm_delete_plugin": "Voulez-vous vraiment supprimer le plugin '{plugin_name}' ?",
+			"non_installed_plugin": "Le plugin '{plugin_name}' ne semble pas être installé."
+		},
+		"disable_plugins": {
+			"input_name": "Entrez le nom du plugin que vous voulez {state} (ou laissez vide pour annuler) :",
+			"plugin_disabled": "Le plugin {plugin_name} a été {state}.",
+			"confirm_disable_plugins": "Voulez-vous vraiment {state} le plugin '{plugin_name}' ?",
+			"disable": "désactiver",
+			"disabled": "désactivé"
+		},
+		"enable_plugins": {
+			"enable": "activer",
+			"enabled": "activé"
+		},
+		"download": {
+			"check_connection": "Veuillez vérifier votre connexion et réessayer."
+		},
+		"download_theme": {
+			"input_name": "Entrez le nom du thème à télécharger, ou laissez vide pour annuler.",
+			"successfully_installed": "Le thème '{user_wanted_theme}' a été installé avec succès !",
+			"changes_taken_effect": "Les changements ont déjà dû être appliqués.",
+			"non_existent_theme": "Le thème '{user_wanted_theme}' n'a pas l'air d'exister."
+		}
+	}
+}
+# --------------------------------------
+
+
 class PluginRepo(Plugin):
 	def __init__(self, app):
 		super().__init__(app)
+
+		# Sets the translations
+		self.translations = translations
+
+		# Creates the use vars
 		self.manage_plugins_menu = False
 		self.selected_menu_item = 0
-		self.add_command("r", self.manage_plugins, "Manage plugins")
+
+		# Creates the command
+		self.add_command("r", self.manage_plugins, self.translate("manage_plugins"))
 
 
 	def init(self):
@@ -36,15 +184,15 @@ class PluginRepo(Plugin):
 		self.manage_plugins_menu = True
 		while self.manage_plugins_menu:
 			display_menu(self.app.stdscr, (
-				("List plugins", self.list_plugins),
-				("Download plugins", self.download_plugins),
-				("Delete plugins", self.delete_plugins),
-				("Disable plugins", self.disable_plugins),
-				("Enable plugins", self.enable_plugins),
-				("Reload plugins", self.reload_plugins),
-				("Read online plugins doc", self.docs_plugins),
-				("Download theme", self.download_theme),
-				("Leave", self.leave)
+				(self.translate("manage_plugins_menu", "list_plugins"), self.list_plugins),
+				(self.translate("manage_plugins_menu", "download_plugins"), self.download_plugins),
+				(self.translate("manage_plugins_menu", "delete_plugins"), self.delete_plugins),
+				(self.translate("manage_plugins_menu", "disable_plugins"), self.disable_plugins),
+				(self.translate("manage_plugins_menu", "enable_plugins"), self.enable_plugins),
+				(self.translate("manage_plugins_menu", "reload_plugins"), self.reload_plugins),
+				(self.translate("manage_plugins_menu", "read_online_plugins_doc"), self.docs_plugins),
+				(self.translate("manage_plugins_menu", "download_theme"), self.download_theme),
+				(self.translate("manage_plugins_menu", "leave"), self.leave)
 			), self.selected_menu_item)
 
 
@@ -72,12 +220,15 @@ class PluginRepo(Plugin):
 		i = 0
 
 		# Creating the message displayed to the user
-		msg = f"-- {'AVAILABLE' if plist is not None else ''} {listed_element} LIST --"
+		msg = self.translate(
+			"list_plugins", "title", listed_element=listed_element,
+			available = self.translate("list_plugins", "available") if plist is not None else ''
+		).upper()
 		self.app.stdscr.addstr(0, self.app.cols // 2 - len(msg) // 2, msg, curses.A_BOLD)
 
 		# If no plugins list was provided to the function, we add another message
 		if plist is None:
-			msg = "Faulty plugins displayed in red."
+			msg = self.translate("list_plugins", "faulty_plugins")
 			self.app.stdscr.addstr(1, self.app.cols // 2 - len(msg) // 2, msg, curses.A_BOLD)
 
 		# We fetch each plugin in the list of plugins or in the plugins folder, depending on plist
@@ -126,7 +277,7 @@ class PluginRepo(Plugin):
 		# If the connection fails, it tells the user and exits the function
 		except requests.exceptions.ConnectionError:
 			self._wrong_return_code_inconvenience()
-			msg_str = f"Please check your connection and try again."
+			msg_str = self.translate("list_online_plugins", "connection_error")
 			self.app.stdscr.addstr(self.app.rows // 2 + 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 			return None
 
@@ -166,7 +317,7 @@ class PluginRepo(Plugin):
 		if plugins_list is None: return None
 
 		# Asks the user to input the plugin name
-		self.app.stdscr.addstr(self.app.rows - 2, 0, "Input the name of the plugin to download, or leave blank to cancel.")
+		self.app.stdscr.addstr(self.app.rows - 2, 0, self.translate("download_plugins", "input_plugin_name"))
 		user_wanted_plugin = input_text(self.app.stdscr)
 
 		# If the user wrote nothing, it means he wants to cancel, so we stop the function there
@@ -177,7 +328,7 @@ class PluginRepo(Plugin):
 				self._install_plugin(user_wanted_plugin)
 
 				# We tell the user that the plugin has been successfully installed
-				msg_str = f"The plugin '{user_wanted_plugin}' has been successfully installed !"
+				msg_str = self.translate("download_plugins", "plugin_installed", user_wanted_plugin=user_wanted_plugin)
 				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 				self.app.stdscr.getch()
 
@@ -185,10 +336,10 @@ class PluginRepo(Plugin):
 				display_menu(
 					self.app.stdscr,
 					(
-						("Yes", self.reload_plugins),
-						("No", lambda: None)
+						(self.app.get_translation("yes"), self.reload_plugins),
+						(self.app.get_translation("no"), lambda: None)
 					),
-					label = "Do you want to reload the plugins ?"
+					label = self.translate("download_plugins", "reload_plugins_option")
 				)
 
 			# If the user wants to download all plugins
@@ -198,14 +349,14 @@ class PluginRepo(Plugin):
 						self._install_plugin(plugin)
 
 				display_menu(self.app.stdscr, (
-					("Yes", _install_all_plugins),
-					("No", lambda: None)
+					(self.app.get_translation("yes"), _install_all_plugins),
+					(self.app.get_translation("no"), lambda: None)
 				),
-				label = "Do you want to install all plugins ? This will update every plugin you have installed."
+				label = self.translate("download_plugins", "install_all_plugins_option")
 				)
 
 				# We tell the user that the plugin has been successfully installed
-				msg_str = f"The plugins have been successfully installed !"
+				msg_str = self.translate("download_plugins", "successfully_installed_all")
 				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 				self.app.stdscr.getch()
 
@@ -213,15 +364,17 @@ class PluginRepo(Plugin):
 				display_menu(
 					self.app.stdscr,
 					(
-						("Yes", self.reload_plugins),
-						("No", lambda: None)
+						(self.app.get_translation("yes"), self.reload_plugins),
+						(self.app.get_translation("no"), lambda: None)
 					),
-					label="Do you want to reload the plugins ?"
+					label=self.translate("download_plugins", "reload_plugins_option")
 				)
 
 			# If the user specified a non-existing plugin name, we show him an error and exit the function
 			else:
-				msg_str = f"The plugin '{user_wanted_plugin}' doesn't seem to exist."
+				msg_str = self.translate(
+					"download_plugins", "nonexistent_plugin", user_wanted_plugin=user_wanted_plugin
+				)
 				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 				self.app.stdscr.getch()
 
@@ -238,10 +391,7 @@ class PluginRepo(Plugin):
 		force_local = False
 		# Tries to fetch already downloaded docs if self.list_online_plugins() returned None (an error occured)
 		if plugins_list is None:
-			msg_str = (
-				"We are listing all library documentations you have downloaded.",
-				"(They might not be up to date.)"
-			)
+			msg_str = self.translate("docs_plugin", "docs_list")
 			for i in range(len(msg_str)):
 				self.app.stdscr.addstr(self.app.rows // 2 + 3 + i, self.app.cols // 2 - len(msg_str[i]) // 2, msg_str[i])
 
@@ -258,7 +408,7 @@ class PluginRepo(Plugin):
 			self.list_plugins(plist=plugins_list, getch=False, check_py=False)
 
 		# Asks the user to input the plugin name
-		self.app.stdscr.addstr(self.app.rows - 2, 0, "Input the name of the plugin to download, or leave blank to cancel.")
+		self.app.stdscr.addstr(self.app.rows - 2, 0, self.translate("docs_plugin", "input_name"))
 		user_wanted_plugin = input_text(self.app.stdscr)
 
 		# If the user wrote nothing, it means he wants to cancel, so we stop the function there
@@ -297,7 +447,7 @@ class PluginRepo(Plugin):
 
 			# If the user specified a non-existing plugin name, we show him an error and exit the function
 			else:
-				msg_str = f"The plugin documentation for '{user_wanted_plugin}' doesn't seem to exist."
+				msg_str = self.translate("docs_plugin", "nonexistent_docs", user_wanted_plugin=user_wanted_plugin)
 				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 				self.app.stdscr.getch()
 
@@ -313,7 +463,7 @@ class PluginRepo(Plugin):
 		self.list_plugins(getch=False)
 
 		# Shows a message to the user about the plugins he can delete
-		self.app.stdscr.addstr(self.app.rows - 3, 0, "Input the name of the plugin you want to delete (or leave blank to cancel) :")
+		self.app.stdscr.addstr(self.app.rows - 3, 0, self.translate("delete_plugin", "input_name"))
 
 		# Asks the user to input the name of the plugin he wants to delete
 		plugin_name = input_text(self.app.stdscr, position_y=self.app.rows - 2)
@@ -339,19 +489,19 @@ class PluginRepo(Plugin):
 					except FileNotFoundError: pass
 
 					# Shows a message to the user indicating that a plugin was deleted
-					msg_str = f"Plugin {plugin_name} deleted."
+					msg_str = self.translate("delete_plugin", "plugin_deleted_confirm", plugin_name=plugin_name)
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 					self.app.stdscr.getch()
 
 				# We display a confirmation menu for the user
 				display_menu(self.app.stdscr, (
-					("Yes", delete_plugin),
-					("No", lambda: None)
-				), label=f"Are you sure you want to delete the plugin '{plugin_name}' ?")
+					(self.app.get_translation("yes"), delete_plugin),
+					(self.app.get_translation("no"), lambda: None)
+				), label=self.translate("delete_plugin", "confirm_delete_plugin", plugin_name=plugin_name))
 
 			# If the plugin doesn't exist, we show an error message and exit
 			else:
-				msg_str = f"The plugin '{plugin_name}' doesn't seem to be installed."
+				msg_str = self.translate("delete_plugin", "non_installed_plugin", plugin_name=plugin_name)
 				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 				self.app.stdscr.getch()
 
@@ -412,7 +562,10 @@ class PluginRepo(Plugin):
 
 		# Lists all plugins and asks to select the plugin to disable
 		self.list_plugins(getch=False)
-		self.app.stdscr.addstr(self.app.rows - 3, 0, "Input the name of the plugin you want to disable (or leave blank to cancel) :")
+		self.app.stdscr.addstr(self.app.rows - 3, 0, self.translate(
+			"disable_plugins", "input_name",
+			state=self.translate("disable_plugins", "disable")
+		))
 		plugin_name = input_text(self.app.stdscr, position_y=self.app.rows - 2)
 
 		# If the user inputted nothing, we cancel the action
@@ -435,19 +588,25 @@ class PluginRepo(Plugin):
 					)
 
 					# We display a message confirming that the plugin was disabled
-					msg_str = f"Plugin {plugin_name} disabled."
+					msg_str = self.translate(
+						"disable_plugin", "plugin_disabled", plugin_name=plugin_name,
+						state=self.translate("disable_plugins", "disabled")
+					)
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 					self.app.stdscr.getch()
 
 				# We display a confirmation menu
 				display_menu(self.app.stdscr, (
-					("Yes", disable_plugin),
-					("No", lambda: None)
-				), label=f"Are you sure you want to disable the plugin '{plugin_name}' ?")
+					(self.app.get_translation("yes"), disable_plugin),
+					(self.app.get_translation("no"), lambda: None)
+				), label=self.translate(
+					"disable_plugins", "confirm_disable_plugins", plugin_name=plugin_name,
+					state = self.translate("disable_plugins", "disable")
+				))
 
 			# If the plugin doesn't seem to exist, we tell the user and exit
 			else:
-				msg_str = f"The plugin '{plugin_name}' doesn't seem to be installed."
+				msg_str = self.translate("delete_plugin", "non_installed_plugin", plugin_name=plugin_name)
 				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 				self.app.stdscr.getch()
 
@@ -470,7 +629,10 @@ class PluginRepo(Plugin):
 
 		self.list_plugins(getch=False, plist=list(plugins_list))
 
-		self.app.stdscr.addstr(self.app.rows - 3, 0, "Input the name of the plugin you want to enable (or leave blank to cancel) :")
+		self.app.stdscr.addstr(self.app.rows - 3, 0, self.translate(
+			"disable_plugins", "input_name",
+			state=self.translate("enable_plugins", "enable")
+		))
 		plugin_name = input_text(self.app.stdscr, position_y=self.app.rows - 2)
 
 		# If the user typed nothing, we cancel the action
@@ -499,7 +661,10 @@ class PluginRepo(Plugin):
 						self.app.log(f"An error occurred while importing the plugin '{plugin_name}' :\n{e}")
 
 					# Showing a message indicating that the plugin has been loaded
-					msg_str = f"Plugin {plugin_name} enabled !"
+					msg_str = self.translate(
+						"disable_plugins", "plugin_disabled",
+						state=self.translate("enable_plugins", "enabled")
+					)
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 					self.app.log(msg_str)
 					self.app.stdscr.getch()
@@ -508,11 +673,14 @@ class PluginRepo(Plugin):
 				display_menu(self.app.stdscr, (
 					("Yes", enable_plugin),
 					("No", lambda: None)
-				), label=f"Are you sure you want to enable the plugin '{plugin_name}' ?")
+				), label=self.translate(
+					"disable_plugins", "confirm_disable_plugins",
+					state=self.translate("enable_plugins", "enable")
+				))
 
 			# If the plugin doesn't seem to be installed, we tell the user and exit
 			else:
-				msg_str = f"The plugin '{plugin_name}' doesn't seem to be installed."
+				msg_str = self.translate("delete_plugin", "non_installed_plugin", plugin_name=plugin_name)
 				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 				self.app.stdscr.getch()
 
@@ -530,7 +698,7 @@ class PluginRepo(Plugin):
 		# If the connection fails, it tells the user and exits the function
 		except requests.exceptions.ConnectionError:
 			self._wrong_return_code_inconvenience()
-			msg_str = f"Please check your connection and try again."
+			msg_str = self.translate("download", "check_connection")
 			self.app.stdscr.addstr(self.app.rows // 2 + 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 			return None
 
@@ -550,7 +718,7 @@ class PluginRepo(Plugin):
 			self.list_plugins(themes_list, listed_element="THEMES", check_py=False, getch=False)
 
 			# Asks the user to input the plugin name
-			self.app.stdscr.addstr(self.app.rows - 2, 0, "Input the name of the theme to download, or leave blank to cancel.")
+			self.app.stdscr.addstr(self.app.rows - 2, 0, self.translate("download_theme", "input_name"))
 			user_wanted_theme = input_text(self.app.stdscr)
 
 			# If the user wrote nothing, it means he wants to cancel, so we stop the function there
@@ -574,37 +742,38 @@ class PluginRepo(Plugin):
 						self.app.reload_theme()
 
 						# We tell the user that the theme has been successfully installed
-						msg_str = f"The plugin '{user_wanted_theme}' has been successfully installed !"
+						msg_str = self.translate(
+							"download_theme", "successfully_installed", user_wanted_theme=user_wanted_theme
+						)
 						self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
-						msg_str = f"Changes should have already taken effect."
+						msg_str = self.translate("download_theme", "changes_taken_effect")
 						self.app.stdscr.addstr(self.app.rows // 2 + 1, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 						self.app.stdscr.getch()
 
 				# If the user specified a non-existing theme name, we show him an error and exit the function
 				else:
-					msg_str = f"The theme '{user_wanted_theme}' doesn't seem to exist."
+					msg_str = self.translate("download_theme", "non_existing_theme")
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 					self.app.stdscr.getch()
 
 
 	def update_on_keypress(self, key:str):
 		"""
-		Triggers the :r if F6 is hit.
+		Triggers the :r if F6 is hit, and reloads the plugins/themes if F5 is hit.
 		"""
 		if key == "KEY_F(6)":
 			self.manage_plugins()
 		elif key == "KEY_F(5)":
 			self.reload_plugins()
+			self.app._declare_color_pairs()
 
 
 	def _wrong_return_code_inconvenience(self):
 		"""
 		Tells the user about an inconvenience during download attempt.
 		"""
-		msg_str = f"There have been a problem during the fetching of"
-		self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
-		msg_str = f"the plugins list online. We apologize for the inconvenience."
-		self.app.stdscr.addstr(self.app.rows // 2 + 1, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+		for i, msg_str in self.translate("plugin_fetching_error"):
+			self.app.stdscr.addstr(self.app.rows // 2 + i, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 		self.app.stdscr.getch()
 
 

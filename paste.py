@@ -10,7 +10,7 @@ class PastePlugin(Plugin):
 		super().__init__(app)
 
 		# Sets up the translation
-		self.translation = {
+		self.translations = {
 			"en": {
 				"paste": "Paste"
 			},

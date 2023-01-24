@@ -9,10 +9,23 @@ class InsertModePlugin(Plugin):
 	"""
 	def __init__(self, app):
 		super().__init__(app)
+
+		# Sets up the translations
+		self.translations = {
+			"en": {
+				"insert": "Insert",
+				"toggled_insert_mode": "Toggled insert mode to {state} "
+			},
+			"fr": {
+				"insert": "Insérer",
+				"toggled_insert_mode": "Bascule du mode d'insertion sur {state} "
+			}
+		}
+
 		# Initializes the variable indicating whether the insert mode is enabled
 		self.insert_mode_enabled = False
 		# Adds the command to toggle the insert mode
-		self.add_command("i", self.toggle_insert_mode, "Insert")
+		self.add_command("i", self.toggle_insert_mode, self.translate("insert"))
 
 		# Assigns the regular add_char_to_text function to a variable
 		self._regular_add_char_to_text = self.app.add_char_to_text
@@ -32,7 +45,9 @@ class InsertModePlugin(Plugin):
 		# Toggles insert mode
 		self.insert_mode_enabled = not self.insert_mode_enabled
 		# Shows a message to the user indicating the current state of the variable
-		self.app.stdscr.addstr(self.app.rows - 1, 4, f"Toggled insert mode to {self.insert_mode_enabled} ")
+		self.app.stdscr.addstr(self.app.rows - 1, 4, self.translate("toggled_insert_mode").format(
+			state=self.insert_mode_enabled
+		))
 
 
 	def _add_char_to_text(self, key:str):

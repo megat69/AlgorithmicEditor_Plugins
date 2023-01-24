@@ -8,8 +8,26 @@ class CopyPlugin(Plugin):
 	"""
 	def __init__(self, app):
 		super().__init__(app)
-		self.add_command("co", self.copy, "Copy Selection")
-		self.add_command("x", self.cut, "Cut Selection")
+		# Creates the translations
+		self.translations = {
+			"en": {
+				"copy_selection": "Copy Selection",
+				"cut_selection": "Cut Selection",
+				"awaiting_selection": "Awaiting selection for copy"
+			},
+			"fr": {
+				"copy_selection": "Copier la sélection",
+				"cut_selection": "Couper la sélection",
+				"awaiting_selection": "En attente d'une selection pour copier"
+			}
+		}
+
+
+		# Adds the commands
+		self.add_command("co", self.copy, self.translate("copy_selection"))
+		self.add_command("x", self.cut, self.translate("cut_selection"))
+
+		# Creates the use variables
 		self.within_copy = False
 		self.start_index = 0
 		self.do_cut = False
@@ -60,7 +78,7 @@ class CopyPlugin(Plugin):
 
 			# Shows a message telling the user that he's still copying
 			else:
-				self.app.stdscr.addstr(self.app.rows - 1, 4, "Awaiting selection for copy")
+				self.app.stdscr.addstr(self.app.rows - 1, 4, self.translate("awaiting_selection"))
 
 
 def init(app) -> CopyPlugin:

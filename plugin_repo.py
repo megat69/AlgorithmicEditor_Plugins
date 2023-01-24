@@ -589,7 +589,7 @@ class PluginRepo(Plugin):
 
 					# We display a message confirming that the plugin was disabled
 					msg_str = self.translate(
-						"disable_plugin", "plugin_disabled", plugin_name=plugin_name,
+						"disable_plugins", "plugin_disabled", plugin_name=plugin_name,
 						state=self.translate("disable_plugins", "disabled")
 					)
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
@@ -663,6 +663,7 @@ class PluginRepo(Plugin):
 					# Showing a message indicating that the plugin has been loaded
 					msg_str = self.translate(
 						"disable_plugins", "plugin_disabled",
+						plugin_name=plugin_name,
 						state=self.translate("enable_plugins", "enabled")
 					)
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
@@ -675,7 +676,8 @@ class PluginRepo(Plugin):
 					("No", lambda: None)
 				), label=self.translate(
 					"disable_plugins", "confirm_disable_plugins",
-					state=self.translate("enable_plugins", "enable")
+					state=self.translate("enable_plugins", "enable"),
+					plugin_name=plugin_name
 				))
 
 			# If the plugin doesn't seem to be installed, we tell the user and exit

@@ -9,8 +9,22 @@ class CtrlDel(Plugin):
 	"""
 	def __init__(self, app):
 		super().__init__(app)
-		self.add_command("e", self.delete_word, "Delete Word")
-		self.add_command("dl", self.delete_line, "Delete Line")
+
+		# Creating translations
+		self.translations = {
+			"en": {
+				"delete_word": "Delete Word",
+				"delete_line": "Delete Line"
+			},
+			"fr": {
+				"delete_word": "Effacer Mot",
+				"delete_line": "Effacer Ligne"
+			}
+		}
+
+		# Creating commands
+		self.add_command("e", self.delete_word, self.translate("delete_word"))
+		self.add_command("dl", self.delete_line, self.translate("delete_line"))
 
 
 	def delete_word(self):

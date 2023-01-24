@@ -45,8 +45,9 @@ class InsertModePlugin(Plugin):
 		# Toggles insert mode
 		self.insert_mode_enabled = not self.insert_mode_enabled
 		# Shows a message to the user indicating the current state of the variable
-		self.app.stdscr.addstr(self.app.rows - 1, 4, self.translate("toggled_insert_mode").format(
-			state=self.insert_mode_enabled
+		self.app.stdscr.addstr(self.app.rows - 1, 4, self.translate(
+			"toggled_insert_mode",
+			state = self.insert_mode_enabled
 		))
 
 

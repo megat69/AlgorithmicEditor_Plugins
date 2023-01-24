@@ -100,7 +100,8 @@ class AutocompletionPlugin(Plugin):
 		# Toggles the automatic addition of a space upon autocompletion
 		self.auto_add_space = not self.auto_add_space
 		# Shows a message to the user indicating the state of the variable
-		self.app.stdscr.addstr(self.app.rows - 1, 4, self.translate("toggled_auto_add_space").format(
+		self.app.stdscr.addstr(self.app.rows - 1, 4, self.translate(
+			"toggled_auto_add_space",
 			state=self.auto_add_space
 		))
 		# Saving the variable's contents in the config

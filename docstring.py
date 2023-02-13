@@ -15,6 +15,15 @@ class DocstringPlugin(Plugin):
 			*self.docstring_components
 		)
 
+
+	def init(self):
+		"""
+		Reloads the autocompletion if available.
+		"""
+		# Tries to reload the autocomplete if it was loaded, we make sure those keywords are available to it
+		if "autocomplete" in self.app.plugins:
+			self.app.plugins["autocomplete"][-1].reload_autocomplete()
+
 	def add_docstring(self):
 		"""
 		Adds the docstring to the text.

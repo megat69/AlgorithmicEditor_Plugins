@@ -8,9 +8,7 @@ class AutocompletionPlugin(Plugin):
 	def __init__(self, app):
 		super().__init__(app)
 		# Creating all the words which can be autocompleted
-		self.words = {
-			element: {} for e in self.app.color_control_flow.values() for element in e
-		}
+		self.words = self.load_words()
 		# Initializing the autocomplete
 		self.autocomplete = AutoComplete(words=self.words)
 
@@ -106,6 +104,22 @@ class AutocompletionPlugin(Plugin):
 		))
 		# Saving the variable's contents in the config
 		self.config["auto_add_space"] = self.auto_add_space
+
+	def load_words(self):
+		"""
+		Loads all the words available for autocomplete.
+		"""
+		return {
+			element: {} for e in self.app.color_control_flow.values() for element in e
+		}
+
+
+	def reload_autocomplete(self):
+		"""
+		Reloads the autocomplete.
+		"""
+		self.words = self.load_words()
+		self.autocomplete = AutoComplete(words=self.words)
 
 
 def init(app) -> AutocompletionPlugin:

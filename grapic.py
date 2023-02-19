@@ -296,6 +296,16 @@ class GrapicCppCompiler(CppCompiler):
 			self.instructions_list[line_number] = self.instructions_list[line_number].replace(algo_function, cpp_equivalent)
 
 
+
+	def final_touches(self):
+		"""
+		Adds the grapic import and namespace before iostream.
+		"""
+		final_compiled_code = super().final_touches()
+		final_compiled_code = "#include <Grapic.h>\nusing namespace grapic;\n" + final_compiled_code
+		return final_compiled_code
+
+
 	def analyze_winit(self, instruction_name:str, instruction_params:list, line_number:int):
 		"""
 		Analyzes the winInit method.

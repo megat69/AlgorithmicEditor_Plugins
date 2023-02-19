@@ -16,4 +16,6 @@ Allows you to use functions from Alexandre Meyer's GrAPiC library.
 - "rectf" : `rectangleFill(int x1, int y1, int x2, int y2)`
 - "ppixel" : `putPixel(int x, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a=255)`
 - "delay" : `delay(int duration)`
+- "img" : `image(str filename)`
+  - Note : Having this function called in the form `img <filename> -> <var_name>` will store the image in the given variable.
 

@@ -272,7 +272,7 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 
 		# Creates the function compilation
 		else:
-			if len(instruction_params) > 2 and instruction_params[-2] == "<-":
+			if len(instruction_params) > 2 and instruction_params[-2]  in ("->", "<-"):
 				self.instructions_list[line_number] = f"Charge l'image au chemin {' '.join(instruction_params[:-2])} dans la variable {instruction_params[-1]}"
 			else:
 				self.instructions_list[line_number] = f"Charge l'image au chemin {' '.join(instruction_params)}"
@@ -546,7 +546,7 @@ class GrapicCppCompiler(CppCompiler):
 
 		# Creates the function compilation
 		else:
-			if len(instruction_params) > 2 and instruction_params[-2] == "<-":
+			if len(instruction_params) > 2 and instruction_params[-2] in ("->", "<-"):
 				self.instructions_list[line_number] = f"Image {instruction_params[-1]} = image({' '.join(instruction_params[:-2])})"
 			else:
 				self.instructions_list[line_number] = f"image({' '.join(instruction_params)})"

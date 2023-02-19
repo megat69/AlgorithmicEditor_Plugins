@@ -12,7 +12,7 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 		try:
 			super().__init__(
 				algo_compiler.instruction_names,
-				algo_compiler.var_types,
+				{**algo_compiler.var_types, "image": "Image"},
 				algo_compiler.other_instructions,
 				algo_compiler.stdscr,
 				algo_compiler.translations,
@@ -262,6 +262,22 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 				self.instructions_list[line_number] = f"Attendre {instruction_params[0]} ms"
 
 
+	def analyze_img(self, instruction_name:str, instruction_params:list, line_number:int):
+		"""
+		Analyzes the image method.
+		"""
+		# Checks if we can call this function
+		if not self.did_winit:
+			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+
+		# Creates the function compilation
+		else:
+			if len(instruction_params) > 2 and instruction_params[-2] == "<-":
+				self.instructions_list[line_number] = f"Charge l'image au chemin {' '.join(instruction_params[:-2])} dans la variable {instruction_params[-1]}"
+			else:
+				self.instructions_list[line_number] = f"Charge l'image au chemin {' '.join(instruction_params)}"
+
+
 class GrapicCppCompiler(CppCompiler):
 	"""
 	Enhances the algorithmic compiler with grapic functions.
@@ -270,7 +286,7 @@ class GrapicCppCompiler(CppCompiler):
 		try:
 			super().__init__(
 				cpp_compiler.instruction_names,
-				cpp_compiler.var_types,
+				{**cpp_compiler.var_types, "image": "Image"},
 				cpp_compiler.other_instructions,
 				cpp_compiler.stdscr,
 				cpp_compiler.app,
@@ -520,6 +536,22 @@ class GrapicCppCompiler(CppCompiler):
 				self.instructions_list[line_number] = f"delay({instruction_params[0]})"
 
 
+	def analyze_img(self, instruction_name:str, instruction_params:list, line_number:int):
+		"""
+		Analyzes the image method.
+		"""
+		# Checks if we can call this function
+		if not self.did_winit:
+			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+
+		# Creates the function compilation
+		else:
+			if len(instruction_params) > 2 and instruction_params[-2] == "<-":
+				self.instructions_list[line_number] = f"Image {instruction_params[-1]} = image({' '.join(instruction_params[:-2])})"
+			else:
+				self.instructions_list[line_number] = f"image({' '.join(instruction_params)})"
+
+
 class GrapicPlugin(Plugin):
 	def __init__(self, app):
 		super().__init__(app)
@@ -540,6 +572,7 @@ class GrapicPlugin(Plugin):
 			"rectf",     # rectangleFill(int x1, int y1, int x2, int y2)
 			"ppixel",    # putPixel(int x, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a=255)
 			"delay",     # delay(int duration)
+			"img",       # image(str filename)
 		)
 		self.app.color_control_flow["instruction"] = (
 			*self.app.color_control_flow["instruction"],

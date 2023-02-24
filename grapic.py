@@ -318,7 +318,8 @@ class GrapicCppCompiler(CppCompiler):
 		Adds the grapic import and namespace before iostream.
 		"""
 		final_compiled_code = super().final_touches()
-		final_compiled_code = "#include <Grapic.h>\nusing namespace grapic;\n" + final_compiled_code
+		if self.did_winit:
+			final_compiled_code = "#include <Grapic.h>\nusing namespace grapic;\n" + final_compiled_code
 		return final_compiled_code
 
 

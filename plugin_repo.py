@@ -156,6 +156,7 @@ translations = {
 
 
 class PluginRepo(Plugin):
+	PLUGINS_REPO_INDIVIDUAL_FILE = "https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main"
 	PLUGINS_REPO_URL = "https://github.com/megat69/AlgorithmicEditor_Plugins/tree/master/"
 
 	def __init__(self, app):
@@ -399,6 +400,7 @@ class PluginRepo(Plugin):
 		# Gets the list of available plugins from online
 		plugins_list = self.list_online_plugins()
 		force_local = False
+
 		# Tries to fetch already downloaded docs if self.list_online_plugins() returned None (an error occured)
 		if plugins_list is None:
 			msg_str = self.translate("docs_plugin", "docs_list")
@@ -435,7 +437,7 @@ class PluginRepo(Plugin):
 
 				else:
 					# We download the contents of the file from GitHub
-					r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{user_wanted_plugin}.md")
+					r = requests.get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{user_wanted_plugin}.md")
 
 					# If something went wrong with the request (the webpage didn't return an HTTP 200 (OK) code), we warn the user and exit the function
 					if r.status_code != 200:
@@ -560,6 +562,7 @@ class PluginRepo(Plugin):
 				self.app.log(f"An error occurred while importing the plugin '{plugin}' :\n{e}")
 				del self.app.plugins[plugin]
 
+		# Lists the plugins afterwards
 		self.list_plugins()
 
 
@@ -637,8 +640,10 @@ class PluginRepo(Plugin):
 			or not plugin.endswith(".py")) is False
 		)
 
+		# Lists the plugins
 		self.list_plugins(getch=False, plist=list(plugins_list))
 
+		# Asks the user to input a name for a plugin to enable
 		self.app.stdscr.addstr(self.app.rows - 3, 0, self.translate(
 			"disable_plugins", "input_name",
 			state=self.translate("enable_plugins", "enable")
@@ -701,12 +706,9 @@ class PluginRepo(Plugin):
 		"""
 		Allows the user to download a theme to replace the new one.
 		"""
-		# Gives a list of all the available themes
-		github_url = 'https://github.com/megat69/AlgorithmicEditor_Themes/tree/master/'
-
 		# Tries to connect to the URL on GitHub
 		try:
-			r = requests.get(github_url)
+			r = requests.get(PluginRepo.PLUGINS_REPO_URL)
 		# If the connection fails, it tells the user and exits the function
 		except requests.exceptions.ConnectionError:
 			self._wrong_return_code_inconvenience()
@@ -784,18 +786,19 @@ class PluginRepo(Plugin):
 		"""
 		Tells the user about an inconvenience during download attempt.
 		"""
+		# Throws a return code to the user about an error while fetching the plugins
 		for i, msg_str in self.translate("plugin_fetching_error"):
 			self.app.stdscr.addstr(self.app.rows // 2 + i, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 		self.app.stdscr.getch()
 
 
-	def _install_plugin(self, plugin_name:str):
+	def _install_plugin(self, plugin_name: str):
 		"""
 		Installs the given plugin from GitHub.
 		:param plugin_name: The name of the plugin to install.
 		"""
 		# We download the contents of the file from GitHub
-		r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{plugin_name}.py")
+		r = requests.get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{plugin_name}.py")
 
 		# If something went wrong with the request (the webpage didn't return an HTTP 200 (OK) code), we warn the user and exit the function
 		if r.status_code != 200:
@@ -808,7 +811,7 @@ class PluginRepo(Plugin):
 				f.write(r.text)
 
 			# We then try to download the plugin's docs
-			r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main/{plugin_name}.md")
+			r = requests.get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{plugin_name}.md")
 			# If everything went well, we simply dump the contents of the documentation file into another file
 			# And if something went wrong, we simply don't do it and don't warn the user, he'll download it later
 			if r.status_code == 200:

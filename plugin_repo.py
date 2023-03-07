@@ -203,8 +203,11 @@ class PluginRepo(Plugin):
 		self.manage_plugins_menu = False
 
 
-	def list_plugins(self, plist:list=None, getch:bool=True, check_py:bool=True, highlighted_plugins:list=None,
-	                    listed_element:str="PLUGINS"):
+	def list_plugins(
+			self, plist: list = None,
+			getch: bool = True, check_py: bool = True,
+			highlighted_plugins: list = None, listed_element: str = "PLUGINS"
+	):
 		"""
 		Lists all the installed plugins, and displays in red the faulty ones.
 		:param plist: A list of plugins to show the user. If None, will look into the plugins folder. Default is None.
@@ -242,17 +245,21 @@ class PluginRepo(Plugin):
 			# Cleaning the name
 			plugin = plugin.replace(".py", "")
 
-			# Displaying each plugin name at the left of the screen
+			# Gets the color of the plugin
+			plugin_display_color = curses.A_NORMAL
+			# If no plugin is highlighted by the user
 			if highlighted_plugins is None:
-				if plugin in self.app.plugins.keys() or plist is not None:
-					self.app.stdscr.addstr(i + 3, self.app.cols // 2 - len(plugin) // 2, plugin)
-				else:
-					self.app.stdscr.addstr(i + 3, self.app.cols // 2 - len(plugin) // 2, plugin, curses.color_pair(1))
+				# If the plugin is not in the loaded plugins (thus is faulty), we display it in red.
+				if plugin not in self.app.plugins.keys() and plist is None:
+					plugin_display_color |= curses.color_pair(1)
+
+			# If the user defined highlighted plugins, they get highlighted in blue
 			else:
 				if plugin in highlighted_plugins:
-					self.app.stdscr.addstr(i + 3, self.app.cols // 2 - len(plugin) // 2, plugin, curses.color_pair(4))
-				else:
-					self.app.stdscr.addstr(i + 3, self.app.cols // 2 - len(plugin) // 2, plugin)
+					plugin_display_color |= curses.color_pair(4)
+
+			# Displaying each plugin name at the left of the screen
+			self.app.stdscr.addstr(i + 3, self.app.cols // 2 - len(plugin) // 2, plugin, plugin_display_color)
 
 			# Incrementing i by 1, we are forced to do this because we ignore some files at the
 			# start of the loop.

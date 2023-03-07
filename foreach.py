@@ -15,7 +15,7 @@ class ForeachAlgorithmicCompiler(AlgorithmicCompiler):
 				algo_compiler.other_instructions,
 				algo_compiler.stdscr,
 				algo_compiler.translations,
-				algo_compiler.tranlate_method,
+				algo_compiler.translate_method,
 				algo_compiler.tab_char
 			)
 		except TypeError:

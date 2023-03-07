@@ -343,14 +343,7 @@ class PluginRepo(Plugin):
 				self.app.stdscr.getch()
 
 				# We ask the user if he wants to reload the plugins, and if so, we do it
-				display_menu(
-					self.app.stdscr,
-					(
-						(self.app.get_translation("yes"), self.reload_plugins),
-						(self.app.get_translation("no"), lambda: None)
-					),
-					label = self.translate("download_plugins", "reload_plugins_option")
-				)
+				self._prompt_reload_plugins()
 
 			# If the user wants to download all plugins
 			elif user_wanted_plugin == "all":
@@ -371,14 +364,7 @@ class PluginRepo(Plugin):
 				self.app.stdscr.getch()
 
 				# We ask the user if he wants to reload the plugins, and if so, we do it
-				display_menu(
-					self.app.stdscr,
-					(
-						(self.app.get_translation("yes"), self.reload_plugins),
-						(self.app.get_translation("no"), lambda: None)
-					),
-					label=self.translate("download_plugins", "reload_plugins_option")
-				)
+				self._prompt_reload_plugins()
 
 			# If the user specified a non-existing plugin name, we show him an error and exit the function
 			else:
@@ -387,6 +373,20 @@ class PluginRepo(Plugin):
 				)
 				self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 				self.app.stdscr.getch()
+
+
+	def _prompt_reload_plugins(self):
+		"""
+		Prompts the user a menu to reload the plugins.
+		"""
+		display_menu(
+			self.app.stdscr,
+			(
+				(self.app.get_translation("yes"), self.reload_plugins),
+				(self.app.get_translation("no"), lambda: None)
+			),
+			label=self.translate("download_plugins", "reload_plugins_option")
+		)
 
 
 	def docs_plugins(self):

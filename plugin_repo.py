@@ -156,8 +156,14 @@ translations = {
 
 
 class PluginRepo(Plugin):
-	PLUGINS_REPO_INDIVIDUAL_FILE = "https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Plugins/main"
-	PLUGINS_REPO_URL = "https://github.com/megat69/AlgorithmicEditor_Plugins/tree/master/"
+	# Modify to use another plugin repo
+	PLUGIN_REPO_NAME   = "AlgorithmicEditor_Plugins"  # Name of the repo
+	PLUGIN_REPO_USER   = "megat69"                    # Username of the repo creator
+	PLUGIN_REPO_BRANCH = "main"                       # Branch to pull plugins from
+
+	# Constants for the plugin repository URL. Should not be touched.
+	PLUGINS_REPO_INDIVIDUAL_FILE = f"https://raw.githubusercontent.com/{PLUGIN_REPO_USER}/{PLUGIN_REPO_NAME}/{PLUGIN_REPO_BRANCH}"
+	PLUGINS_REPO_URL = f"https://github.com/{PLUGIN_REPO_USER}/{PLUGIN_REPO_NAME}/tree/{PLUGIN_REPO_BRANCH}/"
 
 	def __init__(self, app):
 		super().__init__(app)

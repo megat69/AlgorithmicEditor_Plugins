@@ -1,14 +1,34 @@
+from typing import Callable
+
 from plugin import Plugin
 from algorithmic_compiler import AlgorithmicCompiler
 from cpp_compiler import CppCompiler
 # TODO : Translations
+translations = {
+	"en": {
+		"error": {
+			"param_number": "Error on line {line_number} : {instruction_name} method requires {nb_params} params, got {given_params_nb}",
+			"no_winit": "Error on line {line_number} : Called {instruction_name} method before winit.",
+			"winit_finished_string": "Error on line {line_number} : expected finished string as winit first param"
+		}
+	},
+	"fr": {
+		"error": {
+			"param_number": "Erreur à la ligne {line_number} : la fonction {instruction_name} requiert {nb_params} paramètres, n'en a reçu que {given_params_nb}",
+			"no_winit": "Erreur à la ligne {line_number} : la fonction {instruction_name} a été apprelée avant winit.",
+			"winit_finished_string": "Erreur à la ligne {line_number} : une chaîne de caractères finie était attendue comme premier paramètre de winit"
+		}
+	}
+}
+
+
 
 
 class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 	"""
 	Enhances the algorithmic compiler with grapic functions.
 	"""
-	def __init__(self, algo_compiler: AlgorithmicCompiler):
+	def __init__(self, algo_compiler: AlgorithmicCompiler, tr_method: Callable):
 		try:
 			super().__init__(
 				algo_compiler.instruction_names,
@@ -16,13 +36,15 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 				algo_compiler.other_instructions,
 				algo_compiler.stdscr,
 				algo_compiler.translations,
-				algo_compiler.tranlate_method,
+				algo_compiler.translate_method,
 				algo_compiler.tab_char
 			)
 		except TypeError:
 			super().__init__(algo_compiler)
 		# Keeps track of whether we initialized the window already (cannot use any other function prior to this)
 		self.did_winit = False
+		# Keeps in mind the translate method
+		self.translate = tr_method
 
 
 	def prepare_new_compilation(self):
@@ -51,11 +73,14 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 				while not instruction_params[0].endswith("\""):
 					instruction_params[0] += " " + instruction_params.pop(1)
 			except IndexError:
-				self.error(f"Error on line {line_number + 1} : expected finished string as winit first param")
+				self.error(self.translate("error", "winit_finished_string", line_number=line_number+1))
 
 		# Creates the function compilation
 		if len(instruction_params) != 3:
-			self.error(f"Error on line {line_number + 1} : winit method requires 3 params, got {len(instruction_params)}")
+			self.error(
+				self.translate("error", "param_number", line_number=line_number+1, instruction_name=instruction_name, nb_params=3, given_params_nb=len(instruction_params))
+			)
+			#self.error(f"Error on line {line_number + 1} : winit method requires 3 params, got {len(instruction_params)}")
 		else:
 			self.instructions_list[line_number] = f"Initialisation de la fenêtre avec pour nom {instruction_params[0]}," \
 			                                      f" largeur {instruction_params[1]}, et hauteur {instruction_params[2]}"
@@ -68,7 +93,9 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number+1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
@@ -81,7 +108,9 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
@@ -94,7 +123,9 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
@@ -107,12 +138,16 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) != 3:
-				self.error(f"Error on line {line_number + 1} : {instruction_name} method requires 3 params, got {len(instruction_params)}")
+				self.error(
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params=3, given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"Changement de la couleur vers ({', '.join(instruction_params)})"
 
@@ -123,12 +158,16 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) != 3:
-				self.error(f"Error on line {line_number + 1} : {instruction_name} method requires 3 params, got {len(instruction_params)}")
+				self.error(
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params=3, given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"Changement de la couleur d'arrière plan vers ({', '.join(instruction_params)})"
 
@@ -139,7 +178,9 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
@@ -152,12 +193,16 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) != 3:
-				self.error(f"Error on line {line_number + 1} : {instruction_name} method requires 3 params, got {len(instruction_params)}")
+				self.error(
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params=3, given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"Trace un cercle de centre ({instruction_params[0]}, " \
 				                                      f"{instruction_params[1]}) et de rayon {instruction_params[2]}"
@@ -169,12 +214,16 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) != 3:
-				self.error(f"Error on line {line_number + 1} : {instruction_name} method requires 3 params, got {len(instruction_params)}")
+				self.error(
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params=3, given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"Trace un cercle REMPLI de centre ({instruction_params[0]}, " \
 				                                      f"{instruction_params[1]}) et de rayon {instruction_params[2]}"
@@ -186,12 +235,16 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) != 4:
-				self.error(f"Error on line {line_number + 1} : {instruction_name} method requires 4 params, got {len(instruction_params)}")
+				self.error(
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params=4, given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"Trace une ligne de ({', '.join(instruction_params[:2])}) à ({', '.join(instruction_params[2:])})"
 
@@ -202,12 +255,16 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) != 4:
-				self.error(f"Error on line {line_number + 1} : {instruction_name} method requires 4 params, got {len(instruction_params)}")
+				self.error(
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params=4, given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"Trace un rectangle de ({', '.join(instruction_params[:2])}) à ({', '.join(instruction_params[2:])})"
 
@@ -218,12 +275,16 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) != 4:
-				self.error(f"Error on line {line_number + 1} : {instruction_name} method requires 4 params, got {len(instruction_params)}")
+				self.error(
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params=4, given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"Trace un rectangle REMPLI de ({', '.join(instruction_params[:2])}) à ({', '.join(instruction_params[2:])})"
 
@@ -233,13 +294,16 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) < 5 or len(instruction_params) > 6:
 				self.error(
-					f"Error on line {line_number + 1} : {instruction_name} method requires 5 or 6 params, got {len(instruction_params)}")
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params="5/6", given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"Pose un pixel sur la fenêtre aux coordonnées " \
 				                                      f"({', '.join(instruction_params[:2])}) avec une couleur" \
@@ -252,12 +316,16 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) != 1:
-				self.error(f"Error on line {line_number + 1} : {instruction_name} method requires 1 param, got {len(instruction_params)}")
+				self.error(
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params=1, given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"Attendre {instruction_params[0]} ms"
 
@@ -268,7 +336,9 @@ class GrapicAlgorithmicCompiler(AlgorithmicCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
@@ -282,7 +352,7 @@ class GrapicCppCompiler(CppCompiler):
 	"""
 	Enhances the algorithmic compiler with grapic functions.
 	"""
-	def __init__(self, cpp_compiler: CppCompiler):
+	def __init__(self, cpp_compiler: CppCompiler, tr_method: Callable):
 		try:
 			super().__init__(
 				cpp_compiler.instruction_names,
@@ -296,6 +366,8 @@ class GrapicCppCompiler(CppCompiler):
 			super().__init__(cpp_compiler)
 		# Keeps track of whether we initialized the window already (cannot use any other function prior to this)
 		self.did_winit = False
+		# Keeps in mind the translation function
+		self.translate = tr_method
 
 
 	def prepare_new_compilation(self):
@@ -333,11 +405,13 @@ class GrapicCppCompiler(CppCompiler):
 				while not instruction_params[0].endswith("\""):
 					instruction_params[0] += " " + instruction_params.pop(1)
 			except IndexError:
-				self.error(f"Error on line {line_number + 1} : expected finished string as winit first param")
+				self.error(self.translate("error", "winit_finished_string", line_number=line_number+1))
 
 		# Creates the function compilation
 		if len(instruction_params) != 3:
-			self.error(f"Error on line {line_number + 1} : winit method requires 3 params, got {len(instruction_params)}")
+			self.error(
+				self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params=3, given_params_nb=len(instruction_params))
+			)
 		else:
 			self.instructions_list[line_number] = f"winInit({', '.join(instruction_params)})"
 			self.did_winit = True
@@ -349,7 +423,9 @@ class GrapicCppCompiler(CppCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
@@ -362,18 +438,24 @@ class GrapicCppCompiler(CppCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			self.instructions_list[line_number] = "winDisplay()"
+
+
 	def analyze_wquit(self, instruction_name:str, instruction_params:list, line_number:int):
 		"""
 		Analyzes the winQuit method.
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
@@ -386,12 +468,16 @@ class GrapicCppCompiler(CppCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) != 3:
-				self.error(f"Error on line {line_number + 1} : {instruction_name} method requires 3 params, got {len(instruction_params)}")
+				self.error(
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params=3, given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"color({', '.join(instruction_params)})"
 
@@ -402,12 +488,16 @@ class GrapicCppCompiler(CppCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) != 3:
-				self.error(f"Error on line {line_number + 1} : {instruction_name} method requires 3 params, got {len(instruction_params)}")
+				self.error(
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params=3, given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"backgroundColor({', '.join(instruction_params)})"
 
@@ -418,7 +508,9 @@ class GrapicCppCompiler(CppCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
@@ -431,12 +523,16 @@ class GrapicCppCompiler(CppCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) != 3:
-				self.error(f"Error on line {line_number + 1} : {instruction_name} method requires 3 params, got {len(instruction_params)}")
+				self.error(
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params=3, given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"circle({', '.join(instruction_params)})"
 
@@ -447,12 +543,16 @@ class GrapicCppCompiler(CppCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) != 3:
-				self.error(f"Error on line {line_number + 1} : {instruction_name} method requires 3 params, got {len(instruction_params)}")
+				self.error(
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params=3, given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"circleFill({', '.join(instruction_params)})"
 
@@ -463,12 +563,16 @@ class GrapicCppCompiler(CppCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) != 4:
-				self.error(f"Error on line {line_number + 1} : {instruction_name} method requires 4 params, got {len(instruction_params)}")
+				self.error(
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params=4, given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"line({', '.join(instruction_params)})"
 
@@ -479,12 +583,16 @@ class GrapicCppCompiler(CppCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) != 4:
-				self.error(f"Error on line {line_number + 1} : {instruction_name} method requires 4 params, got {len(instruction_params)}")
+				self.error(
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params=4, given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"rectangle({', '.join(instruction_params)})"
 
@@ -495,12 +603,16 @@ class GrapicCppCompiler(CppCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) != 4:
-				self.error(f"Error on line {line_number + 1} : {instruction_name} method requires 4 params, got {len(instruction_params)}")
+				self.error(
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params=4, given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"rectangleFill({', '.join(instruction_params)})"
 
@@ -511,12 +623,16 @@ class GrapicCppCompiler(CppCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) < 5 or len(instruction_params) > 6:
-				self.error(f"Error on line {line_number + 1} : {instruction_name} method requires 5 or 6 params, got {len(instruction_params)}")
+				self.error(
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params="5/6", given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"put_pixel({', '.join(instruction_params)})"
 
@@ -527,12 +643,16 @@ class GrapicCppCompiler(CppCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
 			if len(instruction_params) != 1:
-				self.error(f"Error on line {line_number + 1} : {instruction_name} method requires 1 param, got {len(instruction_params)}")
+				self.error(
+					self.translate("error", "param_number", line_number=line_number + 1, instruction_name=instruction_name, nb_params=1, given_params_nb=len(instruction_params))
+				)
 			else:
 				self.instructions_list[line_number] = f"delay({instruction_params[0]})"
 
@@ -543,7 +663,9 @@ class GrapicCppCompiler(CppCompiler):
 		"""
 		# Checks if we can call this function
 		if not self.did_winit:
-			self.error(f"Error on line {line_number + 1} : Called {instruction_name} method before winit.")
+			self.error(
+				self.translate("error", "no_winit", line_number=line_number + 1, instruction_name=instruction_name)
+			)
 
 		# Creates the function compilation
 		else:
@@ -589,6 +711,9 @@ class GrapicPlugin(Plugin):
 		if "autocomplete" in self.app.plugins:
 			self.app.plugins["autocomplete"][-1].reload_autocomplete()
 
+		# Also sets up the translation
+		self.translations = translations
+
 		# Adds all the grapic components to the compilers
 		for compiler in self.app.compilers.values():
 			for component in self.grapic_components:
@@ -599,8 +724,8 @@ class GrapicPlugin(Plugin):
 		GrapicCppCompiler.__bases__ = (self.app.compilers["C++"].__class__,)
 
 		# Replaces the compilers with the enhanced compilers
-		self.app.compilers["algorithmic"] = GrapicAlgorithmicCompiler(self.app.compilers["algorithmic"])
-		self.app.compilers["C++"] = GrapicCppCompiler(self.app.compilers["C++"])
+		self.app.compilers["algorithmic"] = GrapicAlgorithmicCompiler(self.app.compilers["algorithmic"], self.translate)
+		self.app.compilers["C++"] = GrapicCppCompiler(self.app.compilers["C++"], self.translate)
 
 
 def init(app):

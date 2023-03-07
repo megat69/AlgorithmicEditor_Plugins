@@ -3,7 +3,8 @@ from typing import Callable
 from plugin import Plugin
 from algorithmic_compiler import AlgorithmicCompiler
 from cpp_compiler import CppCompiler
-# TODO : Translations
+
+
 translations = {
 	"en": {
 		"error": {

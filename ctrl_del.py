@@ -47,8 +47,7 @@ class CtrlDel(Plugin):
 		try:
 			while self.app.current_text[self.app.current_index - 1] != "\n" and self.app.current_index - 1 > 0:
 				self._remove_current_char()
-			else:
-				self._remove_current_char()
+			self._remove_current_char()  # Removes one more
 		except IndexError: return
 		self.app.stdscr.clear()
 

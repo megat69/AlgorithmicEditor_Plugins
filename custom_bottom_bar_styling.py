@@ -28,11 +28,11 @@ class CustomBottomBarStylingPlugin(Plugin):
 		Loads the config.
 		"""
 		# Sets the defaults of the config if it wasn't created
-		if not "motif" in self.config.keys():
+		if "motif" not in self.config.keys():
 			self.config["motif"] = r"°º¤ø,¸¸,ø¤º°`°º¤ø,¸,ø¤°º¤ø,¸¸,ø¤º°`°º¤ø,¸ "
-		if not "animated" in self.config.keys():
+		if "animated" not in self.config.keys():
 			self.config["animated"] = False
-		if not "reversed" in self.config.keys():
+		if "reversed" not in self.config.keys():
 			self.config["reversed"] = False
 
 		# Creates a custom motif for the bottom bar

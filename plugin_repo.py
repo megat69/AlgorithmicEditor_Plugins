@@ -156,6 +156,8 @@ translations = {
 
 
 class PluginRepo(Plugin):
+	PLUGINS_REPO_URL = "https://github.com/megat69/AlgorithmicEditor_Plugins/tree/master/"
+
 	def __init__(self, app):
 		super().__init__(app)
 
@@ -275,12 +277,9 @@ class PluginRepo(Plugin):
 		Lists the online plugins available.
 		:param show_user: Whether to show the user the list of plugins or not.
 		"""
-		# Gives a list of all the available apps
-		github_url = 'https://github.com/megat69/AlgorithmicEditor_Plugins/tree/master/'
-
 		# Tries to connect to the URL on GitHub
 		try:
-			r = requests.get(github_url)
+			r = requests.get(PluginRepo.PLUGINS_REPO_URL)
 		# If the connection fails, it tells the user and exits the function
 		except requests.exceptions.ConnectionError:
 			self._wrong_return_code_inconvenience()
@@ -294,19 +293,23 @@ class PluginRepo(Plugin):
 
 		# If everything worked, we parse the webpage to find all references to .py files
 		else:
+			# Uses BeautifulSoup to parse all the plugin names (every item in the request ending in ".py")
 			soup = BeautifulSoup(r.text, 'html.parser')
 			plugins = soup.find_all(title=re.compile("\.py$"))
 
 			# Lists the available plugins to the user
 			plugins_list = [e.extract().get_text() for e in plugins]
-			# Listing all plugins already installed
-			installed_plugins_list = [
-				file[:-3] for file in os.listdir(os.path.dirname(__file__)) \
-				if not (file.startswith("__") or os.path.isdir(os.path.join(os.path.dirname(__file__), file))) \
-					and file.endswith(".py")
-			]
+
+			# Shows the list of installed plugins to the user if they want to
 			if show_user:
+				# Listing all plugins already installed
+				installed_plugins_list = [
+					file[:-3] for file in os.listdir(os.path.dirname(__file__)) \
+					if not (file.startswith("__") or os.path.isdir(os.path.join(os.path.dirname(__file__), file))) \
+					   and file.endswith(".py")
+				]
 				self.list_plugins(plugins_list, getch=False, highlighted_plugins=installed_plugins_list)
+
 			# We return the list of plugins, cleaning up their extension as well.
 			return [e[:-3] for e in plugins_list]
 

@@ -81,6 +81,11 @@ translations = {
 			"successfully_installed": "The theme '{user_wanted_theme}' has been successfully installed !",
 			"changes_taken_effect": "Changes should have already taken effect.",
 			"non_existent_theme": "The theme '{user_wanted_theme}' doesn't seem to exist."
+		},
+		"requests": {
+			"awaiting_response": "Awaiting response from server...",
+			"downloading_docs":  "Downloading docs of plugin {user_wanted_plugin}...",
+			"downloading_theme": "Downloading theme {user_wanted_theme}..."
 		}
 	},
 	"fr": {
@@ -149,6 +154,11 @@ translations = {
 			"successfully_installed": "Le thème '{user_wanted_theme}' a été installé avec succès !",
 			"changes_taken_effect": "Les changements ont déjà dû être appliqués.",
 			"non_existent_theme": "Le thème '{user_wanted_theme}' n'a pas l'air d'exister."
+		},
+		"requests": {
+			"awaiting_response": "En attente d'une réponse du serveur...",
+			"downloading_docs":  "Téléchargement de la documentation du plugin {user_wanted_plugin}...",
+			"downloading_theme": "Téléchargement du thème {user_wanted_theme}..."
 		}
 	}
 }
@@ -161,9 +171,15 @@ class PluginRepo(Plugin):
 	PLUGIN_REPO_USER   = "megat69"                    # Username of the repo creator
 	PLUGIN_REPO_BRANCH = "main"                       # Branch to pull plugins from
 
+	# Modify to use another theme repo
+	THEME_REPO_NAME   = "AlgorithmicEditor_Themes"   # Name of the repo
+	THEME_REPO_USER   = "megat69"                    # Username of the repo creator
+	THEME_REPO_BRANCH = "main"                       # Branch to pull plugins from
+
 	# Constants for the plugin repository URL. Should not be touched.
 	PLUGINS_REPO_INDIVIDUAL_FILE = f"https://raw.githubusercontent.com/{PLUGIN_REPO_USER}/{PLUGIN_REPO_NAME}/{PLUGIN_REPO_BRANCH}"
 	PLUGINS_REPO_URL = f"https://github.com/{PLUGIN_REPO_USER}/{PLUGIN_REPO_NAME}/tree/{PLUGIN_REPO_BRANCH}/"
+	THEME_REPO_URL = f"https://github.com/{THEME_REPO_USER}/{THEME_REPO_NAME}/tree/{THEME_REPO_BRANCH}/"
 
 	def __init__(self, app):
 		super().__init__(app)
@@ -286,7 +302,14 @@ class PluginRepo(Plugin):
 		"""
 		# Tries to connect to the URL on GitHub
 		try:
+			# We display a message to the user
+			self.app.stdscr.clear()
+			msg_str = self.translate("requests", "awaiting_response")
+			self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+
+			# Makes a request towards the server
 			r = requests.get(PluginRepo.PLUGINS_REPO_URL)
+			self.app.stdscr.clear()
 		# If the connection fails, it tells the user and exits the function
 		except requests.exceptions.ConnectionError:
 			self._wrong_return_code_inconvenience()
@@ -442,8 +465,14 @@ class PluginRepo(Plugin):
 						final_text = f.read()
 
 				else:
+					# We display a message to the user
+					self.app.stdscr.clear()
+					msg_str = self.translate("requests", "downloading_docs").format(user_wanted_plugin=user_wanted_plugin)
+					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+
 					# We download the contents of the file from GitHub
 					r = requests.get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{user_wanted_plugin}.md")
+					self.app.stdscr.clear()
 
 					# If something went wrong with the request (the webpage didn't return an HTTP 200 (OK) code), we warn the user and exit the function
 					if r.status_code != 200:
@@ -693,8 +722,8 @@ class PluginRepo(Plugin):
 
 				# Displaying a confirmation menu
 				display_menu(self.app.stdscr, (
-					("Yes", enable_plugin),
-					("No", lambda: None)
+					(self.app.get_translation("yes"), enable_plugin),
+					(self.app.get_translation("no"), lambda: None)
 				), label=self.translate(
 					"disable_plugins", "confirm_disable_plugins",
 					state=self.translate("enable_plugins", "enable"),
@@ -714,7 +743,14 @@ class PluginRepo(Plugin):
 		"""
 		# Tries to connect to the URL on GitHub
 		try:
-			r = requests.get(PluginRepo.PLUGINS_REPO_URL)
+			# We display a message to the user
+			self.app.stdscr.clear()
+			msg_str = self.translate("requests", "awaiting_response")
+			self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+
+			# Makes the request
+			r = requests.get(PluginRepo.THEME_REPO_URL)
+			self.app.stdscr.clear()
 		# If the connection fails, it tells the user and exits the function
 		except requests.exceptions.ConnectionError:
 			self._wrong_return_code_inconvenience()
@@ -745,8 +781,14 @@ class PluginRepo(Plugin):
 			if user_wanted_theme != "":
 				# If the user specified an existing theme name
 				if user_wanted_theme in themes_list:
+					# We display a message to the user
+					self.app.stdscr.clear()
+					msg_str = self.translate("requests", "downloading_theme").format(user_wanted_theme=user_wanted_theme)
+					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+
 					# We download the contents of the file from GitHub
 					r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Themes/main/{user_wanted_theme}.ini")
+					self.app.stdscr.clear()
 
 					# If something went wrong with the request (the webpage didn't return an HTTP 200 (OK) code), we warn the user and exit the function
 					if r.status_code != 200:
@@ -793,7 +835,7 @@ class PluginRepo(Plugin):
 		Tells the user about an inconvenience during download attempt.
 		"""
 		# Throws a return code to the user about an error while fetching the plugins
-		for i, msg_str in self.translate("plugin_fetching_error"):
+		for i, msg_str in enumerate(self.translate("plugin_fetching_error")):
 			self.app.stdscr.addstr(self.app.rows // 2 + i, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 		self.app.stdscr.getch()
 
@@ -803,6 +845,11 @@ class PluginRepo(Plugin):
 		Installs the given plugin from GitHub.
 		:param plugin_name: The name of the plugin to install.
 		"""
+		# We display a message to the user
+		self.app.stdscr.clear()
+		msg_str = f"Downloading plugin {plugin_name}..."
+		self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+
 		# We download the contents of the file from GitHub
 		r = requests.get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{plugin_name}.py")
 
@@ -816,6 +863,11 @@ class PluginRepo(Plugin):
 			with open(os.path.join(os.path.dirname(__file__), f"{plugin_name}.py"), "w", encoding="utf-8") as f:
 				f.write(r.text)
 
+			# We display a message to the user
+			self.app.stdscr.clear()
+			msg_str = self.translate("requests", "downloading_docs").format(user_wanted_plugin=plugin_name)
+			self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
+
 			# We then try to download the plugin's docs
 			r = requests.get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{plugin_name}.md")
 			# If everything went well, we simply dump the contents of the documentation file into another file
@@ -823,6 +875,7 @@ class PluginRepo(Plugin):
 			if r.status_code == 200:
 				with open(os.path.join(os.path.dirname(__file__), f"{plugin_name}.md"), "w", encoding="utf-8") as f:
 					f.write(r.text)
+			self.app.stdscr.clear()
 
 
 def init(app) -> PluginRepo:

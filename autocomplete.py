@@ -29,7 +29,7 @@ class AutocompletionPlugin(Plugin):
 
 		# Variable to determine whether to add a space after autocompletion or not
 		self.auto_add_space = False
-		self.add_command("+", self.toggle_auto_add_space, self.translate("autocomplete_cmd"), True)
+		self.add_option(self.translate("autocomplete_cmd"), lambda: self.auto_add_space, self.toggle_auto_add_space)
 
 
 	def init(self):
@@ -104,6 +104,7 @@ class AutocompletionPlugin(Plugin):
 		))
 		# Saving the variable's contents in the config
 		self.config["auto_add_space"] = self.auto_add_space
+
 
 	def load_words(self):
 		"""

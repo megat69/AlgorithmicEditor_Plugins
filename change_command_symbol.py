@@ -24,7 +24,11 @@ class ChangeCommandSymbol(Plugin):
 		}
 
 		# Creates a command
-		self.add_command("?", self.change_command_symbol, self.translate("change_command_symbol"), True)
+		self.add_option(
+			self.translate("change_command_symbol"),
+			lambda: repr(self.app.command_symbol),
+			self.change_command_symbol
+		)
 
 
 	def init(self):

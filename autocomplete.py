@@ -41,6 +41,11 @@ class AutocompletionPlugin(Plugin):
 		else:
 			self.config["auto_add_space"] = self.auto_add_space
 
+		# Creating a curses color pair for the autocomplete if it doesn't exist
+		if "autocomplete" not in self.app.color_pairs.keys():
+			curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_BLACK)
+			self.app.color_pairs["autocomplete"] = 6
+
 	def update_on_keypress(self, key:str):
 		"""
 		Remembers the last pressed key by the user.
@@ -64,11 +69,6 @@ class AutocompletionPlugin(Plugin):
 		"""
 		Uses the update method to put the autocompletion on cursor position.
 		"""
-		# Creating a curses color pair for the autocomplete if it doesn't exist
-		if "autocomplete" not in self.app.color_pairs.keys():
-			curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_BLACK)
-			self.app.color_pairs["autocomplete"] = 6
-
 		# If the cursor exists and we are on the cursor line
 		if self.app.cur != tuple() and self.app.cur[1] - (len(str(self.app.lines)) + 1) <= len(splitted_line[0]):
 			self.ac = self.autocomplete.search(splitted_line[0], size=1)

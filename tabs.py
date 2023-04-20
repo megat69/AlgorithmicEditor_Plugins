@@ -15,13 +15,13 @@ class TabsPlugin(Plugin):
 		# Sets up the translations
 		self.translations = {
 			"en": {
-				"unsaved": "Unsaved",
+				"untitled": "Untitled",
 				"new_empty": "New empty tab",
 				"new_open": "Open new tab",
 				"close_tab": "Close current tab"
 			},
 			"fr": {
-				"unsaved": "Sans titre",
+				"untitled": "Sans titre",
 				"new_empty": "Nouvel onglet vide",
 				"new_open": "Ouvrir un onglet",
 				"close_tab": "Fermer l'onglet actuel"
@@ -53,7 +53,7 @@ class TabsPlugin(Plugin):
 		Creates the first tab.
 		"""
 		self.tabs.append([
-			(self.translate("unsaved")
+			(self.translate("untitled")
 			 if self.app.last_save_action == "clipboard" else
 			 os.path.split(os.path.normpath(self.app.last_save_action))[-1]),
 			self.app.current_text,
@@ -75,14 +75,14 @@ class TabsPlugin(Plugin):
 		"""
 		Opens a new blank tab for the user.
 		"""
-		# Creates the tab name as "Unsaved", "Unsaved 2", etc...
-		tab_name = self.translate("unsaved")
-		unsaved_count = 0
+		# Creates the tab name as "Yntitled", "Untitled 2", etc...
+		tab_name = self.translate("untitled")
+		untitled_count = 0
 		for names in self.tabs:
 			if names[0].startswith(tab_name):
-				unsaved_count += 1
-		if unsaved_count != 0:
-			tab_name += " " + str(unsaved_count + 1)
+				untitled_count += 1
+		if untitled_count != 0:
+			tab_name += " " + str(untitled_count + 1)
 
 		# Creates the new tab
 		self.tabs.append([
@@ -143,6 +143,10 @@ class TabsPlugin(Plugin):
 			self.current_tab += 1
 			self.current_tab %= len(self.tabs)
 			self._reset_tab()
+
+		# Updates the last save action if it was changed
+		elif self.app.last_save_action != "clipboard":
+			self.tabs[self.current_tab][0] = os.path.split(os.path.normpath(self.app.last_save_action))[-1]
 
 
 	def custom_apply_stylings(self):

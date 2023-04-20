@@ -125,7 +125,8 @@ class TabsPlugin(Plugin):
 		Closes the current tab.
 		"""
 		self.tabs.pop(self.current_tab)
-		self.current_tab -= 1
+		if self.current_tab != 0:
+			self.current_tab -= 1
 		self._reset_tab()
 
 

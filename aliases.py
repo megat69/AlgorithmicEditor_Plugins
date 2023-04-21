@@ -26,7 +26,35 @@ class AliasesPlugin(Plugin):
 	"""
 	def __init__(self, app):
 		super().__init__(app)
-		self.add_option("Add command aliases", lambda: "New", self.modify_aliases)
+		self.translations = {
+			"en": {
+				"option_name": "Add command aliases",
+				"new": "New",
+				"modify_aliases": "Modify the aliases",
+				"add_new": "Add new alias",
+				"remove_alias": "Remove alias",
+				"done": "Done",
+				"errors": {
+					"cannot_add": "Cannot add this alias.",
+					"already_exists": "{} command already exists, cannot replace with {}",
+					"cannot_set": "{} cannot be set as {} does not exist"
+				}
+			},
+			"fr": {
+				"option_name": "Ajouter un alias de commande",
+				"new": "Nouveau",
+				"modify_aliases": "Modifier les alias",
+				"add_new": "Ajouter un nouvel alias",
+				"remove_alias": "Retirer un alias",
+				"done": "Terminé",
+				"errors": {
+					"cannot_add": "Impossible d'ajouter cet alias.",
+					"already_exists": "La commande {} existe déjà, impossible de la remplacer par {}",
+					"cannot_set": "{} ne pas pas devenir un alias, parce que {} n'existe pas"
+				}
+			}
+		}
+		self.add_option(self.translate("option_name"), lambda: self.translate("new"), self.modify_aliases)
 
 		# Contains the list of aliases
 		self.aliases: list[Alias] = []
@@ -56,7 +84,7 @@ class AliasesPlugin(Plugin):
 
 		while True:
 			# Displays the label of the aliases
-			msg_str = "-- Modify the aliases --"
+			msg_str = f"-- {self.translate('modify_aliases')} --"
 			self.app.stdscr.addstr(
 				1,
 				self.app.cols // 2 - len(msg_str) // 2,
@@ -81,15 +109,15 @@ class AliasesPlugin(Plugin):
 
 				# Displays the two other options
 				self.app.stdscr.addstr(
-					len(self.aliases) + 5, 10, "Add new alias",
+					len(self.aliases) + 5, 10, self.translate("add_new"),
 					curses.A_REVERSE if current_index - len(self.aliases) == 0 else curses.A_NORMAL
 				)
 				self.app.stdscr.addstr(
-					len(self.aliases) + 6, 10, "Remove alias",
+					len(self.aliases) + 6, 10, self.translate("remove_alias"),
 					curses.A_REVERSE if current_index - len(self.aliases) == 1 else curses.A_NORMAL
 				)
 				self.app.stdscr.addstr(
-					len(self.aliases) + 7, 10, "Done",
+					len(self.aliases) + 7, 10, self.translate("done"),
 					curses.A_REVERSE if current_index - len(self.aliases) == 2 else curses.A_NORMAL
 				)
 
@@ -113,14 +141,14 @@ class AliasesPlugin(Plugin):
 				new_alias.source = input_text(self.app.stdscr, 10, len(self.aliases) + 3)
 				new_alias.destination = input_text(self.app.stdscr, self.app.cols // 3, len(self.aliases) + 3)
 				if new_alias.source == "" or new_alias.destination == "":
-					self.app.stdscr.addstr(len(self.aliases) + 3, 10, "Cannot add this alias.")
+					self.app.stdscr.addstr(len(self.aliases) + 3, 10, self.translate("errors", "cannot_add"))
 					self.app.stdscr.getch()
 				else:
 					self.aliases.append(new_alias)
 					self.app.stdscr.clear()
 
 			elif current_index - len(self.aliases) == 1:  # Remove one alias
-				self.app.stdscr.addstr(len(self.aliases) + 6, 10, " " * 15)
+				self.app.stdscr.addstr(len(self.aliases) + 6, 10, " " * len(self.translate("remove_alias")))
 				alias_to_remove = input_text(self.app.stdscr, 10, len(self.aliases) + 6)
 				if alias_to_remove != "" and alias_to_remove in [alias.source for alias in self.aliases]:
 					# Finds the correct alias to pop
@@ -184,10 +212,10 @@ class AliasesPlugin(Plugin):
 		# Adds all the aliased commands
 		for alias in self.aliases:
 			if alias.source in self.app.commands:
-				print(f"{alias.source!r} command already exists, cannot replace with {alias.destination!r}")
+				print(self.translate("errors", "already_exists").format(repr(alias.source), repr(alias.destination)))
 
 			elif alias.destination not in self.app.commands:
-				print(f"{alias.source!r} cannot be set as {alias.destination!r} does not exist")
+				print(self.translate("errors", "cannot_set").format(repr(alias.source), repr(alias.destination)))
 
 			else:
 				self.app.commands[alias.source] = self.app.commands[alias.destination]

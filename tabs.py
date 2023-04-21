@@ -37,7 +37,8 @@ class TabsPlugin(Plugin):
 				"tab_rename_msg": "Please input the new name of the tab or leave empty to cancel :",
 				"rename": "Rename the current tab",
 				"find_tab": "Find tab",
-				"select_tab": "Select tab"
+				"select_tab": "Select tab",
+				"track_save_status": "Track save status"
 			},
 			"fr": {
 				"untitled": "Sans titre",
@@ -47,7 +48,8 @@ class TabsPlugin(Plugin):
 				"tab_rename_msg": "Veuillez entrer le nouveau nom de l'onglet ou laisser vide pour annuler :",
 				"rename": "Renommer l'onglet courant",
 				"find_tab": "Rechercher un onglet",
-				"select_tab": "Sélectionnez un onglet"
+				"select_tab": "Sélectionnez un onglet",
+				"track_save_status": "Traquer le status d'enregistrement"
 			}
 		}
 
@@ -56,6 +58,9 @@ class TabsPlugin(Plugin):
 
 		# The index of the current selected tab
 		self.current_tab = 0
+
+		# Whether to track the save status
+		self.track_save_status = True
 
 		# Saves the default 'apply_stylings' method of the app in a variable
 		self.default_apply_stylings = self.app.apply_stylings
@@ -103,6 +108,23 @@ class TabsPlugin(Plugin):
 
 		# Refreshes the display with the new tab system
 		self.app.apply_stylings()
+
+		# Gets whether the save status should be tracked
+		if "track_save_status" in self.config.keys():
+			self.track_save_status = self.config["track_save_status"]
+		else:
+			self.config["track_save_status"] = True
+
+		# Creates an option for the save status
+		self.add_option(self.translate("track_save_status"), lambda: self.track_save_status, self._toggle_track_save_status)
+
+
+	def _toggle_track_save_status(self):
+		"""
+		Toggles the track save status in the live app and the config.
+		"""
+		self.track_save_status = not self.track_save_status
+		self.config["track_save_status"] = self.track_save_status
 
 
 	def _reset_tab(self):
@@ -264,7 +286,7 @@ class TabsPlugin(Plugin):
 			tab_styling = curses.A_NORMAL
 			if i == self.current_tab:  # If it is the currently selected tab, applies special color
 				tab_styling |= curses.color_pair(self.app.color_pairs["instruction"]) | curses.A_REVERSE
-			if not self.tabs[i].saved:  # If the tab is not saved, makes it italic
+			if not self.tabs[i].saved and self.track_save_status:  # If the tab is not saved, makes it italic
 				tab_styling |= curses.A_ITALIC
 
 			# Displays the name of the tab one by one

@@ -1,8 +1,21 @@
 import curses
 import os
+from dataclasses import dataclass
 
 from plugin import Plugin
 from utils import browse_files
+
+
+@dataclass(slots=True)
+class Tab:
+	"""
+	Contains all the information on a single tab
+	"""
+	name: str
+	current_text: str
+	current_index: int
+	last_save_action: str
+	is_name_custom: bool = False
 
 
 class TabsPlugin(Plugin):
@@ -28,8 +41,8 @@ class TabsPlugin(Plugin):
 			}
 		}
 
-		# Contains all the tabs, in the scheme <name> <current_text> <current_index> <last_save_action>
-		self.tabs = []
+		# Contains all the tabs
+		self.tabs: list[Tab] = []
 
 		# The index of the current selected tab
 		self.current_tab = 0
@@ -52,23 +65,23 @@ class TabsPlugin(Plugin):
 		"""
 		Creates the first tab.
 		"""
-		self.tabs.append([
+		self.tabs.append(Tab(
 			(self.translate("untitled")
-			 if self.app.last_save_action == "clipboard" else
-			 os.path.split(os.path.normpath(self.app.last_save_action))[-1]),
+				if self.app.last_save_action == "clipboard" else
+			os.path.split(os.path.normpath(self.app.last_save_action))[-1]),
 			self.app.current_text,
 			0,
 			self.app.last_save_action
-		])
+		))
 
 
 	def _reset_tab(self):
 		"""
 		Resets the contents of the current tab to what is stored in the tab info.
 		"""
-		self.app.current_text = self.tabs[self.current_tab][1]
-		self.app.current_index = self.tabs[self.current_tab][2]
-		self.app.last_save_action = self.tabs[self.current_tab][3]
+		self.app.current_text = self.tabs[self.current_tab].current_text
+		self.app.current_index = self.tabs[self.current_tab].current_index
+		self.app.last_save_action = self.tabs[self.current_tab].last_save_action
 
 
 	def user_new_tab(self):
@@ -79,18 +92,18 @@ class TabsPlugin(Plugin):
 		tab_name = self.translate("untitled")
 		untitled_count = 0
 		for names in self.tabs:
-			if names[0].startswith(tab_name):
+			if names.name.startswith(tab_name):
 				untitled_count += 1
 		if untitled_count != 0:
 			tab_name += " " + str(untitled_count + 1)
 
 		# Creates the new tab
-		self.tabs.append([
+		self.tabs.append(Tab(
 			tab_name,
 			"",
 			0,
 			"clipboard"
-		])
+		))
 		self.current_tab = len(self.tabs) - 1
 		self._reset_tab()
 		self.app.stdscr.clear()
@@ -109,12 +122,12 @@ class TabsPlugin(Plugin):
 
 		# We create a new tab
 		with open(filename) as f:
-			self.tabs.append([
+			self.tabs.append(Tab(
 				 os.path.split(os.path.normpath(filename))[-1],
 				f.read(),
 				0,
 				filename
-			])
+			))
 			self.current_tab = len(self.tabs) - 1
 			self._reset_tab()
 
@@ -145,8 +158,8 @@ class TabsPlugin(Plugin):
 		:param key: The currently pressed key.
 		"""
 		# Saves the current progress of the tab
-		self.tabs[self.current_tab][1] = self.app.current_text
-		self.tabs[self.current_tab][2] = self.app.current_index
+		self.tabs[self.current_tab].current_text = self.app.current_text
+		self.tabs[self.current_tab].current_index = self.app.current_index
 
 		# Changes tab upon tab or shift tab
 		if key == "KEY_BTAB":
@@ -155,8 +168,8 @@ class TabsPlugin(Plugin):
 			self._reset_tab()
 
 		# Updates the last save action if it was changed
-		elif self.app.last_save_action != "clipboard":
-			self.tabs[self.current_tab][0] = os.path.split(os.path.normpath(self.app.last_save_action))[-1]
+		elif self.app.last_save_action != "clipboard" and not self.tabs[self.current_tab].is_name_custom:
+			self.tabs[self.current_tab].name = os.path.split(os.path.normpath(self.app.last_save_action))[-1]
 
 
 	def custom_apply_stylings(self):
@@ -168,13 +181,13 @@ class TabsPlugin(Plugin):
 		for i in range(len(self.tabs)):
 			x_pos = 0
 			for j in range(i):
-				x_pos += len(self.tabs[j][0]) + 4
+				x_pos += len(self.tabs[j].name) + 4
 
 			# Displays the name of the tab one by one
 			self.app.stdscr.addstr(
 				self.app.rows - 3,
 				x_pos,
-				"| " + self.tabs[i][0] + " |",
+				"| " + self.tabs[i].name + " |",
 				(curses.color_pair(self.app.color_pairs["instruction"]) | curses.A_REVERSE)
 					if i == self.current_tab else
 				curses.A_NORMAL

@@ -101,6 +101,9 @@ class TabsPlugin(Plugin):
 			self.app.last_save_action
 		))
 
+		# Refreshes the display with the new tab system
+		self.app.apply_stylings()
+
 
 	def _reset_tab(self):
 		"""

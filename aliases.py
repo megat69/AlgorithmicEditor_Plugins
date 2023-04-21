@@ -29,7 +29,7 @@ class AliasesPlugin(Plugin):
 		self.add_option("Add command aliases", lambda: "New", self.modify_aliases)
 
 		# Contains the list of aliases
-		self.aliases: list[Alias] = [Alias("tr", "q")]
+		self.aliases: list[Alias] = []
 
 
 	def init(self):
@@ -81,8 +81,12 @@ class AliasesPlugin(Plugin):
 
 				# Displays the two other options
 				self.app.stdscr.addstr(
-					len(self.aliases) + 5, 10, "Done",
+					len(self.aliases) + 5, 10, "Add new alias",
 					curses.A_REVERSE if current_index - len(self.aliases) == 0 else curses.A_NORMAL
+				)
+				self.app.stdscr.addstr(
+					len(self.aliases) + 6, 10, "Done",
+					curses.A_REVERSE if current_index - len(self.aliases) == 1 else curses.A_NORMAL
 				)
 
 				# Gets what the user wants to do
@@ -97,10 +101,21 @@ class AliasesPlugin(Plugin):
 					col_index -= 1
 				elif key == "KEY_RIGHT":
 					col_index += 1
-				current_index %= len(self.aliases) + 1
+				current_index %= len(self.aliases) + 2
 				col_index %= 2
 
-			if current_index - len(self.aliases) == 0:
+			if current_index - len(self.aliases) == 0:  # Add one row
+				new_alias = Alias("", "")
+				new_alias.source = input_text(self.app.stdscr, 10, len(self.aliases) + 3)
+				new_alias.destination = input_text(self.app.stdscr, self.app.cols // 2, len(self.aliases) + 3)
+				if new_alias.source == "" or new_alias.destination == "":
+					self.app.stdscr.addstr(len(self.aliases) + 3, 10, "Cannot add this alias.")
+					self.app.stdscr.getch()
+				else:
+					self.aliases.append(new_alias)
+					self.app.stdscr.clear()
+
+			if current_index - len(self.aliases) == 1:  # Finish changing the aliases
 				self.load_aliases()
 				self.save_to_config()
 				break

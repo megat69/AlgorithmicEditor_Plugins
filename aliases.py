@@ -1,6 +1,8 @@
+import curses
 from dataclasses import dataclass
 
 from plugin import Plugin
+from utils import input_text
 
 
 @dataclass(slots=True)
@@ -34,6 +36,9 @@ class AliasesPlugin(Plugin):
 		"""
 		Loads the previous config.
 		"""
+		# Loads the commands added before this plugin
+		self.previous_commands = self.app.commands.copy()
+
 		# Loads from the config
 		self.load_from_config()
 
@@ -45,7 +50,78 @@ class AliasesPlugin(Plugin):
 		"""
 		Modifies the aliases of the commands.
 		"""
-		pass
+		# Displays the label of the aliases
+		msg_str = "-- Modify the aliases --"
+		self.app.stdscr.addstr(
+			1,
+			self.app.cols // 2 - len(msg_str) // 2,
+			msg_str,
+			curses.A_REVERSE
+		)
+
+		# Counts which option is selected
+		current_index = 0
+		col_index = 0
+
+		while True:
+			# Which key was last pressed
+			key = ""
+
+			while key not in ("\n", "\t"):
+				# Displays each of the aliases already created
+				for i, alias in enumerate(self.aliases):
+					self.app.stdscr.addstr(
+						i + 3, 10, alias.source,
+						curses.A_REVERSE if i == current_index and col_index == 0 else curses.A_NORMAL
+					)
+					self.app.stdscr.addstr(
+						i + 3, self.app.cols // 2, alias.destination,
+						curses.A_REVERSE if i == current_index and col_index == 1 else curses.A_NORMAL
+					)
+
+				# Displays the two other options
+				self.app.stdscr.addstr(
+					len(self.aliases) + 5, 10, "Done",
+					curses.A_REVERSE if current_index - len(self.aliases) == 0 else curses.A_NORMAL
+				)
+
+				# Gets what the user wants to do
+				key = self.app.stdscr.getkey()
+
+				# Gets which key is used
+				if key == "KEY_UP":
+					current_index -= 1
+				elif key == "KEY_DOWN":
+					current_index += 1
+				if key == "KEY_LEFT":
+					col_index -= 1
+				elif key == "KEY_RIGHT":
+					col_index += 1
+				current_index %= len(self.aliases) + 1
+				col_index %= 2
+
+			if current_index - len(self.aliases) == 0:
+				self.load_aliases()
+				self.save_to_config()
+				break
+
+			else:
+				self.app.stdscr.addstr(
+					current_index + 3,
+					10 if col_index == 0 else self.app.cols // 2,
+					" " * (self.app.cols // 2 - 10)
+				)
+				new_text = input_text(
+					self.app.stdscr,
+					10 if col_index == 0 else self.app.cols // 2,
+					current_index + 3
+				)
+
+				if new_text != "":
+					if col_index == 0:
+						self.aliases[current_index].source = new_text
+					else:
+						self.aliases[current_index].destination = new_text
 
 
 	def save_to_config(self):
@@ -74,9 +150,7 @@ class AliasesPlugin(Plugin):
 		Loads the aliases of each command.
 		"""
 		# Deletes all the previous aliased commands
-		for key, value in list(self.app.commands.items()):
-			if len(value) > 3:
-				del self.app.commands[key]
+		self.app.commands = self.previous_commands.copy()
 
 		# Adds all the aliased commands
 		for alias in self.aliases:

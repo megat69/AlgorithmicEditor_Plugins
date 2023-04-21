@@ -42,9 +42,8 @@ class AutocompletionPlugin(Plugin):
 			self.config["auto_add_space"] = self.auto_add_space
 
 		# Creating a curses color pair for the autocomplete if it doesn't exist
-		if "autocomplete" not in self.app.color_pairs.keys():
-			curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_BLACK)
-			self.app.color_pairs["autocomplete"] = 6
+		curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_BLACK)
+		self.app.color_pairs["autocomplete"] = 6
 
 	def update_on_keypress(self, key:str):
 		"""
@@ -77,12 +76,14 @@ class AutocompletionPlugin(Plugin):
 			if len(self.ac) != 0:
 				try:
 					# Shows the autocomplete results on the screen
-					self.app.stdscr.addstr(
-						self.app.cur[0],
-						self.app.cur[1],
-						self.ac[0][0][len(splitted_line[0])-1:],
-						curses.color_pair(self.app.color_pairs["autocomplete"]) | curses.A_ITALIC
-					)
+					try:
+						self.app.stdscr.addstr(
+							self.app.cur[0],
+							self.app.cur[1],
+							self.ac[0][0][len(splitted_line[0])-1:],
+							curses.color_pair(self.app.color_pairs["autocomplete"]) | curses.A_ITALIC
+						)
+					except KeyError: pass
 				except curses.error:
 					self.ac = None
 					return

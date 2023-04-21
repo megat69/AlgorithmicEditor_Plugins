@@ -75,7 +75,7 @@ class AliasesPlugin(Plugin):
 						curses.A_REVERSE if i == current_index and col_index == 0 else curses.A_NORMAL
 					)
 					self.app.stdscr.addstr(
-						i + 3, self.app.cols // 2, alias.destination,
+						i + 3, self.app.cols // 3, alias.destination,
 						curses.A_REVERSE if i == current_index and col_index == 1 else curses.A_NORMAL
 					)
 
@@ -85,8 +85,12 @@ class AliasesPlugin(Plugin):
 					curses.A_REVERSE if current_index - len(self.aliases) == 0 else curses.A_NORMAL
 				)
 				self.app.stdscr.addstr(
-					len(self.aliases) + 6, 10, "Done",
+					len(self.aliases) + 6, 10, "Remove alias",
 					curses.A_REVERSE if current_index - len(self.aliases) == 1 else curses.A_NORMAL
+				)
+				self.app.stdscr.addstr(
+					len(self.aliases) + 7, 10, "Done",
+					curses.A_REVERSE if current_index - len(self.aliases) == 2 else curses.A_NORMAL
 				)
 
 				# Gets what the user wants to do
@@ -101,13 +105,13 @@ class AliasesPlugin(Plugin):
 					col_index -= 1
 				elif key == "KEY_RIGHT":
 					col_index += 1
-				current_index %= len(self.aliases) + 2
+				current_index %= len(self.aliases) + 3
 				col_index %= 2
 
 			if current_index - len(self.aliases) == 0:  # Add one row
 				new_alias = Alias("", "")
 				new_alias.source = input_text(self.app.stdscr, 10, len(self.aliases) + 3)
-				new_alias.destination = input_text(self.app.stdscr, self.app.cols // 2, len(self.aliases) + 3)
+				new_alias.destination = input_text(self.app.stdscr, self.app.cols // 3, len(self.aliases) + 3)
 				if new_alias.source == "" or new_alias.destination == "":
 					self.app.stdscr.addstr(len(self.aliases) + 3, 10, "Cannot add this alias.")
 					self.app.stdscr.getch()
@@ -115,7 +119,10 @@ class AliasesPlugin(Plugin):
 					self.aliases.append(new_alias)
 					self.app.stdscr.clear()
 
-			if current_index - len(self.aliases) == 1:  # Finish changing the aliases
+			if current_index - len(self.aliases) == 1:  # Remove one alias
+				pass
+
+			if current_index - len(self.aliases) == 2:  # Finish changing the aliases
 				self.load_aliases()
 				self.save_to_config()
 				break
@@ -123,12 +130,12 @@ class AliasesPlugin(Plugin):
 			else:
 				self.app.stdscr.addstr(
 					current_index + 3,
-					10 if col_index == 0 else self.app.cols // 2,
-					" " * (self.app.cols // 2 - 10)
+					10 if col_index == 0 else self.app.cols // 3,
+					" " * (self.app.cols // 3 - 10)
 				)
 				new_text = input_text(
 					self.app.stdscr,
-					10 if col_index == 0 else self.app.cols // 2,
+					10 if col_index == 0 else self.app.cols // 3,
 					current_index + 3
 				)
 

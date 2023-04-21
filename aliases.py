@@ -50,20 +50,20 @@ class AliasesPlugin(Plugin):
 		"""
 		Modifies the aliases of the commands.
 		"""
-		# Displays the label of the aliases
-		msg_str = "-- Modify the aliases --"
-		self.app.stdscr.addstr(
-			1,
-			self.app.cols // 2 - len(msg_str) // 2,
-			msg_str,
-			curses.A_REVERSE
-		)
-
 		# Counts which option is selected
 		current_index = 0
 		col_index = 0
 
 		while True:
+			# Displays the label of the aliases
+			msg_str = "-- Modify the aliases --"
+			self.app.stdscr.addstr(
+				1,
+				self.app.cols // 2 - len(msg_str) // 2,
+				msg_str,
+				curses.A_REVERSE
+			)
+
 			# Which key was last pressed
 			key = ""
 
@@ -119,10 +119,17 @@ class AliasesPlugin(Plugin):
 					self.aliases.append(new_alias)
 					self.app.stdscr.clear()
 
-			if current_index - len(self.aliases) == 1:  # Remove one alias
-				pass
+			elif current_index - len(self.aliases) == 1:  # Remove one alias
+				self.app.stdscr.addstr(len(self.aliases) + 6, 10, " " * 15)
+				alias_to_remove = input_text(self.app.stdscr, 10, len(self.aliases) + 6)
+				if alias_to_remove != "" and alias_to_remove in [alias.source for alias in self.aliases]:
+					# Finds the correct alias to pop
+					for i, alias in enumerate(self.aliases.copy()):
+						if alias.source == alias_to_remove:
+							self.aliases.pop(i)
+					self.app.stdscr.clear()
 
-			if current_index - len(self.aliases) == 2:  # Finish changing the aliases
+			elif current_index - len(self.aliases) == 2:  # Finish changing the aliases
 				self.load_aliases()
 				self.save_to_config()
 				break

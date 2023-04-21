@@ -88,7 +88,7 @@ class TabsPlugin(Plugin):
 		"""
 		Opens a new blank tab for the user.
 		"""
-		# Creates the tab name as "Yntitled", "Untitled 2", etc...
+		# Creates the tab name as "Untitled", "Untitled 2", etc...
 		tab_name = self.translate("untitled")
 		untitled_count = 0
 		for names in self.tabs:

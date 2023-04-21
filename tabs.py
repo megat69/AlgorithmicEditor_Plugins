@@ -1,9 +1,10 @@
 import curses
 import os
 from dataclasses import dataclass
+from functools import partial
 
 from plugin import Plugin
-from utils import browse_files, input_text
+from utils import browse_files, input_text, display_menu
 
 
 @dataclass(slots=True)
@@ -33,7 +34,9 @@ class TabsPlugin(Plugin):
 				"new_open": "Open new tab",
 				"close_tab": "Close current tab",
 				"tab_rename_msg": "Please input the new name of the tab or leave empty to cancel :",
-				"rename": "Rename the current tab"
+				"rename": "Rename the current tab",
+				"find_tab": "Find tab",
+				"select_tab": "Select tab"
 			},
 			"fr": {
 				"untitled": "Sans titre",
@@ -41,7 +44,9 @@ class TabsPlugin(Plugin):
 				"new_open": "Ouvrir un onglet",
 				"close_tab": "Fermer l'onglet actuel",
 				"tab_rename_msg": "Veuillez entrer le nouveau nom de l'onglet ou laisser vide pour annuler :",
-				"rename": "Renommer l'onglet courant"
+				"rename": "Renommer l'onglet courant",
+				"find_tab": "Rechercher un onglet",
+				"select_tab": "Sélectionnez un onglet"
 			}
 		}
 
@@ -66,6 +71,9 @@ class TabsPlugin(Plugin):
 
 		# Creates a new command to rename a tab
 		self.add_command("tr", self.rename_current_tab, self.translate("rename"), True)
+
+		# Creates a new command to find a tab
+		self.add_command("ft", self.find_tab, self.translate("find_tab"), True)
 
 
 	def init(self):
@@ -174,6 +182,27 @@ class TabsPlugin(Plugin):
 
 			# We keep in mind that the user gave the tab a custom name, as not to change it
 			self.tabs[self.current_tab].is_name_custom = True
+
+
+	def find_tab(self):
+		"""
+		Selects a tab based on the list of currently opened tabs.
+		"""
+		# Creates a function to select the given tab (based on index)
+		def select_tab(nbr: int):
+			self.current_tab = nbr
+			self._reset_tab()
+
+		# Creates a searchable menu with all the open tabs
+		display_menu(
+			self.app.stdscr,
+			tuple(
+				(tab.name, partial(select_tab, i))
+				for i, tab in enumerate(self.tabs)
+			),
+			label="Select tab",
+			allow_key_input=True
+		)
 
 
 	def update_on_keypress(self, key: str):

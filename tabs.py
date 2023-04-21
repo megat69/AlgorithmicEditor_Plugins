@@ -214,7 +214,7 @@ class TabsPlugin(Plugin):
 		self.tabs[self.current_tab].current_text = self.app.current_text
 		self.tabs[self.current_tab].current_index = self.app.current_index
 
-		# Changes tab upon tab or shift tab
+		# Changes tab upon shift tab
 		if key == "KEY_BTAB":
 			self.current_tab += 1
 			self.current_tab %= len(self.tabs)
@@ -236,18 +236,24 @@ class TabsPlugin(Plugin):
 		self.default_apply_stylings()
 
 		for i in range(len(self.tabs)):
+			# Gets the x position of the first character of the current tab name
 			x_pos = 0
 			for j in range(i):
-				x_pos += len(self.tabs[j].name) + 4
+				x_pos += len(self.tabs[j].name) + 4  # +4 because of the enclosing of the tab name ("|  |")
+
+			# Styling of the tab
+			tab_styling = curses.A_NORMAL
+			if i == self.current_tab:  # If it is the currently selected tab, applies special color
+				tab_styling |= curses.color_pair(self.app.color_pairs["instruction"]) | curses.A_REVERSE
+			if not self.tabs[i].saved:  # If the tab is not saved, makes it italic
+				tab_styling |= curses.A_ITALIC
 
 			# Displays the name of the tab one by one
 			self.app.stdscr.addstr(
 				self.app.rows - 3,
 				x_pos,
 				"| " + self.tabs[i].name + " |",
-				(curses.color_pair(self.app.color_pairs["instruction"]) | curses.A_REVERSE)
-					if i == self.current_tab else
-				curses.A_NORMAL
+				tab_styling
 			)
 
 

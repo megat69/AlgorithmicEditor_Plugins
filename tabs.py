@@ -3,7 +3,7 @@ import os
 from dataclasses import dataclass
 
 from plugin import Plugin
-from utils import browse_files
+from utils import browse_files, input_text
 
 
 @dataclass(slots=True)
@@ -31,13 +31,17 @@ class TabsPlugin(Plugin):
 				"untitled": "Untitled",
 				"new_empty": "New empty tab",
 				"new_open": "Open new tab",
-				"close_tab": "Close current tab"
+				"close_tab": "Close current tab",
+				"tab_rename_msg": "Please input the new name of the tab or leave empty to cancel :",
+				"rename": "Rename the current tab"
 			},
 			"fr": {
 				"untitled": "Sans titre",
 				"new_empty": "Nouvel onglet vide",
 				"new_open": "Ouvrir un onglet",
-				"close_tab": "Fermer l'onglet actuel"
+				"close_tab": "Fermer l'onglet actuel",
+				"tab_rename_msg": "Veuillez entrer le nouveau nom de l'onglet ou laisser vide pour annuler :",
+				"rename": "Renommer l'onglet courant"
 			}
 		}
 
@@ -59,6 +63,9 @@ class TabsPlugin(Plugin):
 
 		# Creates the command to close a tab
 		self.add_command("w", self.close_tab, self.translate("close_tab"))
+
+		# Creates a new command to rename a tab
+		self.add_command("tr", self.rename_current_tab, self.translate("rename"), True)
 
 
 	def init(self):
@@ -152,6 +159,23 @@ class TabsPlugin(Plugin):
 		self._reset_tab()
 
 
+	def rename_current_tab(self):
+		"""
+		Renames the current tab into the user's given name.
+		"""
+		# Prompts the user to input a name
+		self.app.stdscr.addstr(self.app.rows - 2, 4, self.translate("tab_rename_msg"))
+		new_name = input_text(self.app.stdscr, 4, self.app.rows - 1)
+
+		# If the user did not cancel
+		if new_name != "":
+			# We change the tab's name
+			self.tabs[self.current_tab].name = new_name
+
+			# We keep in mind that the user gave the tab a custom name, as not to change it
+			self.tabs[self.current_tab].is_name_custom = True
+
+
 	def update_on_keypress(self, key: str):
 		"""
 		Allows the user to switch tabs.
@@ -166,6 +190,10 @@ class TabsPlugin(Plugin):
 			self.current_tab += 1
 			self.current_tab %= len(self.tabs)
 			self._reset_tab()
+
+		# Changes the name of the tab if F2 is pressed
+		elif key == "KEY_F(2)":
+			self.rename_current_tab()
 
 		# Updates the last save action if it was changed
 		elif self.app.last_save_action != "clipboard" and not self.tabs[self.current_tab].is_name_custom:

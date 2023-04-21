@@ -17,6 +17,7 @@ class Tab:
 	current_index: int
 	last_save_action: str
 	is_name_custom: bool = False
+	saved: bool = True
 
 
 class TabsPlugin(Plugin):
@@ -61,6 +62,17 @@ class TabsPlugin(Plugin):
 
 		# Overrides the app's 'apply_stylings' method with a custom one
 		self.app.apply_stylings = self.custom_apply_stylings
+
+		# Overrides the app's save method to be able to know when the user saves
+		self.default_save = self.app.save
+		self.app.save = self.custom_save
+		# Updates the commands to use the new method
+		self.app.commands["s"] = (self.app.save, self.app.commands["s"][1], self.app.commands["s"][2])
+		self.app.commands["qs"] = (
+			partial(self.app.save, quick_save=True),
+			self.app.commands["qs"][1],
+			self.app.commands["qs"][2]
+		)
 
 		# Creates the two commands to open new tabs
 		self.add_command("n", self.user_new_tab, self.translate("new_empty"))
@@ -210,6 +222,10 @@ class TabsPlugin(Plugin):
 		Allows the user to switch tabs.
 		:param key: The currently pressed key.
 		"""
+		# If the tab contents is different from the app's contents, marks it as unsaved
+		if self.tabs[self.current_tab].current_text != self.app.current_text:
+			self.tabs[self.current_tab].saved = False
+
 		# Saves the current progress of the tab
 		self.tabs[self.current_tab].current_text = self.app.current_text
 		self.tabs[self.current_tab].current_index = self.app.current_index
@@ -255,6 +271,17 @@ class TabsPlugin(Plugin):
 				"| " + self.tabs[i].name + " |",
 				tab_styling
 			)
+
+
+	def custom_save(self, text_to_save:str=None, quick_save:bool=False):
+		"""
+		Overrides the base save method of the App. Is used to register when the current tab is being saved.
+		"""
+		# Performs the save
+		self.default_save(text_to_save, quick_save)
+
+		# Marks the tab as being saved
+		self.tabs[self.current_tab].saved = True
 
 
 def init(app) -> TabsPlugin:

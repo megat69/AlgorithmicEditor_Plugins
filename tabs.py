@@ -124,9 +124,18 @@ class TabsPlugin(Plugin):
 		"""
 		Closes the current tab.
 		"""
+		# Deletes the current tab
 		self.tabs.pop(self.current_tab)
+
+		# Moves to the previous tab if it exists
 		if self.current_tab != 0:
 			self.current_tab -= 1
+
+		# Regenerates a new tab if they were all closed
+		if len(self.tabs) == 0:
+			self.user_new_tab()
+
+		# Makes the current tab active
 		self._reset_tab()
 
 

@@ -554,6 +554,9 @@ class PluginRepo(Plugin):
 						os.remove(os.path.join(os.path.dirname(__file__), f"{plugin_name}.md"))
 					except FileNotFoundError: pass
 
+					# Unloads the plugin
+					del self.app.plugins[plugin_name]
+
 					# Shows a message to the user indicating that a plugin was deleted
 					msg_str = self.translate("delete_plugin", "plugin_deleted_confirm", plugin_name=plugin_name)
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
@@ -653,6 +656,9 @@ class PluginRepo(Plugin):
 						os.path.join(os.path.dirname(__file__), f"{plugin_name}.py"),
 						os.path.join(os.path.dirname(__file__), "disabled_plugins", f"{plugin_name}.py")
 					)
+
+					# We remove the key from the dict of plugins
+					del self.app.plugins[plugin_name]
 
 					# We display a message confirming that the plugin was disabled
 					msg_str = self.translate(

@@ -1,7 +1,8 @@
 import curses
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from functools import partial
+import json
 
 from plugin import Plugin
 from utils import browse_files, input_text, display_menu
@@ -18,6 +19,28 @@ class Tab:
 	last_save_action: str
 	is_name_custom: bool = False
 	saved: bool = True
+
+
+def tab_to_list(tab: Tab) -> list:
+	return [
+		tab.name,
+		tab.current_text,
+		tab.current_index,
+		tab.last_save_action,
+		tab.is_name_custom,
+		tab.saved
+	]
+
+
+def list_to_tab(tab: list) -> Tab:
+	return Tab(*tab)
+
+
+def tab_to_dict(tab: Tab) -> dict:
+	return asdict(tab)
+
+def dict_to_tab(tab: dict) -> Tab:
+	return Tab(**tab)
 
 
 class TabsPlugin(Plugin):
@@ -307,6 +330,25 @@ class TabsPlugin(Plugin):
 
 		# Marks the tab as being saved
 		self.tabs[self.current_tab].saved = True
+
+
+	def on_crash(self):
+		"""
+		Gets called if a crash occurs.
+		Will save all the contents of the tabs in a tabs.crash.json file.
+		"""
+		with open("tabs.crash.json", "w") as crash_file:
+			# Creates the contents of the crash file to be a dict
+			crash_file_contents = {"tabs": [], "current_tab": self.current_tab}
+
+			# Turns every tab, one by one, into a list and puts it into the crash contents
+			for tab in self.tabs:
+				crash_file_contents["tabs"].append(
+					tab_to_dict(tab)
+				)
+
+			# Writes the contents into the json file
+			json.dump(crash_file_contents, crash_file, indent=4)
 
 
 def init(app) -> TabsPlugin:

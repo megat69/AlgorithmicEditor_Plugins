@@ -17,6 +17,7 @@ if not os.path.exists(os.path.join(os.path.dirname(__file__), 'disabled_plugins'
 translations = {
 	"en": {
 		"manage_plugins": "Manage plugins",
+		"nb_plugins_loaded": "{} plugins loaded",
 		"manage_plugins_menu": {
 			"list_plugins": "List plugins",
 			"download_plugins": "Download plugins",
@@ -90,6 +91,7 @@ translations = {
 	},
 	"fr": {
 		"manage_plugins": "Gérer les plugins",
+		"nb_plugins_loaded": "{} plugins chargés",
 		"manage_plugins_menu": {
 			"list_plugins": "Liste des plugins",
 			"download_plugins": "Télécharger des plugins",
@@ -208,6 +210,23 @@ class PluginRepo(Plugin):
 		"""
 		self.manage_plugins_menu = True
 		while self.manage_plugins_menu:
+			# Clears the screen
+			self.app.stdscr.clear()
+
+			# Displays the amount of plugins loaded at the bottom right of the screen
+			self.app.stdscr.addstr(
+				self.app.rows - 4,
+				20,
+				self.translate("nb_plugins_loaded").format(str(len(self.app.plugins.keys())))
+			)
+			self.app.stdscr.addstr(
+				self.app.rows - 4,
+				20 + self.translate("nb_plugins_loaded").find("{"),
+				str(len(self.app.plugins.keys())),
+				curses.color_pair(self.app.color_pairs["instruction"])
+			)
+
+			# Displays the possible options
 			display_menu(self.app.stdscr, (
 				(self.translate("manage_plugins_menu", "list_plugins"), self.list_plugins),
 				(self.translate("manage_plugins_menu", "download_plugins"), self.download_plugins),
@@ -218,7 +237,7 @@ class PluginRepo(Plugin):
 				(self.translate("manage_plugins_menu", "read_online_plugins_doc"), self.docs_plugins),
 				(self.translate("manage_plugins_menu", "download_theme"), self.download_theme),
 				(self.translate("manage_plugins_menu", "leave"), self.leave)
-			), self.selected_menu_item)
+			), self.selected_menu_item, clear=False)
 
 
 	def leave(self):

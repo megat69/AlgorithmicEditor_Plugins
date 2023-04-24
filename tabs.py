@@ -8,6 +8,9 @@ from plugin import Plugin
 from utils import browse_files, input_text, display_menu
 
 
+TABS_CRASH_FILE_NAME = "tabs.crash.json"
+
+
 @dataclass(slots=True)
 class Tab:
 	"""
@@ -107,8 +110,8 @@ class TabsPlugin(Plugin):
 		Creates the first tab.
 		"""
 		# Loads the data after a crash if we find a file, and if the user decided to recover the data
-		if "tabs.crash.json" in os.listdir(os.path.join(os.path.dirname(__file__), "..")) and self.app.is_crash_reboot:
-			with open(os.path.join(os.path.dirname(__file__), "..", "tabs.crash.json")) as f:
+		if TABS_CRASH_FILE_NAME in os.listdir(os.path.join(os.path.dirname(__file__), "..")) and self.app.is_crash_reboot:
+			with open(os.path.join(os.path.dirname(__file__), "..", TABS_CRASH_FILE_NAME)) as f:
 				loaded_data = json.load(f)
 
 				# Saves the current tab index back
@@ -119,11 +122,11 @@ class TabsPlugin(Plugin):
 					self.tabs.append(dict_to_tab(tab))
 
 			# Deletes the crash file
-			os.remove(os.path.join(os.path.dirname(__file__), "..", "tabs.crash.json"))
+			os.remove(os.path.join(os.path.dirname(__file__), "..", TABS_CRASH_FILE_NAME))
 
 		# Deletes the crash file if the user did not want to recover the data
-		elif "tabs.crash.json" in os.listdir(os.path.join(os.path.dirname(__file__), "..")):
-			os.remove(os.path.join(os.path.dirname(__file__), "..", "tabs.crash.json"))
+		elif TABS_CRASH_FILE_NAME in os.listdir(os.path.join(os.path.dirname(__file__), "..")):
+			os.remove(os.path.join(os.path.dirname(__file__), "..", TABS_CRASH_FILE_NAME))
 
 		# If no crash happened or if the user did not want to get the data back, creates a new blank tab
 		if len(self.tabs) == 0:
@@ -344,7 +347,7 @@ class TabsPlugin(Plugin):
 		Gets called if a crash occurs.
 		Will save all the contents of the tabs in a tabs.crash.json file.
 		"""
-		with open(os.path.join(os.path.dirname(__file__), "..", "tabs.crash.json"), "w") as crash_file:
+		with open(os.path.join(os.path.dirname(__file__), "..", TABS_CRASH_FILE_NAME), "w") as crash_file:
 			# Creates the contents of the crash file to be a dict
 			crash_file_contents = {"tabs": [], "current_tab": self.current_tab}
 

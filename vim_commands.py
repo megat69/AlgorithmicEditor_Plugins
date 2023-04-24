@@ -8,8 +8,32 @@ class VimCommands(Plugin):
 	"""
 	def __init__(self, app):
 		super().__init__(app)
-		self.add_command("gg", self.navigate_start_of_file, "Navigate to start of file", True)
-		self.add_command("g", self.select_line, "Navigate to line", True)
+		self.translations = {
+			"en": {
+				"commands": {
+					"gg": {
+						"name": "Navigate to start of file"
+					},
+					"g": {
+						"name": "Navigate to line",
+						"input": "Enter the line you wish to go to :"
+					}
+				}
+			},
+			"fr": {
+				"commands": {
+					"gg": {
+						"name": "Aller au début du fichier"
+					},
+					"g": {
+						"name": "Aller à la ligne n°...",
+						"input": "Entrez le numéro de la ligne où naviguer :"
+					}
+				}
+			}
+		}
+		self.add_command("gg", self.navigate_start_of_file, self.translate("commands", "gg", "name"), True)
+		self.add_command("g", self.select_line, self.translate("commands", "g", "name"), True)
 
 
 	def navigate_start_of_file(self):
@@ -23,7 +47,7 @@ class VimCommands(Plugin):
 		"""
 		Asks the user to prompt a line to go to.
 		"""
-		msg_str = "Enter the line you wish to go to :"
+		msg_str = self.translate("commands", "gg", "input")
 		self.app.stdscr.addstr(
 			self.app.rows // 2 - 1,
 			self.app.cols // 2 - len(msg_str) // 2,

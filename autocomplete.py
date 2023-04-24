@@ -69,9 +69,8 @@ class AutocompletionPlugin(Plugin):
 		else:
 			self.config["auto_add_space"] = self.auto_add_space
 
-		# Creating a curses color pair for the autocomplete if it doesn't exist
-		curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_BLACK)
-		self.app.color_pairs["autocomplete"] = 6
+		# Defining as color pair for the autocomplete the default curses color
+		self.app.color_pairs["autocomplete"] = 255
 
 		# Creates documentations for each of the base types
 		self.documentation = {

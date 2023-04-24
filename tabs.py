@@ -306,11 +306,11 @@ class TabsPlugin(Plugin):
 		"""
 		self.default_apply_stylings()
 
+		x_pos = 0
 		for i in range(len(self.tabs)):
 			# Gets the x position of the first character of the current tab name
-			x_pos = 0
-			for j in range(i):
-				x_pos += len(self.tabs[j].name) + 4  # +4 because of the enclosing of the tab name ("|  |")
+			if i != 0:
+				x_pos += len(self.tabs[i - 1].name) + 4  # +4 because of the enclosing of the tab name ("|  |")
 
 			# Styling of the tab
 			tab_styling = curses.A_NORMAL

@@ -19,13 +19,26 @@ class AutocompletionPlugin(Plugin):
 		self.translations = {
 			"en": {
 				"autocomplete_cmd": "Autocomplete Toggle Auto Add Space",
-				"toggled_auto_add_space": "Toggled auto add space to {state} "
+				"toggled_auto_add_space": "Toggled auto add space to {state} ",
+				"documentation_enabled": "Autocomplete documentation"
 			},
 			"fr": {
 				"autocomplete_cmd": "Activer/Désactiver l'ajout d'espace post-autocomplétion",
-				"toggled_auto_add_space": "Basculé l'ajout automatique d'espaces vers {state} "
+				"toggled_auto_add_space": "Basculé l'ajout automatique d'espaces vers {state} ",
+				"documentation_enabled": "Documentation d'autocomplétion"
 			}
 		}
+
+		# Initializes documentations for each of the base types
+		self.documentation = {}
+
+		# Creates option to toggle documentation
+		self.documentation_enabled = True
+		self.add_option(
+			self.translate("documentation_enabled"),
+			lambda: self.documentation_enabled,
+			self.toggle_documentation_enabled
+		)
 
 		# Variable to determine whether to add a space after autocompletion or not
 		self.auto_add_space = False
@@ -44,6 +57,35 @@ class AutocompletionPlugin(Plugin):
 		# Creating a curses color pair for the autocomplete if it doesn't exist
 		curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_BLACK)
 		self.app.color_pairs["autocomplete"] = 6
+
+		# Creates documentations for each of the base types
+		self.documentation = {
+			"fx": "fx <type|void> <name> [[type1] [arg1]] [[type2] [arg2]] [...]",
+			"arr": "arr <type> <name> <dimension1> [dimension2] [dimension3] [...]",
+			"print": "print <variables or constants separated by '&' symbols>",
+			"input": "input <var1>",
+			"for": "for <var> <min> <max> [step=1]",
+			"while": "while <condition>",
+			"if": "if <condition>",
+			"elif": "elif <condition>",
+			"else": "else",
+			"CODE_RETOUR": "CODE_RETOUR <return_code>",
+			"switch": "switch <char|int>",
+			"case": "case <char|int>",
+			"struct": "struct <name> [[attr_type1] [attr_name1]] [[attr_type2] [attr_name2]] [...]",
+			"init": "init <struct_name> <var_name> [[arg_name1] [arg_val1]] [[arg_name2] [arg_val2]] [...]",
+			"return": "return <value|expression|variable>",
+			**{
+				var_type: f"{var_type} <name1> [[= <value>] OR [[name2] [name3] [...]]"
+				for var_type in self.app.compilers["C++"].var_types
+			}
+		}
+
+		if "documentation_enabled" in self.config:
+			self.documentation_enabled = self.config["documentation_enabled"]
+		else:
+			self.config["documentation_enabled"] = self.documentation_enabled
+
 
 	def update_on_keypress(self, key:str):
 		"""
@@ -80,7 +122,11 @@ class AutocompletionPlugin(Plugin):
 						self.app.stdscr.addstr(
 							self.app.cur[0],
 							self.app.cur[1],
-							self.ac[0][0][len(splitted_line[0])-1:],
+							self.ac[0][0][len(splitted_line[0])-1:]
+								if self.documentation_enabled is False
+								or self.documentation.get(self.ac[0][0]) is None
+								else
+							self.documentation[self.ac[0][0]][len(splitted_line[0])-1:],
 							curses.color_pair(self.app.color_pairs["autocomplete"]) | curses.A_ITALIC
 						)
 					except KeyError: pass
@@ -122,6 +168,13 @@ class AutocompletionPlugin(Plugin):
 		"""
 		self.words = self.load_words()
 		self.autocomplete = AutoComplete(words=self.words)
+
+
+	def toggle_documentation_enabled(self):
+		"""
+		Toggles whether the documentation should be enabled when autocompleting.
+		"""
+		self.documentation_enabled = not self.documentation_enabled
 
 
 def init(app) -> AutocompletionPlugin:

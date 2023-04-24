@@ -20,12 +20,16 @@ class AutocompletionPlugin(Plugin):
 			"en": {
 				"autocomplete_cmd": "Autocomplete Toggle Auto Add Space",
 				"toggled_auto_add_space": "Toggled auto add space to {state} ",
-				"documentation_enabled": "Autocomplete documentation"
+				"documentation_enabled": "Autocomplete documentation",
+				"examples_enabled": "Autocomplete examples",
+				"examples": "Examples(s) :"
 			},
 			"fr": {
 				"autocomplete_cmd": "Activer/Désactiver l'ajout d'espace post-autocomplétion",
 				"toggled_auto_add_space": "Basculé l'ajout automatique d'espaces vers {state} ",
-				"documentation_enabled": "Documentation d'autocomplétion"
+				"documentation_enabled": "Documentation d'autocomplétion",
+				"examples_enabled": "Examples d'autocomplétion",
+				"examples": "Exemples(s) :"
 			}
 		}
 
@@ -38,6 +42,17 @@ class AutocompletionPlugin(Plugin):
 			self.translate("documentation_enabled"),
 			lambda: self.documentation_enabled,
 			self.toggle_documentation_enabled
+		)
+
+		# Initializes examples for each of the base types
+		self.examples = {}
+
+		# Creates an option to toggle examples
+		self.examples_enabled = True
+		self.add_option(
+			self.translate("examples_enabled"),
+			lambda: self.examples_enabled,
+			self.toggle_examples_enabled
 		)
 
 		# Variable to determine whether to add a space after autocompletion or not
@@ -86,6 +101,68 @@ class AutocompletionPlugin(Plugin):
 		else:
 			self.config["documentation_enabled"] = self.documentation_enabled
 
+		# Creates the examples for each of the base types
+		self.examples = {
+			"fx": [
+				"fx void greet string name",
+				"fx int sum int a int b"
+			],
+			"arr": [
+				"arr string fruits 5",
+				"arr int grid 3 3"
+			],
+			"print": ["print \"Hello \" & name & \" !(ENDL)\""],
+			"input": ["input name"],
+			"for": [
+				"for i 1 10",
+				"for odds 1 20 2"
+			],
+			"while": [
+				"while !finished"
+			],
+			"if": [
+				"if i % 2 == 0"
+			],
+			"elif": [
+				"elif tests > 15"
+			],
+			"else": ["else"],
+			"CODE_RETOUR": [
+				"CODE_RETOUR 0",
+				"CODE_RETOUR -1",
+			],
+			"switch": [
+				"switch color"
+			],
+			"case": [
+				"case 0",
+				"case 'b'"
+			],
+			"struct": [
+				"struct Flower int price string name"
+			],
+			"init": [
+				"init Flower flower price 5 name \"Rose\""
+			],
+			"return": [
+				"return val",
+				"return 0",
+				"return a + b"
+			],
+			**{
+				var_type: [
+					f"{var_type} a b c d",
+					f"{var_type} a = RR"
+				]
+				for var_type in self.app.compilers["C++"].var_types
+			}
+		}
+
+		if "examples_enabled" in self.config:
+			self.documentation_enabled = self.config["examples_enabled"]
+		else:
+			self.config["examples_enabled"] = self.documentation_enabled
+
 
 	def update_on_keypress(self, key:str):
 		"""
@@ -129,6 +206,22 @@ class AutocompletionPlugin(Plugin):
 							self.documentation[self.ac[0][0]][len(splitted_line[0])-1:],
 							curses.color_pair(self.app.color_pairs["autocomplete"]) | curses.A_ITALIC
 						)
+
+						# If the examples are enabled, shows each example
+						if self.examples_enabled and self.examples.get(self.ac[0][0]) is not None:
+							self.app.stdscr.addstr(
+								self.app.cur[0] + 1,
+								self.app.cur[1] + 1,
+								self.translate("examples"),
+								curses.A_ITALIC
+							)
+							for i, example in enumerate(self.examples[self.ac[0][0]]):
+								self.app.stdscr.addstr(
+									self.app.cur[0] + 2 + i,
+									self.app.cur[1] + 1,
+									example,
+									curses.A_ITALIC
+								)
 					except KeyError: pass
 				except curses.error:
 					self.ac = None
@@ -175,6 +268,13 @@ class AutocompletionPlugin(Plugin):
 		Toggles whether the documentation should be enabled when autocompleting.
 		"""
 		self.documentation_enabled = not self.documentation_enabled
+
+
+	def toggle_examples_enabled(self):
+		"""
+		Toggles whether the documentation examples should be enabled when autocompleting.
+		"""
+		self.examples_enabled = not self.examples_enabled
 
 
 def init(app) -> AutocompletionPlugin:

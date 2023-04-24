@@ -321,8 +321,8 @@ class TabsPlugin(Plugin):
 
 			# Displays the name of the tab one by one
 			self.app.stdscr.addstr(
-				self.app.rows - 3,
-				x_pos,
+				self.app.rows - 3 - ((x_pos + len(self.tabs[i].name) + 4) // self.app.cols),
+				x_pos % (self.app.cols - len(self.tabs[i].name) - 4),
 				"| " + self.tabs[i].name + " |",
 				tab_styling
 			)

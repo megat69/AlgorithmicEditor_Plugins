@@ -187,7 +187,7 @@ class AutocompletionPlugin(Plugin):
 		Uses the update method to put the autocompletion on cursor position.
 		"""
 		# If the cursor exists and we are on the cursor line
-		if self.app.cur != tuple() and self.app.cur[1] - (len(str(self.app.lines)) + 1) <= len(splitted_line[0]):
+		if self.app.cur[2] != " " and self.app.cur[1] - self.app.get_lineno_length() <= len(splitted_line[0]):
 			self.ac = self.autocomplete.search(splitted_line[0], size=1)
 
 			# If a word was autocompleted

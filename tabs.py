@@ -20,6 +20,7 @@ class Tab:
 	current_text: str
 	current_index: int
 	last_save_action: str
+	marked_lines: list
 	is_name_custom: bool = False
 	saved: bool = True
 
@@ -136,7 +137,8 @@ class TabsPlugin(Plugin):
 				os.path.split(os.path.normpath(self.app.last_save_action))[-1]),
 				self.app.current_text,
 				0,
-				self.app.last_save_action
+				self.app.last_save_action,
+				self.app.marked_lines
 			))
 
 		# Refreshes the display with the new tab system
@@ -167,6 +169,7 @@ class TabsPlugin(Plugin):
 		self.app.current_text = self.tabs[self.current_tab].current_text
 		self.app.current_index = self.tabs[self.current_tab].current_index
 		self.app.last_save_action = self.tabs[self.current_tab].last_save_action
+		self.app.marked_lines = self.tabs[self.current_tab].marked_lines
 
 
 	def user_new_tab(self):
@@ -187,7 +190,8 @@ class TabsPlugin(Plugin):
 			tab_name,
 			"",
 			0,
-			"clipboard"
+			"clipboard",
+			[]
 		))
 		self.current_tab = len(self.tabs) - 1
 		self._reset_tab()
@@ -211,7 +215,8 @@ class TabsPlugin(Plugin):
 				 os.path.split(os.path.normpath(filename))[-1],
 				f.read(),
 				0,
-				filename
+				filename,
+				[]
 			))
 			self.current_tab = len(self.tabs) - 1
 			self._reset_tab()

@@ -286,8 +286,11 @@ class TabsPlugin(Plugin):
 		:param key: The currently pressed key.
 		"""
 		# If the tab contents is different from the app's contents, marks it as unsaved
-		if self.tabs[self.current_tab].current_text != self.app.current_text:
-			self.tabs[self.current_tab].saved = False
+		try:
+			if self.tabs[self.current_tab].current_text != self.app.current_text:
+				self.tabs[self.current_tab].saved = False
+		except IndexError:
+			self.init()
 
 		# Saves the current progress of the tab
 		self.tabs[self.current_tab].current_text = self.app.current_text

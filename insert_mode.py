@@ -7,6 +7,18 @@ class InsertModePlugin(Plugin):
 	"""
 	Adds a command to toggle the insert mode.
 	"""
+	__singleton = None
+
+	def __new__(cls, *args, **kwargs):
+		"""
+		Creates a singleton of the class.
+		"""
+		if cls.__singleton is None:
+			cls.__singleton = super().__new__(cls)
+		return cls.__singleton
+
+
+
 	def __init__(self, app):
 		super().__init__(app)
 

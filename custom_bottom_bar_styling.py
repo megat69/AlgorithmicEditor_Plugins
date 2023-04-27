@@ -6,6 +6,18 @@ class CustomBottomBarStylingPlugin(Plugin):
 	"""
 	Allows the user to paste text at the cursor position.
 	"""
+	__singleton = None
+
+	def __new__(cls, *args, **kwargs):
+		"""
+		Creates a singleton of the class.
+		"""
+		if cls.__singleton is None:
+			cls.__singleton = super().__new__(cls)
+		return cls.__singleton
+
+
+
 	def __init__(self, app):
 		super().__init__(app)
 		# Saves the default 'apply_stylings' method of the app in a variable

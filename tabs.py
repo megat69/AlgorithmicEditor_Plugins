@@ -87,23 +87,6 @@ class TabsPlugin(Plugin):
 		# Whether to track the save status
 		self.track_save_status = True
 
-		# Saves the default 'apply_stylings' method of the app in a variable
-		self.default_apply_stylings = self.app.apply_stylings
-
-		# Overrides the app's 'apply_stylings' method with a custom one
-		self.app.apply_stylings = self.custom_apply_stylings
-
-		# Overrides the app's save method to be able to know when the user saves
-		self.default_save = self.app.save
-		self.app.save = self.custom_save
-		# Updates the commands to use the new method
-		self.app.commands["s"] = (self.app.save, self.app.commands["s"][1], self.app.commands["s"][2])
-		self.app.commands["qs"] = (
-			partial(self.app.save, quick_save=True),
-			self.app.commands["qs"][1],
-			self.app.commands["qs"][2]
-		)
-
 		# Creates the two commands to open new tabs
 		self.add_command("n", self.user_new_tab, self.translate("new_empty"))
 		self.add_command("no", self.user_open_new_tab, self.translate("new_open"))
@@ -164,6 +147,23 @@ class TabsPlugin(Plugin):
 
 		# Creates an option for the save status
 		self.add_option(self.translate("track_save_status"), lambda: self.track_save_status, self._toggle_track_save_status)
+
+		# Saves the default 'apply_stylings' method of the app in a variable
+		self.default_apply_stylings = self.app.apply_stylings
+
+		# Overrides the app's 'apply_stylings' method with a custom one
+		self.app.apply_stylings = self.custom_apply_stylings
+
+		# Overrides the app's save method to be able to know when the user saves
+		self.default_save = self.app.save
+		self.app.save = self.custom_save
+		# Updates the commands to use the new method
+		self.app.commands["s"] = (self.app.save, self.app.commands["s"][1], self.app.commands["s"][2])
+		self.app.commands["qs"] = (
+			partial(self.app.save, quick_save=True),
+			self.app.commands["qs"][1],
+			self.app.commands["qs"][2]
+		)
 
 
 	def _toggle_track_save_status(self):

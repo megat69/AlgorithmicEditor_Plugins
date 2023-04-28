@@ -92,8 +92,7 @@ class FileIndex(Plugin):
 			self.current_dir = os.path.normpath(self.config["last_dir"])
 
 		# Creates a curses color pair for the algo files
-		curses.init_pair(
-			12,
+		self.green_pair = self.create_pair(
 			curses.COLOR_GREEN
 				if self.app.default_bg != curses.COLOR_GREEN else
 			curses.COLOR_BLACK,
@@ -199,7 +198,7 @@ class FileIndex(Plugin):
 			# Gets the color scheme of the filename
 			attrs = curses.A_NORMAL
 			if not self.only_show_valid_files and filename[-5:] == ".algo":  # If the filename ends in .algo, we display it green
-				attrs |= curses.color_pair(12) | curses.A_BOLD
+				attrs |= curses.color_pair(self.green_pair) | curses.A_BOLD
 			if (i + displayable_range_min * (self.app.rows - 3)) == self.selected_file_index and self.in_index:  # If the file is selected, highlights it
 				attrs |= curses.A_REVERSE
 

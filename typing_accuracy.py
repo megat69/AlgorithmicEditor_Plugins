@@ -30,8 +30,8 @@ class TypingAccuracyPlugin(Plugin):
 		"""
 		Defines two color pairs for the colors of the bar.
 		"""
-		curses.init_pair(10, curses.COLOR_BLACK, curses.COLOR_GREEN)
-		curses.init_pair(11, curses.COLOR_BLACK, curses.COLOR_RED)
+		self.green_pair = self.create_pair(curses.COLOR_BLACK, curses.COLOR_GREEN)
+		self.red_pair = self.create_pair(curses.COLOR_BLACK, curses.COLOR_RED)
 
 
 	def update_on_keypress(self, key: str):
@@ -50,13 +50,13 @@ class TypingAccuracyPlugin(Plugin):
 			self.app.rows - 5,
 			self.app.cols - 20,
 			" " * 10,
-			curses.color_pair(11)
+			curses.color_pair(self.red_pair)
 		)
 		self.app.stdscr.addstr(
 			self.app.rows - 5,
 			self.app.cols - 20,
 			" " * int((1 - percentage) * 10),
-			curses.color_pair(10)
+			curses.color_pair(self.green_pair)
 		)
 		self.app.stdscr.addstr(
 			self.app.rows - 5,

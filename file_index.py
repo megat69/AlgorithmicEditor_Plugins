@@ -1,7 +1,6 @@
 import curses
 import math
 import os
-from traceback import print_exception
 
 from plugin import Plugin
 # Tries to load the tabs plugin

@@ -87,7 +87,7 @@ class FileIndex(Plugin):
 			self.current_dir = os.getcwd()
 			self.config["last_dir"] = self.current_dir
 		else:
-			self.current_dir = self.config["last_dir"]
+			self.current_dir = os.path.normpath(self.config["last_dir"])
 
 		# Creates a curses color pair for the algo files
 		curses.init_pair(

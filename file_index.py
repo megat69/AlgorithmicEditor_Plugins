@@ -39,9 +39,21 @@ class FileIndex(Plugin):
 		# Which file in the menu is currently selected
 		self.selected_file_index = 0
 
+		# Sets the translation
+		self.translations = {
+			"en": {
+				"command": "Open/Exit file index",
+				"option": "Only show valid files"
+			},
+			"fr": {
+				"command": "Ouvrir/Fermer l'index de fichiers",
+				"option": "Afficher uniquement les fichiers valides"
+			}
+		}
+
 		# Are we currently moving in the index
 		self.in_index = False
-		self.add_command("fi", self.toggle_in_index, "Open/Exit file index", True)
+		self.add_command("fi", self.toggle_in_index, self.translate("command"), True)
 
 
 	def init(self):
@@ -71,7 +83,7 @@ class FileIndex(Plugin):
 		else:
 			self.config["only_show_valid_files"] = False
 			self.only_show_valid_files = False
-		self.add_option("Only show valid files", lambda: self.only_show_valid_files, self.toggle_show_valid_files)
+		self.add_option(self.translate("option"), lambda: self.only_show_valid_files, self.toggle_show_valid_files)
 
 		# Shows the file index for the first time
 		self.update_on_keypress("")

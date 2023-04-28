@@ -55,6 +55,9 @@ class FileIndex(Plugin):
 		self.in_index = False
 		self.add_command("fi", self.toggle_in_index, self.translate("command"), True)
 
+		# Keeps in mind the minimum character to display next in the list
+		self.min_char = 0
+
 
 	def init(self):
 		# Inits the tabs plugin if necessary
@@ -127,6 +130,11 @@ class FileIndex(Plugin):
 				self.selected_file_index -= 1
 			elif key == "KEY_DOWN":
 				self.selected_file_index += 1
+			if key == "KEY_LEFT":
+				self.min_char -= 1
+				self.min_char = max(self.min_char, 0)
+			elif key == "KEY_RIGHT":
+				self.min_char += 1
 			# Wraps the index around its length
 			self.selected_file_index = ((self.selected_file_index % len(menu_items)) + len(menu_items)) % len(menu_items)
 
@@ -152,7 +160,7 @@ class FileIndex(Plugin):
 
 			# Displays the name of the file
 			self.app.stdscr.addstr(
-				i, 0, filename[:self.app.left_placement_shift - 3], attrs
+				i, 0, filename[:2] + filename[2 + self.min_char:self.app.left_placement_shift - 3 + self.min_char], attrs
 			)
 
 

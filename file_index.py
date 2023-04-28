@@ -63,10 +63,11 @@ class FileIndex(Plugin):
 			self.tabs_plugin.was_initialized = True
 
 		# Creates the current directory
-		if self.app.last_save_action in ("clipboard", ""):
+		if "last_dir" not in self.config.keys():
 			self.current_dir = os.getcwd()
+			self.config["last_dir"] = self.current_dir
 		else:
-			self.current_dir = "/".join(os.path.split(os.path.normpath(self.app.last_save_action))[:-1])
+			self.current_dir = self.config["last_dir"]
 
 		# Creates a curses color pair for the algo files
 		curses.init_pair(
@@ -94,6 +95,7 @@ class FileIndex(Plugin):
 		Toggles whether to show only the valid files.
 		"""
 		self.only_show_valid_files = not self.only_show_valid_files
+		self.config["only_show_valid_files"] = self.only_show_valid_files
 
 
 	def toggle_in_index(self):
@@ -186,6 +188,7 @@ class FileIndex(Plugin):
 		"""
 		if os.path.isdir(menu_items[self.selected_file_index][1]):  # If folder
 			self.current_dir = menu_items[self.selected_file_index][1]
+			self.config["last_dir"] = self.current_dir
 			self.selected_file_index = 0
 			# Reloads the file index
 			self.update_on_keypress("")

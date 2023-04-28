@@ -278,7 +278,7 @@ class FileIndex(Plugin):
 
 			else:  # If the tabs plugin is loaded
 				# We open the file in a new tab
-				with open(menu_items[self.selected_file_index][1]) as f:
+				with open(menu_items[self.selected_file_index][1], encoding="utf-8") as f:
 					self.tabs_plugin.tabs.append(Tab(
 						os.path.split(os.path.normpath(menu_items[self.selected_file_index][1]))[-1],
 						f.read(),

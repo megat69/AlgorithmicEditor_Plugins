@@ -7,6 +7,18 @@ class CtrlDel(Plugin):
 	"""
 	Allows the user to use the Ctrl + Del keybind to remove a whole word.
 	"""
+	__singleton = None
+
+	def __new__(cls, *args, **kwargs):
+		"""
+		Creates a singleton of the class.
+		"""
+		if cls.__singleton is None:
+			cls.__singleton = super().__new__(cls)
+		return cls.__singleton
+
+
+
 	def __init__(self, app):
 		super().__init__(app)
 

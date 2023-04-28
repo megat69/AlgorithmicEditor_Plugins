@@ -66,8 +66,23 @@ class FileIndex(Plugin):
 			self.app.default_bg
 		)
 
+		# Loads the config
+		if "only_show_valid_files" in self.config.keys():
+			self.only_show_valid_files = self.config["only_show_valid_files"]
+		else:
+			self.config["only_show_valid_files"] = False
+			self.only_show_valid_files = False
+		self.add_option("Only show valid files", lambda: self.only_show_valid_files, self.toggle_show_valid_files)
+
 		# Shows the file index for the first time
 		self.update_on_keypress("")
+
+
+	def toggle_show_valid_files(self):
+		"""
+		Toggles whether to show only the valid files.
+		"""
+		self.only_show_valid_files = not self.only_show_valid_files
 
 
 	def toggle_in_index(self):
@@ -143,7 +158,7 @@ class FileIndex(Plugin):
 		):
 			# Gets the color scheme of the filename
 			attrs = curses.A_NORMAL
-			if filename[-5:] == ".algo":  # If the filename ends in .algo, we display it green
+			if not self.only_show_valid_files and filename[-5:] == ".algo":  # If the filename ends in .algo, we display it green
 				attrs |= curses.color_pair(12) | curses.A_BOLD
 			if (i + displayable_range_min * (self.app.rows - 3)) == self.selected_file_index and self.in_index:  # If the file is selected, highlights it
 				attrs |= curses.A_REVERSE
@@ -165,7 +180,8 @@ class FileIndex(Plugin):
 			if os.path.isdir(os.path.join(self.current_dir, element)):
 				folders_list.append(element)
 			else:
-				files_list.append(element)
+				if not self.only_show_valid_files or element.split(".")[-1] in ("algo", "txt"):  # Checks that extension is a valid type
+					files_list.append(element)
 		menu_items = [("📁 ../", os.path.join(self.current_dir, "../"))]
 		menu_items.extend([
 			(f"📁 {name}", os.path.join(self.current_dir, name)) \

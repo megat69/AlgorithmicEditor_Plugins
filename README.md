@@ -15,6 +15,8 @@ As of today, official plugins include, but are not restricted to :
 - `ctrl_del`, a plugin giving you access to a command able to erase the current word in one keystroke, like the Ctrl + Del keybind ;
 - `docstring`, which automatically setups information for functions in a single keybind ;
 - `paste`, which lets you paste anything from your clipboard to the editor ;
+- `tabs`, which lets you open different tabs for different files at once ;
+- `file_index`, which lets you browse files while in the editor (cross compatible with `tabs`) ;
 - **And most importantly,** `plugin_repo`, which is the heart of the plugins : it allows you to manage (enable/disable/delete/list) your plugins or download/updates new ones.
   - It is the only plugin downloaded by default (if you select so in the setup).
 
@@ -26,6 +28,8 @@ Au moment de l'écriture de ces lignes, les plugins officiels contiennent, mais 
 - `ctrl_del`, un plugin vous donnant accès à une commande capable d'effacer le mot sélectionné en une touche, comme le raccourci Ctrl + RetourArrière ;
 - `docstring`, qui vous met en place automatiquement les informations demandées pour la création de fonctions (Données, préconditions, etc.) en une seule touche ;
 - `paste`, qui vous permet de coller n'importe quoi de votre presse-papiers dans l'éditeur ;
+- `tabs`, qui vous permet d'ouvrir différents onglets pour différents fichiers en même temps ;
+- `file_index`, qui vous permet de parcourir les fichiers au coeur de l'éditeur (cross compatible avec `tabs`) ;
 - **Et le plus important,** `plugin_repo`, qui est au cœur de tous les plugins : il vous permet de gérer (activer/désactiver/supprimmer/lister) vos plugins, ou d'en télécharger/mettre à jour d'autres.
   - Il s'agit du seul plugin téléchargé par défaut (si vous acceptez durant le setup).
 
@@ -66,6 +70,28 @@ def init(app):
 ```
 *(Obviously replace `YourPluginName` with the name of your plugin.)*
 
+If you want to make your plugin cross-compatible with other plugins, it is also a good idea to make it a Singleton (a class with a single instance only).
+
+To do that, you can use *this* boilerplate :
+```python
+from plugin import Plugin
+
+class YourPluginName(Plugin):
+	__singleton = None
+
+	def __new__(cls, *args, **kwargs):
+		if cls.__singleton is None:
+			cls.__singleton = super().__new__(cls)
+		return cls.__singleton
+	
+	def __init__(self, app):
+		super().__init__(app)
+
+
+def init(app):
+	return YourPluginName(app)
+```
+
 You should also create a Markdown (`.md` extension) file with the same name as the Python file. It will contain the documentation of your plugin, and you can put whatever you want inside.
 
 ***FRANÇAIS***<br>
@@ -94,16 +120,51 @@ def init(app):
 ```
 *(Évidemment, remplacez `NomDeVotrePlugin` par le nom de votre plugin.)*
 
+Si vous voulez rendre votre plugin cross-compatible avec d'autres plugins, il est une bonne idée d'en faire un Singleton (une classe avec une seule instance).
+
+Pour cela, vous pouvez utiliser ce code à la place :
+```python
+from plugin import Plugin
+
+class NomDeVotrePlugin(Plugin):
+	__singleton = None
+
+	def __new__(cls, *args, **kwargs):
+		if cls.__singleton is None:
+			cls.__singleton = super().__new__(cls)
+		return cls.__singleton
+	
+	def __init__(self, app):
+		super().__init__(app)
+
+
+def init(app):
+	return NomDeVotrePlugin(app)
+```
+
 Vous devez aussi créer un fichier Markdown (extension `.md`) avec le même nom que le fichier Python. Il contiendra la documentation de votre plugin, et vous pouvez mettre ce que vous voulez à l'intérieur.
 
 ### The Plugin class
 ***ENGLISH***<br>
 As you can see, you get access to an attribute named `app`. Well, it is none other than the main application class itself. So, if you use `self.app`, you can access any of the app's attributes and methods. I recommend you to check them out, they're all documented in the code.
 
-You will also get access to two other attributes : `plugin_name` and `config`, and this as soon as `Plugin.init()` is called (see below).<br>
-The first attribute grants you access to the name of your plugin (litterally the name of the file), and the second is a dictionary containing all the config options you already created or set.<br>
+You will also get access to four other attributes : `plugin_name`,  `config`, `translations`, and `was_initialized`, and this as soon as `Plugin.init()` is called (see below).<br>
+The first attribute grants you access to the name of your plugin (litterally the name of the file).
+The second is a dictionary containing all the config options you already created or set.<br>
 Those options are saved upon editor closing.<br>
-For a good example of their use, look at how the `autocomplete` plugin works.
+For a good example of their use, look at how the `autocomplete` plugin works.<br>
+The third attribute contains a dictionary of dictionaries containing the translation strings of your plugin. Example :
+```python
+self.translations = {
+  "en": {
+    "key1": "Some translation"
+  },
+  "fr": {
+    "key1": "Une traduction"
+  }
+}
+```
+The last attribute is whether the plugin's init function was called. If set to True, `init()` will not be called again automatically.
 
 The `Plugin` class will grant you access to a few functions that you might find useful when creating a plugin. It's up to you to use them or not, please also note that you can also create your own methods for your class.<br>
 Those functions include :
@@ -116,6 +177,10 @@ Those functions include :
     - Following is the function that is going to be called upon function trigger (it can be a lambda, a partial, a class method, a regular function, any Callable/callback function really) ;
     - Then a *VERY* short title for the function (the screen space being so cramped as is, don't make it any longer than 20 characters, although it is technically possible and allowed) ;
     - And finally a boolean indicating whether the function should be hidden (if you deem the function not so important, please put this option to True, and your command will be only shown in the commands list).
+- `add_option(name: str, current_value: Callable, callback: Callable)` : This method will add an option in the options menu.
+  - The `name` argument is the name of the option
+  - The `current_value` argument is a function returning the value of the option, generally a lambda.
+  - The `callback` argument is a function that will be called when the options gets selected in the options menu.
 - `update_on_keypress(key:str)` : This method is ran every time the user presses a key. The key pressed by the user will also be given.
   - Note that if you simply don't use the key, this method can become an update method ran every frame.
 - `update_on_syntax_highlight(line:str, splitted_line:list, i:int)` : This method will be called n times each frame, where n is the amount of lines in the `app.current_text` variable.
@@ -124,14 +189,31 @@ Those functions include :
 - `update_on_compilation(final_compiled_code:str, compilation_type:str)` : This method will be called upon compilation of the pseudocode in either algorithmic code or C++.
   - It takes as argument the final compiled code, which is one very long string.
   - The second argument is the compilation type, so whether it was compiled in C++ or Algorithmic. It will thus either take the value "cpp" or "algo".
+- `update_on_crash` : Gets called in case of a crash. Lets the plugin do some work in order to save necessary or important data.
+- `translate(*keys: str, language: str = None, **format_keys) -> str` : Returns the translation string of the element at the given key, at the correct language.
+  - Every official plugin implements this function and as such, the best example is in the code.
+  - Really, please read a plugin and the way it implements this method. It's really easy.
 
 ***FRANÇAIS***<br>
 Comme vous pouvez le voir, vous recevez l'accès à un attribut nommé `app`. Eh bien, il s'agit de l'application principale. Ainsi, si vous utilisez `self.app`, vous pouvez accéder à n'importe lequel des attributs ou méthodes de l'éditeur. Je vous recommande d'aller regarder la classe `App` et ses attributs, ils sont tous documentés dans le code *(en anglais uniquement)*.
 
-Vous aurez aussi accès à deux autre attributs : `plugin_name` et `config`, et ce dès l'appel de `Plugin.init()` (voir plus bas).<br>
-Le premier donne accès au nom de votre plugin (littéralement le nom du fichier), et le second est un dictionnaire contenant les options de config que vous avez déjà créées ou modifiées.<br>
+Vous aurez aussi accès à deux autre attributs : `plugin_name`,  `config`, `translations`, et `was_initialized`, et ce dès l'appel de `Plugin.init()` (voir plus bas).<br>
+Le premier donne accès au nom de votre plugin (littéralement le nom du fichier).
+Le second est un dictionnaire contenant les options de config que vous avez déjà créées ou modifiées.<br>
 Ces options sont enregistrées lors de la fermeture de l'éditeur.<br>
 Pour un bon exemple de leur utilisation, regardez comment le plugin `autocomplete` fonctionne.
+Le troisième attribut contient un dictionnaire de dictionnaires contenant les traductions de votre plugin. Exemple :
+```python
+self.translations = {
+  "en": {
+    "key1": "Some translation"
+  },
+  "fr": {
+    "key1": "Une traduction"
+  }
+}
+```
+Le dernier attribut correspond à si la méthode init du plugin a déjà été appelée. Si sa valeur vaut True, `init()` ne sera plus jamais appelé automatiquement.
 
 La classe `Plugin` vous donnera accès à quelques fonctions qui pourront vous être utiles lors de la création d'un Plugin. Vous pouvez les utiliser ou non, veuillez noter que vous pouvez aussi créer vos propres méthodes pour votre classe.<br>
 Ces fonctions sont :
@@ -144,6 +226,10 @@ Ces fonctions sont :
     - Ensuite se trouve la fonction qui sera appelée quand la commande sera déclenchée (il peut s'agir d'une lambda, une partial, une méthode de classe, ou une fonction classique, n'importe quel Callable/fonction callback) ;
     - Suivi par un *TRÈS* court titre pour la fonction (vu le peu d'espace à l'écran, ne la faites pas plus longue que 20 caractères, même si c'est possible et permis) ;
     - Et pour finir un booléen indicant si la fonction devrait être cachée ou non (si vous trouvez que cette fonction n'est pas si importante, veuillez mettre cette option à True, et votre commande ne sera affichée que dans la liste des commandes).
+- `add_option(name: str, current_value: Callable, callback: Callable)` : Cette méthode va ajouter une option au menu des options.
+  - L'argument `name` est le nom de l'option
+  - L'argument `current_value` est une fonction retournant la valeur actuelle de l'option, généralement une fonction lambda.
+  - L'argument `callback` est une fonction qui sera appelée quand l'option est sélectionnée dans le menu des options.
 - `update_on_keypress(key:str)` : Cette méthode est exécutée chaque fois que l'utilisateur presse une touche. La touche pressée par l'utilisateur vous sera aussi donnée.
   - Notez que si vous décidez de ne pas utiliser la touche, cette méthode peut devenir une méthode update executée à chaque frame.
 - `update_on_syntax_highlight(line:str, splitted_line:list, i:int)` : Cette méthode sera appellée n fois à chaque frame, où n correspond en au nombre de lignes dans la variable `app.current_text`.
@@ -152,6 +238,10 @@ Ces fonctions sont :
 - `update_on_compilation(final_compiled_code:str, compilation_type:str)` : Cette méthode sera appelée à la fin de la compilation de pseudocode vers algorithmique ou C++.
   - Le premier argument est le code compilé final, qui est une très longue chaîne de caractères.
   - Le deuxième argument est le type de compilation, donc si il s'agit d'une compilation vers C++ ou Algorithmique. Il prendra donc la valeur "cpp" ou "algo".
+- `update_on_crash` : Est appelée en cas de crash. Permet au plugin de sauvegarder les données nécessaires ou importantes qu'il possède.
+- `translate(*keys: str, language: str = None, **format_keys) -> str` : Retourne la traduction de l'élement donné, dans le langage de l'éditeur.
+  - Chaque plugin officiel implémente cette fonction et par conséquent, le meilleur exemple est le code.
+  - Vraiment, lisez un plugin et regardez comment il implémente cette méthode. Elle est très simple à comprendre et utiliser.
 
 
 ## Uploading your plugin

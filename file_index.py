@@ -11,6 +11,8 @@ except ImportError:
 else:
 	TABS_PLUGIN_LOADED = True
 
+APP_PLACEMENT_SHIFT = 30  # MIN VALUE : 2
+
 
 class FileIndex(Plugin):
 	"""
@@ -34,7 +36,7 @@ class FileIndex(Plugin):
 			self.tabs_plugin = TabsPlugin(app)
 
 		# Updates the shift of the line numbers so we can fit the file index at its left
-		self.app.left_placement_shift = 30  # MIN VALUE : 2
+		self.app.left_placement_shift = APP_PLACEMENT_SHIFT
 
 		# Which file in the menu is currently selected
 		self.selected_file_index = 0
@@ -42,21 +44,27 @@ class FileIndex(Plugin):
 		# Sets the translation
 		self.translations = {
 			"en": {
-				"command": "Open/Exit file index",
+				"open_command": "Open/Exit file index",
+				"display_command": "Show/Hide file index",
 				"option": "Only show valid files"
 			},
 			"fr": {
-				"command": "Ouvrir/Fermer l'index de fichiers",
+				"open_command": "Ouvrir/Fermer l'index de fichiers",
+				"display_command": "Afficher/Cacher l'index de fichiers",
 				"option": "Afficher uniquement les fichiers valides"
 			}
 		}
 
 		# Are we currently moving in the index
 		self.in_index = False
-		self.add_command("fi", self.toggle_in_index, self.translate("command"), True)
+		self.add_command("fi", self.toggle_in_index, self.translate("open_command"), True)
 
 		# Keeps in mind the minimum character to display next in the list
 		self.min_char = 0
+
+		# Whether to display the index
+		self.display_index = True
+		self.add_command("hi", self.toggle_display_index, self.translate("display_command"), True)
 
 
 	def init(self):
@@ -93,6 +101,18 @@ class FileIndex(Plugin):
 		self.update_on_keypress("")
 
 
+	def toggle_display_index(self):
+		"""
+		Toggles whether to display the index.
+		"""
+		self.display_index = not self.display_index
+		if self.display_index:
+			self.app.left_placement_shift = APP_PLACEMENT_SHIFT
+			self.in_index = False
+		else:
+			self.app.left_placement_shift = 0
+
+
 	def toggle_show_valid_files(self):
 		"""
 		Toggles whether to show only the valid files.
@@ -103,7 +123,7 @@ class FileIndex(Plugin):
 
 	def toggle_in_index(self):
 		""" Opens/Exits the file index. """
-		self.in_index = not self.in_index
+		self.in_index = not self.in_index and self.display_index
 		self.app.input_locked = self.in_index
 		if self.in_index:
 			self.update_on_keypress("")
@@ -113,6 +133,7 @@ class FileIndex(Plugin):
 		"""
 		Every tick, displays the file index and updates it.
 		"""
+		if not self.display_index: return
 		# Draws a column right next to the line numbers to separate them from the file index
 		for i in range(self.app.rows - 3):
 			self.app.stdscr.addstr(

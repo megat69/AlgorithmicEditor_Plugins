@@ -3,6 +3,8 @@ import math
 import os
 
 from plugin import Plugin
+from utils import input_text
+
 # Tries to load the tabs plugin
 try:
 	from .tabs import TabsPlugin, Tab
@@ -35,9 +37,6 @@ class FileIndex(Plugin):
 		if TABS_PLUGIN_LOADED:
 			self.tabs_plugin = TabsPlugin(app)
 
-		# Updates the shift of the line numbers so we can fit the file index at its left
-		self.app.left_placement_shift = APP_PLACEMENT_SHIFT
-
 		# Which file in the menu is currently selected
 		self.selected_file_index = 0
 
@@ -46,12 +45,14 @@ class FileIndex(Plugin):
 			"en": {
 				"open_command": "Open/Exit file index",
 				"display_command": "Show/Hide file index",
-				"option": "Only show valid files"
+				"option_valid_files": "Only show valid files",
+				"option_size": "Size of the file index"
 			},
 			"fr": {
 				"open_command": "Ouvrir/Fermer l'index de fichiers",
 				"display_command": "Afficher/Cacher l'index de fichiers",
-				"option": "Afficher uniquement les fichiers valides"
+				"option_valid_files": "Afficher uniquement les fichiers valides",
+				"option_size": "Taille de l'index du fichier"
 			}
 		}
 
@@ -72,6 +73,14 @@ class FileIndex(Plugin):
 		if TABS_PLUGIN_LOADED and not self.tabs_plugin.was_initialized:
 			self.tabs_plugin.init()
 			self.tabs_plugin.was_initialized = True
+
+		# Added a way to change the size of the index
+		if "size_index" not in self.config.keys():
+			self.config["size_index"] = APP_PLACEMENT_SHIFT
+		self.add_option(self.translate("option_size"), lambda: self.config["size_index"], self.change_size_index)
+
+		# Updates the shift of the line numbers so we can fit the file index at its left
+		self.app.left_placement_shift = self.config["size_index"]
 
 		# Creates the current directory
 		if "last_dir" not in self.config.keys():
@@ -95,7 +104,7 @@ class FileIndex(Plugin):
 		else:
 			self.config["only_show_valid_files"] = False
 			self.only_show_valid_files = False
-		self.add_option(self.translate("option"), lambda: self.only_show_valid_files, self.toggle_show_valid_files)
+		self.add_option(self.translate("option_valid_files"), lambda: self.only_show_valid_files, self.toggle_show_valid_files)
 
 		# Shows the file index for the first time
 		self.update_on_keypress("")
@@ -107,7 +116,7 @@ class FileIndex(Plugin):
 		"""
 		self.display_index = not self.display_index
 		if self.display_index:
-			self.app.left_placement_shift = APP_PLACEMENT_SHIFT
+			self.app.left_placement_shift = self.config["size_index"]
 			self.in_index = False
 		else:
 			self.app.left_placement_shift = 0
@@ -127,6 +136,29 @@ class FileIndex(Plugin):
 		self.app.input_locked = self.in_index
 		if self.in_index:
 			self.update_on_keypress("")
+
+
+	def change_size_index(self):
+		"""
+		Changes the size of the index.
+		"""
+		self.app.stdscr.addstr(
+			self.app.rows // 2 - 1,
+			self.app.cols // 2,
+			"Enter the new size :"
+		)
+		size = input_text(self.app.stdscr, self.app.cols // 2, self.app.rows // 2)
+
+		# Checks if the size is int
+		try:
+			size = int(size)
+			if 2 < size < self.app.cols - 1:
+				self.config["size_index"] = size
+		except ValueError:
+			return
+
+		# Finally changes the size
+		self.app.left_placement_shift = self.config["size_index"]
 
 
 	def update_on_keypress(self, key: str):

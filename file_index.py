@@ -123,9 +123,11 @@ class FileIndex(Plugin):
 		self.display_index = not self.display_index
 		if self.display_index:
 			self.app.left_placement_shift = self.config["size_index"]
-			self.in_index = False
 		else:
 			self.app.left_placement_shift = 0
+			self.in_index = False
+			self.app.stdscr.clear()
+		self.update_on_display()
 
 
 	def toggle_show_valid_files(self):

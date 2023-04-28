@@ -106,8 +106,12 @@ class FileIndex(Plugin):
 			self.only_show_valid_files = False
 		self.add_option(self.translate("option_valid_files"), lambda: self.only_show_valid_files, self.toggle_show_valid_files)
 
+		# Overrides the app's default display text method
+		self.default_display_text = self.app.display_text
+		self.app.display_text = self.update_on_display
+
 		# Shows the file index for the first time
-		self.update_on_keypress("")
+		self.update_on_display()
 
 
 	def toggle_display_index(self):
@@ -135,7 +139,7 @@ class FileIndex(Plugin):
 		self.in_index = not self.in_index and self.display_index
 		self.app.input_locked = self.in_index
 		if self.in_index:
-			self.update_on_keypress("")
+			self.update_on_display()
 
 
 	def change_size_index(self):
@@ -161,10 +165,12 @@ class FileIndex(Plugin):
 		self.app.left_placement_shift = self.config["size_index"]
 
 
-	def update_on_keypress(self, key: str):
+	def update_on_display(self):
 		"""
-		Every tick, displays the file index and updates it.
+		Gets called after the display_text call.
 		"""
+		self.default_display_text()
+
 		if not self.display_index: return
 		# Draws a column right next to the line numbers to separate them from the file index
 		for i in range(self.app.rows - 3):
@@ -176,24 +182,6 @@ class FileIndex(Plugin):
 
 		# Gets the formatted list of folders and files in the current directory
 		menu_items = self.get_current_folder_files()
-
-		if self.in_index:
-			# If the key is up or down, we move in the folder list accordingly
-			if key == "KEY_UP":
-				self.selected_file_index -= 1
-			elif key == "KEY_DOWN":
-				self.selected_file_index += 1
-			if key == "KEY_LEFT":
-				self.min_char -= 1
-				self.min_char = max(self.min_char, 0)
-			elif key == "KEY_RIGHT":
-				self.min_char += 1
-			# Wraps the index around its length
-			self.selected_file_index = ((self.selected_file_index % len(menu_items)) + len(menu_items)) % len(menu_items)
-
-			# If the key is Enter or Tab, we move into the selected folder or open the selected file
-			if key in ("\n", "\t"):
-				if self.open_new_file(menu_items): return
 
 		# Displays each file in the current folder
 		displayable_range_min = math.floor(self.selected_file_index / (self.app.rows - 3))
@@ -215,6 +203,31 @@ class FileIndex(Plugin):
 			self.app.stdscr.addstr(
 				i, 0, filename[:2] + filename[2 + self.min_char:self.app.left_placement_shift - 3 + self.min_char], attrs
 			)
+
+
+	def update_on_keypress(self, key: str):
+		"""
+		Every tick, displays the file index and updates it.
+		"""
+		if not self.display_index: return
+		if self.in_index:
+			menu_items = self.get_current_folder_files()
+			# If the key is up or down, we move in the folder list accordingly
+			if key == "KEY_UP":
+				self.selected_file_index -= 1
+			elif key == "KEY_DOWN":
+				self.selected_file_index += 1
+			if key == "KEY_LEFT":
+				self.min_char -= 1
+				self.min_char = max(self.min_char, 0)
+			elif key == "KEY_RIGHT":
+				self.min_char += 1
+			# Wraps the index around its length
+			self.selected_file_index = ((self.selected_file_index % len(menu_items)) + len(menu_items)) % len(menu_items)
+
+			# If the key is Enter or Tab, we move into the selected folder or open the selected file
+			if key in ("\n", "\t"):
+				if self.open_new_file(menu_items): return
 
 
 	def get_current_folder_files(self):
@@ -252,7 +265,7 @@ class FileIndex(Plugin):
 			self.config["last_dir"] = self.current_dir
 			self.selected_file_index = 0
 			# Reloads the file index
-			self.update_on_keypress("")
+			self.update_on_display()
 			return True
 
 		else:  # If file

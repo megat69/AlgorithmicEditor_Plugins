@@ -193,6 +193,7 @@ Those functions include :
 - `translate(*keys: str, language: str = None, **format_keys) -> str` : Returns the translation string of the element at the given key, at the correct language.
   - Every official plugin implements this function and as such, the best example is in the code.
   - Really, please read a plugin and the way it implements this method. It's really easy.
+- `create_pair(fg: int, bg: int) -> int` : Creates a new curses color pair and returns its ID. Simple as that.
 
 ***FRANÇAIS***<br>
 Comme vous pouvez le voir, vous recevez l'accès à un attribut nommé `app`. Eh bien, il s'agit de l'application principale. Ainsi, si vous utilisez `self.app`, vous pouvez accéder à n'importe lequel des attributs ou méthodes de l'éditeur. Je vous recommande d'aller regarder la classe `App` et ses attributs, ils sont tous documentés dans le code *(en anglais uniquement)*.
@@ -242,6 +243,7 @@ Ces fonctions sont :
 - `translate(*keys: str, language: str = None, **format_keys) -> str` : Retourne la traduction de l'élement donné, dans le langage de l'éditeur.
   - Chaque plugin officiel implémente cette fonction et par conséquent, le meilleur exemple est le code.
   - Vraiment, lisez un plugin et regardez comment il implémente cette méthode. Elle est très simple à comprendre et utiliser.
+- `create_pair(fg: int, bg: int) -> int` : Crée une nouvelle paire de couleurs curses et retourne son ID. Aussi simple que ça.
 
 
 ## Uploading your plugin

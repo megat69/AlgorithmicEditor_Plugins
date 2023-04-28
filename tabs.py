@@ -224,7 +224,7 @@ class TabsPlugin(Plugin):
 		# We create a new tab
 		with open(filename) as f:
 			self.tabs.append(Tab(
-				 os.path.split(os.path.normpath(filename))[-1],
+				os.path.split(os.path.normpath(filename))[-1],
 				f.read(),
 				0,
 				filename,

@@ -46,13 +46,15 @@ class FileIndex(Plugin):
 				"open_command": "Open/Exit file index",
 				"display_command": "Show/Hide file index",
 				"option_valid_files": "Only show valid files",
-				"option_size": "Size of the file index"
+				"option_size": "Size of the file index",
+				"size": "Enter the new size :"
 			},
 			"fr": {
 				"open_command": "Ouvrir/Fermer l'index de fichiers",
 				"display_command": "Afficher/Cacher l'index de fichiers",
 				"option_valid_files": "Afficher uniquement les fichiers valides",
-				"option_size": "Taille de l'index du fichier"
+				"option_size": "Taille de l'index du fichier",
+				"size": "Entrez la nouvelle taille :"
 			}
 		}
 
@@ -148,8 +150,8 @@ class FileIndex(Plugin):
 		"""
 		self.app.stdscr.addstr(
 			self.app.rows // 2 - 1,
-			self.app.cols // 2,
-			"Enter the new size :"
+			self.app.cols // 2 - len(self.translate("size")) // 2,
+			self.translate("size")
 		)
 		size = input_text(self.app.stdscr, self.app.cols // 2, self.app.rows // 2)
 

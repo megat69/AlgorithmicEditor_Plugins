@@ -118,33 +118,7 @@ class FileIndex(Plugin):
 
 			# If the key is Enter or Tab, we move into the selected folder or open the selected file
 			if key in ("\n", "\t"):
-				if os.path.isdir(menu_items[self.selected_file_index][1]):  # If folder
-					self.current_dir = menu_items[self.selected_file_index][1]
-					self.selected_file_index = 0
-					# Reloads the file index
-					self.update_on_keypress("")
-					return
-
-				else:  # If file
-					if not TABS_PLUGIN_LOADED:
-						# Opens in place
-						self.app.open(menu_items[self.selected_file_index][1])
-
-					else:  # If the tabs plugin is loaded
-						# We open the file in a new tab
-						with open(menu_items[self.selected_file_index][1]) as f:
-							self.tabs_plugin.tabs.append(Tab(
-								os.path.split(os.path.normpath(menu_items[self.selected_file_index][1]))[-1],
-								f.read(),
-								0,
-								menu_items[self.selected_file_index][1],
-								[]
-							))
-							self.tabs_plugin.current_tab = len(self.tabs_plugin.tabs) - 1
-							self.tabs_plugin._reset_tab()
-
-					# Makes the user return to edit mode
-					self.toggle_in_index()
+				if self.open_new_file(menu_items): return
 
 		# Displays each file in the current folder
 		displayable_range_min = math.floor(self.selected_file_index / (self.app.rows - 3))
@@ -191,6 +165,42 @@ class FileIndex(Plugin):
 			for name in files_list
 		])
 		return menu_items
+
+
+	def open_new_file(self, menu_items: list) -> bool:
+		"""
+		Opens a new file.
+		:return: Whether to stop the function there.
+		"""
+		if os.path.isdir(menu_items[self.selected_file_index][1]):  # If folder
+			self.current_dir = menu_items[self.selected_file_index][1]
+			self.selected_file_index = 0
+			# Reloads the file index
+			self.update_on_keypress("")
+			return True
+
+		else:  # If file
+			if not TABS_PLUGIN_LOADED:
+				# Opens in place
+				self.app.open(menu_items[self.selected_file_index][1])
+
+			else:  # If the tabs plugin is loaded
+				# We open the file in a new tab
+				with open(menu_items[self.selected_file_index][1]) as f:
+					self.tabs_plugin.tabs.append(Tab(
+						os.path.split(os.path.normpath(menu_items[self.selected_file_index][1]))[-1],
+						f.read(),
+						0,
+						menu_items[self.selected_file_index][1],
+						[]
+					))
+					self.tabs_plugin.current_tab = len(self.tabs_plugin.tabs) - 1
+					self.tabs_plugin._reset_tab()
+
+			# Makes the user return to edit mode
+			self.toggle_in_index()
+
+		return False
 
 
 def init(app):

@@ -252,10 +252,56 @@ class FileIndex(Plugin):
 			for name in folders_list
 		])
 		menu_items.extend([
-			(f"📄 {name}", os.path.normpath(os.path.join(self.current_dir, name))) \
+			(f"{self.get_emoji(name)} {name}", os.path.normpath(os.path.join(self.current_dir, name))) \
 			for name in files_list
 		])
 		return menu_items
+
+
+	def get_emoji(self, filename: str) -> str:
+		"""
+		Returns an emoji to use next to the filename based on the file extension.
+		:param filename: The name of the file (including extension).
+		:return: An emoji.
+		"""
+		# Sets as the return emoji the default file emoji
+		return_emoji = "📄"
+
+		if "." in filename:
+			# Gets the file extension if it has one
+			extension = filename.split(".")[-1].lower()
+
+			# Based on the extension, changes the return emoji
+			if extension in ("algo", "txt"):
+				return_emoji = "📝"
+			if extension in ("csv", "json"):
+				return_emoji = "📊"
+			if extension in ("xls", "xslx"):
+				return_emoji = "📈"
+			if extension in ("ppt", "pptx"):
+				return_emoji = "🎭"
+			if extension in ("doc", "docx", "pdf"):
+				return_emoji = "🗃️"
+			if extension in ("jpg", "jpeg", "png", "gif", "bmp"):
+				return_emoji = "📷"
+			if extension in ("mp4", "mov", "avi", "mkv"):
+				return_emoji = "📹"
+			if extension in ("mp3", "wav", "ogg"):
+				return_emoji = "🎵"
+			if extension == "py":
+				return_emoji = "🐍"
+			if extension == "php":
+				return_emoji = "🐘"
+			if extension == "ipynb":
+				return_emoji = "📓"
+			if extension == "ics":
+				return_emoji = "📆"
+			if extension in ("exe", "msi"):
+				return_emoji = "🎮"
+			if extension in ("zip", "gz", "7z", "rar"):
+				return_emoji = "📦"
+
+		return return_emoji
 
 
 	def open_new_file(self, menu_items: list) -> bool:

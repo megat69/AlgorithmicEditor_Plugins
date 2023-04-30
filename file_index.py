@@ -69,6 +69,24 @@ class FileIndex(Plugin):
 		self.display_index = True
 		self.add_command("hi", self.toggle_display_index, self.translate("display_command"), True)
 
+		# Emojis representing different file types
+		self.file_types = {
+			("algo", "txt"): "📝",
+			("csv", "json"): "📊",
+			("xls", "xslx"): "📈",
+			("ppt", "pptx"): "🎭",
+			("doc", "docx", "pdf"): "🗃️",
+			("jpg", "jpeg", "png", "gif", "bmp"): "📷",
+			("mp4", "mov", "avi", "mkv"): "📹",
+			("mp3", "wav", "ogg"): "🎵",
+			("py",): "🐍",
+			("php",): "🐘",
+			("ipynb",): "📓",
+			("ics",): "📆",
+			("exe", "msi"): "🎮",
+			("zip", "gz", "7z", "rar"): "📦"
+		}
+
 
 	def init(self):
 		# Inits the tabs plugin if necessary
@@ -272,34 +290,9 @@ class FileIndex(Plugin):
 			extension = filename.split(".")[-1].lower()
 
 			# Based on the extension, changes the return emoji
-			if extension in ("algo", "txt"):
-				return_emoji = "📝"
-			if extension in ("csv", "json"):
-				return_emoji = "📊"
-			if extension in ("xls", "xslx"):
-				return_emoji = "📈"
-			if extension in ("ppt", "pptx"):
-				return_emoji = "🎭"
-			if extension in ("doc", "docx", "pdf"):
-				return_emoji = "🗃️"
-			if extension in ("jpg", "jpeg", "png", "gif", "bmp"):
-				return_emoji = "📷"
-			if extension in ("mp4", "mov", "avi", "mkv"):
-				return_emoji = "📹"
-			if extension in ("mp3", "wav", "ogg"):
-				return_emoji = "🎵"
-			if extension == "py":
-				return_emoji = "🐍"
-			if extension == "php":
-				return_emoji = "🐘"
-			if extension == "ipynb":
-				return_emoji = "📓"
-			if extension == "ics":
-				return_emoji = "📆"
-			if extension in ("exe", "msi"):
-				return_emoji = "🎮"
-			if extension in ("zip", "gz", "7z", "rar"):
-				return_emoji = "📦"
+			for extensions_list, emoji in self.file_types.items():
+				if extension in extensions_list:
+					return_emoji = emoji
 
 		return return_emoji
 

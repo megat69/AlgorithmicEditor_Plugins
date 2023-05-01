@@ -72,7 +72,7 @@ class FileIndex(Plugin):
 		# Emojis representing different file types
 		self.file_types = {
 			("algo", "txt"): "📝",
-			("csv", "json"): "📊",
+			("csv", "json", "xml", "yaml", "yml"): "📊",
 			("xls", "xslx"): "📈",
 			("ppt", "pptx"): "🎭",
 			("doc", "docx", "pdf"): "🗃️",

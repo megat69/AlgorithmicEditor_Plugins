@@ -84,7 +84,8 @@ class FileIndex(Plugin):
 			("ipynb",): "📓",
 			("ics",): "📆",
 			("exe", "msi"): "🎮",
-			("zip", "gz", "7z", "rar"): "📦"
+			("zip", "gz", "7z", "rar"): "📦",
+			("html", "htm", "url"): "🌐"
 		}
 
 

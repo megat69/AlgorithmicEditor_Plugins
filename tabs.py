@@ -337,13 +337,13 @@ class TabsPlugin(Plugin):
 
 			# Styling of the tab
 			tab_styling = curses.A_NORMAL
+			# Saves the text of the tab
+			tab_text = self.tabs[i].name
 			if i == self.current_tab:  # If it is the currently selected tab, applies special color
 				tab_styling |= curses.color_pair(self.app.color_pairs["instruction"]) | curses.A_REVERSE
 			if not self.tabs[i].saved and self.track_save_status:  # If the tab is not saved, makes it italic
 				tab_styling |= curses.A_ITALIC
-				tab_text = f"⬤ {self.tabs[i].name}"
-			else:  # Saves the text of the tab
-				tab_text = self.tabs[i].name
+				tab_text = "⬤ " + tab_text
 
 			# Displays the name of the tab one by one
 			self.app.stdscr.addstr(

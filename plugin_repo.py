@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import os
 import importlib
 import re
+import hashlib
 
 from plugin import Plugin
 from utils import display_menu, input_text
@@ -27,6 +28,7 @@ translations = {
 			"reload_plugins": "Reload plugins",
 			"read_online_plugins_doc": "Read online plugins documentation",
 			"download_theme": "Download theme",
+			"plugins_with_updates": "Check for plugin updates",
 			"leave": "Leave"
 		},
 		"list_plugins": {
@@ -87,6 +89,14 @@ translations = {
 			"awaiting_response": "Awaiting response from server...",
 			"downloading_docs":  "Downloading docs of plugin {user_wanted_plugin}...",
 			"downloading_theme": "Downloading theme {user_wanted_theme}..."
+		},
+		"plugins_with_updates": {
+			"status": {
+				"none": "No updates needed",
+				"update_available": "Update available",
+				"pending": "Pending...",
+				"error": "An error occurred."
+			}
 		}
 	},
 	"fr": {
@@ -101,6 +111,7 @@ translations = {
 			"reload_plugins": "Actualiser les plugins",
 			"read_online_plugins_doc": "Lire la documentation de plugins en ligne",
 			"download_theme": "Télécharger un thème",
+			"plugins_with_updates": "Vérifier si des mises à jour sont disponibles",
 			"leave": "Quitter"
 		},
 		"list_plugins": {
@@ -161,6 +172,14 @@ translations = {
 			"awaiting_response": "En attente d'une réponse du serveur...",
 			"downloading_docs":  "Téléchargement de la documentation du plugin {user_wanted_plugin}...",
 			"downloading_theme": "Téléchargement du thème {user_wanted_theme}..."
+		},
+		"plugins_with_updates": {
+			"status": {
+				"none": "Aucune mise à jour nécessaire",
+				"update_available": "Mise à jour disponible",
+				"pending": "En attente...",
+				"error": "Une erreur est survenue."
+			}
 		}
 	}
 }
@@ -246,6 +265,7 @@ class PluginRepo(Plugin):
 				(self.translate("manage_plugins_menu", "reload_plugins"), self.reload_plugins),
 				(self.translate("manage_plugins_menu", "read_online_plugins_doc"), self.docs_plugins),
 				(self.translate("manage_plugins_menu", "download_theme"), self.download_theme),
+				(self.translate("manage_plugins_menu", "plugins_with_updates"), self.plugins_with_updates),
 				(self.translate("manage_plugins_menu", "leave"), self.leave)
 			), self.selected_menu_item, clear=False)
 
@@ -852,6 +872,138 @@ class PluginRepo(Plugin):
 					msg_str = self.translate("download_theme", "non_existing_theme")
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 					self.app.stdscr.getch()
+
+
+	def plugins_with_updates(self):
+		"""
+		Checks for updates in each of the installed plugins.
+		"""
+		status = {
+			0: "none",
+			1: "update_available",
+			2: "pending",
+			3: "error"
+		}
+
+		# Gets the list of installed plugins (into a set because no two plugins will have the same name,
+		# so I prefer the fast lookup)
+		plugin_list = [
+			[
+				file[:-3],
+				2
+			]
+			for file in os.listdir(os.path.dirname(__file__)) if file[-3:] == ".py"
+		]
+
+		# Keeps in mind which plugin is selected
+		selected_plugin = 0
+
+		# Keeps in mind whether the menu is open
+		menu_open = True
+
+		# Keeps in mind which key the user pressed
+		key = ''
+
+
+		def display_plugins_menu():
+			"""
+			Displays the menu of plugins.
+			"""
+			self.app.stdscr.clear()
+			for i, (plugin_name, plugin_status) in enumerate(plugin_list):
+				# Gets the status text of the plugin
+				plugin_status_text = f"{plugin_name} - {self.translate('plugins_with_updates', 'status', status[plugin_status])}"
+
+				# Gets the style of the plugin
+				plugin_style = curses.A_NORMAL
+				if selected_plugin == i:
+					plugin_style |= curses.A_REVERSE
+					if plugin_status == 1:
+						plugin_style |= curses.color_pair(1)
+
+				# Displays the status of each plugin
+				self.app.stdscr.addstr(
+					i + 2,
+					self.app.cols // 2 - plugin_status_text.find("-"),
+					plugin_status_text,
+					plugin_style
+				)
+
+
+		# Gets the state of each of the plugins before activating the menu
+		cached_plugins = {}
+		for i, (plugin_name, plugin_status) in enumerate(plugin_list):
+			r = requests.get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{plugin_name}.py")
+
+			# In case of an error
+			if r.status_code != 200:
+				plugin_list[i][1] = 3
+
+			# If everything went well
+			else:
+				cached_plugins[plugin_name] = r.text
+
+				# Checks the SHA-256 hash of both the documents
+				with open(os.path.join(os.path.dirname(__file__), f"{plugin_name}.py"), "r", encoding="utf-8") as f:
+					checksum_local = hashlib.sha256(f.read().encode("utf-8")).hexdigest()
+				checksum_server = hashlib.sha256(r.text.encode("utf-8")).hexdigest()
+
+				# If the checksum is identical, sets the status to 'none', otherwise to 'update_available'
+				if checksum_local == checksum_server:
+					plugin_list[i][1] = 0
+				else:
+					plugin_list[i][1] = 1
+
+			# Draws the menu
+			display_plugins_menu()
+			self.app.stdscr.refresh()
+
+
+		while menu_open:
+			# Runs through the list of all installed plugins
+			display_plugins_menu()
+			self.app.stdscr.addstr(
+				len(plugin_list) + 3,
+				self.app.cols // 2 - len(self.app.get_translation("cancel")) // 2,
+				self.app.get_translation("cancel"),
+				curses.A_REVERSE if selected_plugin == len(plugin_list) else curses.A_NORMAL
+			)
+
+			# Gets the key pressed
+			key = self.app.stdscr.getkey()
+
+			# If the key is an up/down arrow key, modifies the selected plugin
+			if key == "KEY_UP":
+				selected_plugin -= 1
+			elif key == "KEY_DOWN":
+				selected_plugin += 1
+			wrap_around = len(plugin_list) + 1
+			selected_plugin = ((selected_plugin % wrap_around) + wrap_around) % wrap_around
+
+			# If the key is Enter, executes the corresponding action
+			if key in ("\n", "\t"):
+				# If the user selected to exit
+				if selected_plugin == len(plugin_list):
+					menu_open = False
+
+				# If the user selected a plugin
+				else:
+					# If the plugin can be updated
+					if plugin_list[selected_plugin][1] == 1:
+						plugin_name = plugin_list[selected_plugin][0]
+						if plugin_name in cached_plugins:
+							with open(os.path.join(os.path.dirname(__file__), f"{plugin_name}.py"), "w", encoding="utf-8") as f:
+								f.write(cached_plugins[plugin_name])
+							# We then try to download the plugin's docs
+							r = requests.get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{plugin_name}.md")
+							# If everything went well, we simply dump the contents of the documentation file into another file
+							# And if something went wrong, we simply don't do it and don't warn the user, he'll download it later
+							if r.status_code == 200:
+								with open(os.path.join(os.path.dirname(__file__), f"{plugin_name}.md"), "w", encoding="utf-8") as f:
+									f.write(r.text)
+						else:
+							self._install_plugin(plugin_name)
+						plugin_list[selected_plugin][1] = 0
 
 
 	def update_on_keypress(self, key:str):

@@ -186,6 +186,20 @@ translations = {
 # --------------------------------------
 
 
+def r_get(url: str) -> requests.Response:
+	"""
+	Tries to make a request to the given URL. If so, returns it. If a connection error occurs, returns a code Response with a status code of -1.
+	:param url: A URL.
+	:return: A requests object.
+	"""
+	try:
+		r = requests.get(url)
+	except requests.exceptions.ConnectionError:
+		r = requests.Response()
+		r.status_code = -1
+	return r
+
+
 class PluginRepo(Plugin):
 	# Modify to use another plugin repo
 	PLUGIN_REPO_NAME   = "AlgorithmicEditor_Plugins"  # Name of the repo
@@ -357,7 +371,7 @@ class PluginRepo(Plugin):
 			self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 
 			# Makes a request towards the server
-			r = requests.get(PluginRepo.PLUGINS_REPO_URL)
+			r = r_get(PluginRepo.PLUGINS_REPO_URL)
 			self.app.stdscr.clear()
 		# If the connection fails, it tells the user and exits the function
 		except requests.exceptions.ConnectionError:
@@ -520,7 +534,7 @@ class PluginRepo(Plugin):
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 
 					# We download the contents of the file from GitHub
-					r = requests.get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{user_wanted_plugin}.md")
+					r = r_get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{user_wanted_plugin}.md")
 					self.app.stdscr.clear()
 
 					# If something went wrong with the request (the webpage didn't return an HTTP 200 (OK) code), we warn the user and exit the function
@@ -804,7 +818,7 @@ class PluginRepo(Plugin):
 			self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 
 			# Makes the request
-			r = requests.get(PluginRepo.THEME_REPO_URL)
+			r = r_get(PluginRepo.THEME_REPO_URL)
 			self.app.stdscr.clear()
 		# If the connection fails, it tells the user and exits the function
 		except requests.exceptions.ConnectionError:
@@ -842,7 +856,7 @@ class PluginRepo(Plugin):
 					self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 
 					# We download the contents of the file from GitHub
-					r = requests.get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Themes/main/{user_wanted_theme}.ini")
+					r = r_get(f"https://raw.githubusercontent.com/megat69/AlgorithmicEditor_Themes/main/{user_wanted_theme}.ini")
 					self.app.stdscr.clear()
 
 					# If something went wrong with the request (the webpage didn't return an HTTP 200 (OK) code), we warn the user and exit the function
@@ -935,7 +949,7 @@ class PluginRepo(Plugin):
 		# Gets the state of each of the plugins before activating the menu
 		cached_plugins = {}
 		for i, (plugin_name, plugin_status) in enumerate(plugin_list):
-			r = requests.get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{plugin_name}.py")
+			r = r_get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{plugin_name}.py")
 
 			# In case of an error
 			if r.status_code != 200:
@@ -997,7 +1011,7 @@ class PluginRepo(Plugin):
 							with open(os.path.join(os.path.dirname(__file__), f"{plugin_name}.py"), "w", encoding="utf-8") as f:
 								f.write(cached_plugins[plugin_name])
 							# We then try to download the plugin's docs
-							r = requests.get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{plugin_name}.md")
+							r = r_get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{plugin_name}.md")
 							# If everything went well, we simply dump the contents of the documentation file into another file
 							# And if something went wrong, we simply don't do it and don't warn the user, he'll download it later
 							if r.status_code == 200:
@@ -1040,7 +1054,7 @@ class PluginRepo(Plugin):
 		self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 
 		# We download the contents of the file from GitHub
-		r = requests.get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{plugin_name}.py")
+		r = r_get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{plugin_name}.py")
 
 		# If something went wrong with the request (the webpage didn't return an HTTP 200 (OK) code), we warn the user and exit the function
 		if r.status_code != 200:
@@ -1058,7 +1072,7 @@ class PluginRepo(Plugin):
 			self.app.stdscr.addstr(self.app.rows // 2, self.app.cols // 2 - len(msg_str) // 2, msg_str)
 
 			# We then try to download the plugin's docs
-			r = requests.get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{plugin_name}.md")
+			r = r_get(f"{PluginRepo.PLUGINS_REPO_INDIVIDUAL_FILE}/{plugin_name}.md")
 			# If everything went well, we simply dump the contents of the documentation file into another file
 			# And if something went wrong, we simply don't do it and don't warn the user, he'll download it later
 			if r.status_code == 200:

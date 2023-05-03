@@ -140,10 +140,7 @@ class TabsPlugin(Plugin):
 		self.app.apply_stylings()
 
 		# Gets whether the save status should be tracked
-		if "track_save_status" in self.config.keys():
-			self.track_save_status = self.config["track_save_status"]
-		else:
-			self.config["track_save_status"] = True
+		self.track_save_status = self.get_config("track_save_status", True)
 
 		# Creates an option for the save status
 		self.add_option(self.translate("track_save_status"), lambda: self.track_save_status, self._toggle_track_save_status)

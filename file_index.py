@@ -95,13 +95,11 @@ class FileIndex(Plugin):
 			self.tabs_plugin.init()
 			self.tabs_plugin.was_initialized = True
 
-		# Added a way to change the size of the index
-		if "size_index" not in self.config.keys():
-			self.config["size_index"] = APP_PLACEMENT_SHIFT
-		self.add_option(self.translate("option_size"), lambda: self.config["size_index"], self.change_size_index)
-
 		# Updates the shift of the line numbers so we can fit the file index at its left
-		self.app.left_placement_shift = self.config["size_index"]
+		self.app.left_placement_shift = self.get_config("size_index", APP_PLACEMENT_SHIFT)
+
+		# Added a way to change the size of the index
+		self.add_option(self.translate("option_size"), lambda: self.config["size_index"], self.change_size_index)
 
 		# Creates the current directory
 		if "last_dir" not in self.config.keys():
@@ -119,11 +117,7 @@ class FileIndex(Plugin):
 		)
 
 		# Loads the config
-		if "only_show_valid_files" in self.config.keys():
-			self.only_show_valid_files = self.config["only_show_valid_files"]
-		else:
-			self.config["only_show_valid_files"] = False
-			self.only_show_valid_files = False
+		self.only_show_valid_files = self.get_config("only_show_valid_files", False)
 		self.add_option(self.translate("option_valid_files"), lambda: self.only_show_valid_files, self.toggle_show_valid_files)
 
 		# Overrides the app's default display text method

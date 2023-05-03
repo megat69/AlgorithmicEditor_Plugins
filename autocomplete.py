@@ -79,10 +79,7 @@ class AutocompletionPlugin(Plugin):
 		"""
 		Gets the config for the plugin (creates it if non-existent).
 		"""
-		if "auto_add_space" in self.config:
-			self.auto_add_space = self.config["auto_add_space"]
-		else:
-			self.config["auto_add_space"] = self.auto_add_space
+		self.auto_add_space = self.get_config("auto_add_space", self.auto_add_space)
 
 		# Defining as color pair for the autocomplete the default curses color
 		self.app.color_pairs["autocomplete"] = 255
@@ -110,10 +107,7 @@ class AutocompletionPlugin(Plugin):
 			}
 		}
 
-		if "documentation_enabled" in self.config:
-			self.documentation_enabled = self.config["documentation_enabled"]
-		else:
-			self.config["documentation_enabled"] = self.documentation_enabled
+		self.documentation_enabled = self.get_config("documentation_enabled", self.documentation_enabled)
 
 		# Creates the examples for each of the base types
 		self.examples = {
@@ -172,10 +166,7 @@ class AutocompletionPlugin(Plugin):
 			}
 		}
 
-		if "examples_enabled" in self.config:
-			self.documentation_enabled = self.config["examples_enabled"]
-		else:
-			self.config["examples_enabled"] = self.documentation_enabled
+		self.examples_enabled = self.get_config("examples_enabled", self.examples_enabled)
 
 
 	def update_on_keypress(self, key:str):

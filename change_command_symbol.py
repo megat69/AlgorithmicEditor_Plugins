@@ -47,11 +47,8 @@ class ChangeCommandSymbol(Plugin):
 		"""
 		Loads the config and changes the command symbol to what it was last set.
 		"""
-		if "command_symbol" in self.config.keys():
-			self.change_command_symbol(self.config["command_symbol"])
-			self.app.apply_stylings()
-		else:
-			self.config["command_symbol"] = self.app.command_symbol
+		self.change_command_symbol(self.get_config("command_symbol", self.app.command_symbol))
+		self.app.apply_stylings()
 
 
 	def change_command_symbol(self, symbol:str=None):

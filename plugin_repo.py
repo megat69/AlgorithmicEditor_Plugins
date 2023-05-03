@@ -920,6 +920,8 @@ class PluginRepo(Plugin):
 					plugin_style |= curses.A_REVERSE
 					if plugin_status == 1:
 						plugin_style |= curses.color_pair(self.app.color_pairs["instruction"])
+				if plugin_status == 3:
+					plugin_style |= curses.color_pair(self.app.color_pairs["statement"])
 
 				# Displays the status of each plugin
 				self.app.stdscr.addstr(

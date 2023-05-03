@@ -311,6 +311,17 @@ class FileIndex(Plugin):
 				self.app.open(menu_items[self.selected_file_index][1])
 
 			else:  # If the tabs plugin is loaded
+				# Before we open the file, we test if there is only one empty tab with no name or anything,
+				# and if so, we replace it
+				if len(self.tabs_plugin.tabs) == 1 and self.tabs_plugin.tabs[0] == Tab(
+					self.tabs_plugin.translate("untitled"),
+					"",
+					0,
+					"clipboard",
+					[]
+				):
+					self.tabs_plugin.tabs.pop()
+
 				# We open the file in a new tab
 				with open(menu_items[self.selected_file_index][1], encoding="utf-8") as f:
 					self.tabs_plugin.tabs.append(Tab(

@@ -65,7 +65,7 @@ class ASTParser:
 
 			# Tests if the line is a print statement
 			if splitted_line[0] == "print":
-				self._analyze_print(last_pointer, line)
+				self._analyze_print(last_pointer, line, i)
 
 			# If the keyword does not correspond to anything we know, we error out
 			else:
@@ -74,12 +74,12 @@ class ASTParser:
 		return tree
 
 
-	def _analyze_print(self, last_pointer: list, line: str):
+	def _analyze_print(self, last_pointer: list, line: str, lineno: int):
 		"""
 		Adds the analysis of the print function to the AST.
 		"""
 		# Starts by creating a list of arguments for the print statement
-		args_list = []
+		args_list = [None]
 
 		# Analyzes each of the arguments one by one
 		in_string = False
@@ -92,13 +92,25 @@ class ASTParser:
 			# Ends the string if in string with a '"' character
 			elif in_string and char == '"':
 				in_string = False
-				args_list.append(current_literal)
+				if args_list[-1] is not None:
+					return self._error(lineno, "ArgumentError", "Missing argument separation in print statement")
+				args_list[-1] = current_literal
 
 			# Otherwise if in string, we just add the character to the string litteral
 			elif in_string:
 				current_literal.value += char
 
-			#TODO Ints, floats, and var lookups, multi args
+			# If we have another argument, we add to the list of arguments
+			if not in_string:
+				# Creating a new slot for an argument
+				if char == '&':
+					args_list.append(None)
+
+			#TODO Ints, floats, and var lookups
+
+		# Errors out if there is any NoneType in the list of arguments
+		if any(arg is None for arg in args_list):
+			return self._error(lineno, "ArgumentError", "Some arguments are not defined")
 
 		# Adds a new print statement to the AST
 		last_pointer.append(
@@ -119,6 +131,8 @@ class ASTParser:
 			message_str += f" : {message}"
 		self.stdscr.addstr(0, 0, message_str)
 		self.stdscr.refresh()
+		self.stdscr.getch()
+		self.stdscr.clear()
 		self.has_errored = True
 		self.error_message = message_str
 		return message_str

@@ -1,7 +1,11 @@
 """
 Allows for the code to be executed right in the algorithmic editor.
 """
+from dataclasses import dataclass
+
 from plugin import Plugin
+
+
 
 
 class InterpreterPlugin(Plugin):
@@ -21,6 +25,24 @@ class InterpreterPlugin(Plugin):
 
 	def __init__(self, app):
 		super().__init__(app)
+		self.translations = {
+			"en": {
+				"run_command": "Run code"
+			},
+			"fr": {
+				"run_command": "Exécuter le code"
+			}
+		}
+		# Creates the interpretion command
+		self.add_command("run", self.launch_interpreter, self.translate("run_command"))
+
+
+	def launch_interpreter(self):
+		"""
+		Launches the interpretion.
+		"""
+		# Starts by building an AST of the code
+		pass
 
 
 def init(app):

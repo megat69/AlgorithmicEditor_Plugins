@@ -3,6 +3,7 @@ Allows for the code to be executed right in the algorithmic editor.
 """
 from dataclasses import dataclass
 from typing import Union, Optional
+import re
 
 from plugin import Plugin
 
@@ -83,7 +84,8 @@ class ASTParser:
 
 		# Analyzes each of the arguments one by one
 		in_string = False
-		for char in line[6:]: # Starting at 6 so we remove the "print" and the whitespace after it
+		current_elem = ""
+		for char in line[6:] + ' ': # Starting at 6 so we remove the "print" and the whitespace after it
 			# Starts a new string if not in string but with a '"' character
 			if not in_string and char == '"':
 				in_string = True
@@ -95,6 +97,7 @@ class ASTParser:
 				if args_list[-1] is not None:
 					return self._error(lineno, "ArgumentError", "Missing argument separation in print statement")
 				args_list[-1] = current_literal
+				continue
 
 			# Otherwise if in string, we just add the character to the string litteral
 			elif in_string:
@@ -106,10 +109,47 @@ class ASTParser:
 				if char == '&':
 					args_list.append(None)
 
-			#TODO Ints, floats, and var lookups
+				# Resets the current element in case of a space, and understands what it is
+				elif char == ' ':
+					# Doesn't care if current_elem is empty
+					if current_elem == '':
+						pass
+
+					# If the current element is an integer
+					elif current_elem.isdigit():
+						# We add to the last slot of the arguments an integer literal
+						if args_list[-1] is not None:
+							return self._error(lineno, "ArgumentError", "Missing argument separation in print statement")
+						args_list[-1] = IntLiteral(int(current_elem))
+
+					# If the current element is a float literal
+					elif re.match(r'^-?\d+(?:\.\d+)$', current_elem) is not None:
+						# We add to the last slot of the arguments a float literal
+						if args_list[-1] is not None:
+							return self._error(lineno, "ArgumentError", "Missing argument separation in print statement")
+						args_list[-1] = FloatLiteral(float(current_elem))
+
+					# If the current element is a variable lookup
+					elif re.match(r'^[a-zA-Z_][a-zA-Z_0-9]*$', current_elem) is not None:
+						# We add to the last slot of the arguments a variable lookup
+						if args_list[-1] is not None:
+							return self._error(lineno, "ArgumentError", "Missing argument separation in print statement")
+						args_list[-1] = VarLookup(current_elem)
+
+					# TODO EQUATIONS !
+
+					else:
+						self._error(lineno, "ValueError", f"Cannot get what type of value {repr(current_elem)} is.")
+
+					# Resets the current element
+					current_elem = ""
+
+				else:
+					current_elem += char
 
 		# Errors out if there is any NoneType in the list of arguments
 		if any(arg is None for arg in args_list):
+			print(args_list)
 			return self._error(lineno, "ArgumentError", "Some arguments are not defined")
 
 		# Adds a new print statement to the AST

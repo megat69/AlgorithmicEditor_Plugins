@@ -281,7 +281,7 @@ class PluginRepo(Plugin):
 				(self.translate("manage_plugins_menu", "download_theme"), self.download_theme),
 				(self.translate("manage_plugins_menu", "plugins_with_updates"), self.plugins_with_updates),
 				(self.translate("manage_plugins_menu", "leave"), self.leave)
-			), self.selected_menu_item, clear=False)
+			), self.selected_menu_item, clear=False, space_out_last_option=True, allow_key_input=True)
 
 
 	def leave(self):

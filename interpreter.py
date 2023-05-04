@@ -2,31 +2,31 @@
 Allows for the code to be executed right in the algorithmic editor.
 """
 from dataclasses import dataclass
-from typing import Union, Optional
+from typing import Union, Optional, Any
 import re
 
 from plugin import Plugin
 
 ############# LITERALS #############
-@dataclass
+@dataclass(slots=True)
 class IntLiteral:
 	value: int
 
-@dataclass
+@dataclass(slots=True)
 class FloatLiteral:
 	value: float
 
-@dataclass
+@dataclass(slots=True)
 class StringLiteral:
 	value: str
 
-@dataclass
+@dataclass(slots=True)
 class VarLookup:  # When you need to look up a variable
 	name: str
 
 
 ############# STATEMENTS #############
-@dataclass
+@dataclass(slots=True)
 class PrintStatement:
 	args: list  # All the arguments of the statement, being split by the '&' symbol
 
@@ -215,6 +215,11 @@ class InterpreterPlugin(Plugin):
 		ast_parser = ASTParser(self.app.stdscr, self.app.current_text)
 		tree = ast_parser.parse()
 		print(tree)
+		self.app.stdscr.clear()
+		self.app.stdscr.addstr(0, 0, repr(tree))
+		self.app.stdscr.refresh()
+		self.app.stdscr.getch()
+		self.app.stdscr.clear()
 
 
 def init(app):

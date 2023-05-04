@@ -2,7 +2,7 @@
 Allows for the code to be executed right in the algorithmic editor.
 """
 from dataclasses import dataclass
-from typing import Union
+from typing import Union, Optional
 
 from plugin import Plugin
 
@@ -41,7 +41,9 @@ class ASTParser:
 		:param code: A piece of algorithmic code.
 		"""
 		self.stdscr = stdscr
-		self.code = code
+		self.code: str = code
+		self.has_errored: bool = False
+		self.error_message: Optional[str] = None
 
 
 	def parse(self) -> Union[list, str]:
@@ -54,6 +56,7 @@ class ASTParser:
 
 		# Goes line by line to decode the code
 		for i, line in enumerate(self.code.split("\n")):
+			if self.has_errored: return self.error_message
 			# Skips the line if empty
 			if line == "": continue
 
@@ -62,16 +65,48 @@ class ASTParser:
 
 			# Tests if the line is a print statement
 			if splitted_line[0] == "print":
-				pass
+				self._analyze_print(last_pointer, line)
 
 			# If the keyword does not correspond to anything we know, we error out
 			else:
-				return self.error(i, "NameError", f"Unknown keyword : {repr(splitted_line[0])}.")
+				return self._error(i, "NameError", f"Unknown keyword : {repr(splitted_line[0])}.")
 
 		return tree
 
 
-	def error(self, lineno: int, error_type: str, message: str = "") -> str:
+	def _analyze_print(self, last_pointer: list, line: str):
+		"""
+		Adds the analysis of the print function to the AST.
+		"""
+		# Starts by creating a list of arguments for the print statement
+		args_list = []
+
+		# Analyzes each of the arguments one by one
+		in_string = False
+		for char in line[6:]: # Starting at 6 so we remove the "print" and the whitespace after it
+			# Starts a new string if not in string but with a '"' character
+			if not in_string and char == '"':
+				in_string = True
+				current_literal = StringLiteral("")
+
+			# Ends the string if in string with a '"' character
+			elif in_string and char == '"':
+				in_string = False
+				args_list.append(current_literal)
+
+			# Otherwise if in string, we just add the character to the string litteral
+			elif in_string:
+				current_literal.value += char
+
+			#TODO Ints, floats, and var lookups, multi args
+
+		# Adds a new print statement to the AST
+		last_pointer.append(
+			PrintStatement(args_list)
+		)
+
+
+	def _error(self, lineno: int, error_type: str, message: str = "") -> str:
 		"""
 		Errors out and kills the program.
 		:param lineno: The line number where the error occurred.
@@ -83,6 +118,9 @@ class ASTParser:
 		if message:
 			message_str += f" : {message}"
 		self.stdscr.addstr(0, 0, message_str)
+		self.stdscr.refresh()
+		self.has_errored = True
+		self.error_message = message_str
 		return message_str
 
 
@@ -120,7 +158,9 @@ class InterpreterPlugin(Plugin):
 		Launches the interpretion.
 		"""
 		# Starts by building an AST of the code
-		pass
+		ast_parser = ASTParser(self.app.stdscr, self.app.current_text)
+		tree = ast_parser.parse()
+		print(tree)
 
 
 def init(app):

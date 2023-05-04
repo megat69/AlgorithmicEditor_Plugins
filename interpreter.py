@@ -5,7 +5,28 @@ from dataclasses import dataclass
 
 from plugin import Plugin
 
+############# LITERALS #############
+@dataclass
+class IntLiteral:
+	value: int
 
+@dataclass
+class FloatLiteral:
+	value: float
+
+@dataclass
+class StringLiteral:
+	value: str
+
+@dataclass
+class VarLookup:  # When you need to look up a variable
+	name: str
+
+
+############# STATEMENTS #############
+@dataclass
+class PrintStatement:
+	args: list  # All the arguments of the statement, being split by the '&' symbol
 
 
 class InterpreterPlugin(Plugin):

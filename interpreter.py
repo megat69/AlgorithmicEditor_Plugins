@@ -30,6 +30,15 @@ class VarLookup:  # When you need to look up a variable
 class PrintStatement:
 	args: list  # All the arguments of the statement, being split by the '&' symbol
 
+@dataclass(slots=True)
+class VarDeclaration:  # Creates a new variable
+	name: str
+
+@dataclass(slots=True)
+class VarSet:
+	name: str
+	value: Union[IntLiteral, FloatLiteral, StringLiteral, VarLookup]
+
 
 
 ############# AST PARSER #############
@@ -37,6 +46,9 @@ class ASTParser:
 	"""
 	Creates an abstract syntax tree of the given code.
 	"""
+	authorized_var_name = re.compile(r'^[a-zA-Z_][a-zA-Z_0-9]*$')
+
+
 	def __init__(self, stdscr, code: str):
 		"""
 		:param code: A piece of algorithmic code.
@@ -67,6 +79,10 @@ class ASTParser:
 			# Tests if the line is a print statement
 			if splitted_line[0] == "print":
 				self._analyze_print(last_pointer, line, i)
+
+			# Tests if the line is a variable declaration for int
+			elif splitted_line[0] == "int":
+				self._analyze_int(last_pointer, line, i)
 
 			# If the keyword does not correspond to anything we know, we error out
 			else:
@@ -130,7 +146,7 @@ class ASTParser:
 						args_list[-1] = FloatLiteral(float(current_elem))
 
 					# If the current element is a variable lookup
-					elif re.match(r'^[a-zA-Z_][a-zA-Z_0-9]*$', current_elem) is not None:
+					elif ASTParser.authorized_var_name.search(current_elem).group() is not None:
 						# We add to the last slot of the arguments a variable lookup
 						if args_list[-1] is not None:
 							return self._error(lineno, "ArgumentError", "Missing argument separation in print statement")
@@ -156,6 +172,51 @@ class ASTParser:
 		last_pointer.append(
 			PrintStatement(args_list)
 		)
+
+
+	def _analyze_int(self, last_pointer: list, line: str, lineno: int):
+		"""
+		Adds the analysis of the int declaration to the AST.
+		"""
+		# Splits the line
+		splitted_line = line.split(" ")
+		splitted_line.pop(0)  # Removes the 'int' keyword
+
+		# Tests if this is a quick assignation (int <name> = <value>) and if so, converts it as such
+		if len(splitted_line) >= 3 and splitted_line[1] == '=':
+			# We test if it is a valid variable name
+			if ASTParser.authorized_var_name.search(splitted_line[0]).group() is None:
+				return self._error(lineno, "NameError", f"{repr(splitted_line[0])} is not a valid variable name.")
+
+			# If it is a valid variable name
+			else:
+				last_pointer.append(
+					VarDeclaration(splitted_line[0])
+				)
+
+				# Tests if the next element is an integer
+				# TODO : Var lookups and equations !
+				if splitted_line[2].isdigit():
+					last_pointer.append(
+						VarSet(splitted_line[0], IntLiteral(int(splitted_line[2])))
+					)
+
+				else:
+					return self._error(lineno, "ValueError", f"{repr(splitted_line[2])} is not an integer.")
+
+		# If it is a multi var declaration
+		else:
+			# Fetches each variable name
+			for name in splitted_line:
+				# We test if it is a valid variable name
+				if ASTParser.authorized_var_name.search(name).group() is None:
+					return self._error(lineno, "NameError", f"{repr(name)} is not a valid variable name.")
+
+				# If it is a valid variable name
+				else:
+					last_pointer.append(
+						VarDeclaration(name)
+					)
 
 
 	def _error(self, lineno: int, error_type: str, message: str = "") -> str:

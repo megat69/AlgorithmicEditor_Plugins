@@ -3,6 +3,7 @@ import os
 from dataclasses import dataclass, asdict
 from functools import partial
 import json
+import sys
 
 from plugin import Plugin
 from utils import browse_files, input_text, display_menu
@@ -10,8 +11,12 @@ from utils import browse_files, input_text, display_menu
 
 TABS_CRASH_FILE_NAME = "tabs.crash.json"
 
+dataclass_params = {}
+if int(sys.version.split(" ")[0].split(".")[1]) >= 10:  # If Python version >= 3.10
+	dataclass_params["slots"] = True
 
-@dataclass(slots=True)
+
+@dataclass(**dataclass_params)
 class Tab:
 	"""
 	Contains all the information on a single tab

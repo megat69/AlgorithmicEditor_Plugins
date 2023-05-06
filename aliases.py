@@ -1,11 +1,17 @@
 import curses
 from dataclasses import dataclass
+import sys
 
 from plugin import Plugin
 from utils import input_text
 
 
-@dataclass(slots=True)
+dataclass_params = {}
+if int(sys.version.split(" ")[0].split(".")[1]) >= 10:  # If Python version >= 3.10
+	dataclass_params["slots"] = True
+
+
+@dataclass(**dataclass_params)
 class Alias:
 	source: str
 	destination: str

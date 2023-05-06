@@ -4,37 +4,43 @@ Allows for the code to be executed right in the algorithmic editor.
 from dataclasses import dataclass
 from typing import Union, Optional, Any
 import re
+import sys
 
 from plugin import Plugin
 
+
+dataclass_params = {}
+if int(sys.version.split(" ")[0].split(".")[1]) >= 10:  # If Python version >= 3.10
+	dataclass_params["slots"] = True
+
 ############# LITERALS #############
-@dataclass(slots=True)
+@dataclass(**dataclass_params)
 class IntLiteral:
 	value: int
 
-@dataclass(slots=True)
+@dataclass(**dataclass_params)
 class FloatLiteral:
 	value: float
 
-@dataclass(slots=True)
+@dataclass(**dataclass_params)
 class StringLiteral:
 	value: str
 
-@dataclass(slots=True)
+@dataclass(**dataclass_params)
 class VarLookup:  # When you need to look up a variable
 	name: str
 
 
 ############# STATEMENTS #############
-@dataclass(slots=True)
+@dataclass(**dataclass_params)
 class PrintStatement:
 	args: list  # All the arguments of the statement, being split by the '&' symbol
 
-@dataclass(slots=True)
+@dataclass(**dataclass_params)
 class VarDeclaration:  # Creates a new variable
 	name: str
 
-@dataclass(slots=True)
+@dataclass(**dataclass_params)
 class VarSet:
 	name: str
 	value: Union[IntLiteral, FloatLiteral, StringLiteral, VarLookup]

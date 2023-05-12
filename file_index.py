@@ -189,11 +189,17 @@ class FileIndex(Plugin):
 
 		if not self.display_index: return
 		# Draws a column right next to the line numbers to separate them from the file index
-		for i in range(self.app.rows - 3):
+		for i in range(self.app.rows - 3 - self.app.top_placement_shift):
 			self.app.stdscr.addstr(
-				i,
+				i + self.app.top_placement_shift,
 				self.app.left_placement_shift - 2,
 				"|"
+			)
+		if self.app.top_placement_shift > 0:
+			self.app.stdscr.addstr(
+				self.app.top_placement_shift,
+				0,
+				"_" * (self.app.left_placement_shift - 1)
 			)
 
 		# Gets the formatted list of folders and files in the current directory
@@ -203,9 +209,9 @@ class FileIndex(Plugin):
 		displayable_range_min = math.floor(self.selected_file_index / (self.app.rows - 3))
 		for i, (filename, filepath) in enumerate(
 			menu_items[
-				displayable_range_min * (self.app.rows - 3)
+				displayable_range_min * (self.app.rows - 3 - self.app.top_placement_shift)
 				: # Only shows the menu items that should be visible
-				(displayable_range_min + 1) * (self.app.rows - 3)
+				(displayable_range_min + 1) * (self.app.rows - 3 - self.app.top_placement_shift)
 			]
 		):
 			# Gets the color scheme of the filename
@@ -217,7 +223,9 @@ class FileIndex(Plugin):
 
 			# Displays the name of the file
 			self.app.stdscr.addstr(
-				i, 0, filename[:2] + filename[2 + self.min_char:self.app.left_placement_shift - 3 + self.min_char], attrs
+				i + self.app.top_placement_shift + (self.app.top_placement_shift > 0), 0,
+				filename[:2] + filename[2 + self.min_char:self.app.left_placement_shift - 3 + self.min_char],
+				attrs
 			)
 
 

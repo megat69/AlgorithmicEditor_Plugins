@@ -199,7 +199,7 @@ class FileIndex(Plugin):
 			self.app.stdscr.addstr(
 				self.app.top_placement_shift,
 				0,
-				"_" * (self.app.left_placement_shift - 1)
+				"_" * (self.app.left_placement_shift - 2) + " "
 			)
 
 		# Gets the formatted list of folders and files in the current directory

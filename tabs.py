@@ -68,7 +68,8 @@ class TabsPlugin(Plugin):
 				"rename": "Rename the current tab",
 				"find_tab": "Find tab",
 				"select_tab": "Select tab",
-				"track_save_status": "Track save status"
+				"track_save_status": "Track save status",
+				"tabs_top_window": "Put tabs at the top of the window"
 			},
 			"fr": {
 				"untitled": "Sans titre",
@@ -79,7 +80,8 @@ class TabsPlugin(Plugin):
 				"rename": "Renommer l'onglet courant",
 				"find_tab": "Rechercher un onglet",
 				"select_tab": "Sélectionnez un onglet",
-				"track_save_status": "Traquer le status d'enregistrement"
+				"track_save_status": "Traquer le status d'enregistrement",
+				"tabs_top_window": "Mettre les onglets en haut de la fenêtre"
 			}
 		}
 
@@ -150,6 +152,11 @@ class TabsPlugin(Plugin):
 		# Creates an option for the save status
 		self.add_option(self.translate("track_save_status"), lambda: self.track_save_status, self._toggle_track_save_status)
 
+		# Creates a new option for whether the tabs should be at the top or the bottom of the window
+		self.are_tabs_top_window = self.get_config("tabs_top_window", False)
+		self.app.top_placement_shift = int(self.are_tabs_top_window)
+		self.add_option(self.translate("tabs_top_window"), lambda: self.are_tabs_top_window, self._toggle_tabs_top_window)
+
 		# Saves the default 'apply_stylings' method of the app in a variable
 		self.default_apply_stylings = self.app.apply_stylings
 
@@ -174,6 +181,15 @@ class TabsPlugin(Plugin):
 		"""
 		self.track_save_status = not self.track_save_status
 		self.config["track_save_status"] = self.track_save_status
+
+
+	def _toggle_tabs_top_window(self):
+		"""
+		Toggles whether the tabs should be at the top or the bottom of the window in the live app and the config.
+		"""
+		self.are_tabs_top_window = not self.are_tabs_top_window
+		self.config["tabs_top_window"] = self.are_tabs_top_window
+		self.app.top_placement_shift = int(self.are_tabs_top_window)
 
 
 	def _reset_tab(self):
@@ -349,7 +365,7 @@ class TabsPlugin(Plugin):
 
 			# Displays the name of the tab one by one
 			self.app.stdscr.addstr(
-				self.app.rows - 3 - ((x_pos + len(self.tabs[i].name) + 4) // self.app.cols),
+				(self.app.rows - 3 - ((x_pos + len(self.tabs[i].name) + 4) // self.app.cols)) * (not self.are_tabs_top_window),
 				x_pos % (self.app.cols - len(self.tabs[i].name) - 4),
 				"| " + tab_text + " |",
 				tab_styling

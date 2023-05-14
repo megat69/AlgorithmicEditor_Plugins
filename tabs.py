@@ -364,8 +364,14 @@ class TabsPlugin(Plugin):
 				tab_text = "⬤ " + tab_text
 
 			# Displays the name of the tab one by one
+			tabs_y_offset = ((x_pos + len(self.tabs[i].name) + 4) // self.app.cols)
+			if self.are_tabs_top_window:
+				tabs_pos_y = tabs_y_offset
+				self.app.top_placement_shift = tabs_pos_y + 1
+			else:
+				tabs_pos_y = self.app.rows - 3 - tabs_y_offset
 			self.app.stdscr.addstr(
-				(self.app.rows - 3 - ((x_pos + len(self.tabs[i].name) + 4) // self.app.cols)) * (not self.are_tabs_top_window),
+				tabs_pos_y,
 				x_pos % (self.app.cols - len(self.tabs[i].name) - 4),
 				"| " + tab_text + " |",
 				tab_styling

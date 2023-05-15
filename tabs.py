@@ -347,11 +347,14 @@ class TabsPlugin(Plugin):
 		"""
 		self.default_apply_stylings()
 
-		x_pos = 0
+		current_pos = [0, 0]  # x, y
 		for i in range(len(self.tabs)):
 			# Gets the x position of the first character of the current tab name
 			if i != 0:
-				x_pos += len(self.tabs[i - 1].name) + 4  # +4 because of the enclosing of the tab name ("|  |")
+				current_pos[0] += len(self.tabs[i - 1].name) + 4  # +4 because of the enclosing of the tab name ("|  |")
+				if current_pos[0] >= self.app.cols - 1:
+					current_pos[0] = 0
+					current_pos[1] += 1
 
 			# Styling of the tab
 			tab_styling = curses.A_NORMAL
@@ -364,15 +367,14 @@ class TabsPlugin(Plugin):
 				tab_text = "⬤ " + tab_text
 
 			# Displays the name of the tab one by one
-			tabs_y_offset = ((x_pos + len(self.tabs[i].name) + 4) // self.app.cols)
 			if self.are_tabs_top_window:
-				tabs_pos_y = tabs_y_offset
+				tabs_pos_y = current_pos[1]
 				self.app.top_placement_shift = tabs_pos_y + 1
 			else:
-				tabs_pos_y = self.app.rows - 3 - tabs_y_offset
+				tabs_pos_y = self.app.rows - 3 - current_pos[1]
 			self.app.stdscr.addstr(
 				tabs_pos_y,
-				x_pos % (self.app.cols - len(self.tabs[i].name) - 4),
+				current_pos[0],
 				"| " + tab_text + " |",
 				tab_styling
 			)

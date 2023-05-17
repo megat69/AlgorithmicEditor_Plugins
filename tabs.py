@@ -355,6 +355,8 @@ class TabsPlugin(Plugin):
 				if current_pos[0] >= self.app.cols - 1:
 					current_pos[0] = 0
 					current_pos[1] += 1
+				if not self.tabs[i - 1].saved and self.track_save_status:
+					current_pos[0] += 2
 
 			# Styling of the tab
 			tab_styling = curses.A_NORMAL

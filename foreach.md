@@ -8,7 +8,7 @@ foreach <destination_type> <destination> <source>
 
 ## Examples :
 ```
-foreach str fruit fruits
+foreach string fruit fruits
 ```
 
 *Using the `&` symbol will put the key variable in data result mode*

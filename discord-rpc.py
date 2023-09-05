@@ -38,10 +38,10 @@ class DiscordRPCPlugin(Plugin):
 		self.cooldown = 0  # A cooldown to update discord RPC
 		self.start_time = int(time.time())  # When the app was started
 		try:
-			self.RPC = Presence("1108408802602139759")
+			self.RPC = Presence("1108408802602139759")  # The Rich Presence instance
 			self.RPC.connect()
 		except Exception as e:
-			self.rpc_enabled = False
+			self.rpc_enabled = False  # Whether Rich Presence is enabled and should be updated
 			print(self.translate("error"), e)
 			raise e
 
@@ -49,12 +49,14 @@ class DiscordRPCPlugin(Plugin):
 	def __del__(self):
 		self.RPC.close()
 
+
 	def update_on_keypress(self, key: str):
 		"""
 		Updates Rich Presence.
 		"""
 		# Updates the RPC cooldown
 		if self.rpc_enabled is True:
+			# Only updates after 15 seconds
 			if self.cooldown + 15 < time.time():
 				self.cooldown = time.time()
 				try:

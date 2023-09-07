@@ -1,3 +1,5 @@
+import curses
+
 from plugin import Plugin
 from algorithmic_compiler import AlgorithmicCompiler
 from cpp_compiler import CppCompiler
@@ -154,6 +156,19 @@ class ForeachPlugin(Plugin):
 		if AUTOCOMPLETE_PLUGIN_LOADED:
 			self.autocomplete_plugin.documentation["foreach"] = "foreach <type> <destination_var> <source_array>"
 			self.autocomplete_plugin.examples["foreach"] = ["foreach string fruit fruits"]
+
+
+	def update_on_syntax_highlight(self, line: str, splitted_line: list, i: int):
+		if line.startswith("foreach"):
+			line = line.split(" ")
+			if len(line) >= 2 and line[1] in self.app.color_control_flow["variable"]:
+				self.app.stdscr.addstr(
+					i + self.app.top_placement_shift,
+					self.app.get_lineno_length() + 8,
+					line[1],
+					curses.color_pair(self.app.color_pairs["variable"])
+				)
+
 
 
 def init(app):

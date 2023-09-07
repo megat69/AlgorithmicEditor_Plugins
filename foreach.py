@@ -2,6 +2,14 @@ from plugin import Plugin
 from algorithmic_compiler import AlgorithmicCompiler
 from cpp_compiler import CppCompiler
 
+# Tries to load the autocomplete plugin
+try:
+	from .autocomplete import AutocompletionPlugin
+except ImportError:
+	AUTOCOMPLETE_PLUGIN_LOADED = False
+else:
+	AUTOCOMPLETE_PLUGIN_LOADED = True
+
 
 class ForeachAlgorithmicCompiler(AlgorithmicCompiler):
 	"""
@@ -111,16 +119,25 @@ class GrapicPlugin(Plugin):
 			"foreach"
 		)
 
+		# If the autocomplete plugin is loaded, we store it
+		if AUTOCOMPLETE_PLUGIN_LOADED:
+			self.autocomplete_plugin = AutocompletionPlugin(app)
+
 
 	def init(self):
 		"""
 		Reloads the autocompletion if available, and adds everything to the compilers.
 		"""
+		# Inits the autocomplete plugin if necessary
+		if AUTOCOMPLETE_PLUGIN_LOADED and not self.autocomplete_plugin.was_initialized:
+			self.autocomplete_plugin.init()
+			self.autocomplete_plugin.was_initialized = True
+
 		# Tries to reload the autocomplete if it was loaded, we make sure those keywords are available to it
 		if "autocomplete" in self.app.plugins:
 			self.app.plugins["autocomplete"][-1].reload_autocomplete()
 
-		# Adds all the grapic components to the compilers
+		# Adds all the foreach components to the compilers
 		for compiler in self.app.compilers.values():
 			compiler.other_instructions.append("foreach")
 
@@ -131,6 +148,11 @@ class GrapicPlugin(Plugin):
 		# Replaces the compilers with the enhanced compilers
 		self.app.compilers["algorithmic"] = ForeachAlgorithmicCompiler(self.app.compilers["algorithmic"])
 		self.app.compilers["C++"] = ForeachCppCompiler(self.app.compilers["C++"])
+
+		# Adds the autocomplete to the plugin
+		if AUTOCOMPLETE_PLUGIN_LOADED:
+			self.autocomplete_plugin.documentation["foreach"] = "foreach <type> <destination_var> <source_array>"
+			self.autocomplete_plugin.examples["foreach"] = ["foreach string fruit fruits"]
 
 
 def init(app):

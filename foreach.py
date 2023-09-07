@@ -110,7 +110,7 @@ class ForeachCppCompiler(CppCompiler):
 			self.instructions_list[line_number] = f"for ({vtype} {instruction_params[1]} : {instruction_params[2]})" + " {"
 
 
-class GrapicPlugin(Plugin):
+class ForeachPlugin(Plugin):
 	def __init__(self, app):
 		super().__init__(app)
 
@@ -157,4 +157,4 @@ class GrapicPlugin(Plugin):
 
 
 def init(app):
-	return GrapicPlugin(app)
+	return ForeachPlugin(app)

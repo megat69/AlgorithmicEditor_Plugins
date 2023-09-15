@@ -1,4 +1,5 @@
 from plugin import Plugin
+from utils import input_text
 import curses
 
 
@@ -46,6 +47,12 @@ class CustomBottomBarStylingPlugin(Plugin):
 		self.animated = self.get_config("animated", False)
 		self.reversed = self.get_config("reversed", False)
 
+		# Creates the in-app options
+		self.add_option("Change bottom bar motif", lambda: "", self.change_motif)
+		self.add_option("Toggle bottom bar animation", lambda: self.animated, self.toggle_animation)
+		self.add_option("Toggle bottom bar motif reversing", lambda: self.reversed, self.toggle_reversed)
+
+
 	def custom_apply_stylings(self):
 		"""
 		Changes the bottom bar's style on keypress.
@@ -73,6 +80,33 @@ class CustomBottomBarStylingPlugin(Plugin):
 
 		# Increasing the amount of iterations
 		self._iteration += 1
+
+
+	def change_motif(self):
+		"""
+		Grabs text from the user so they can change the motif of the bottom bar.
+		"""
+		self.app.stdscr.clear()
+		self.app.stdscr.addstr(0, 0, f"Your current motif is : '{self.motif}'")
+		self.app.stdscr.addstr(1, 0, "Input a new one :")
+		new_motif = input_text(self.app.stdscr, 18, 1)
+		if new_motif:
+			self.motif = new_motif
+		self.config["motif"] = self.motif
+
+	def toggle_animation(self):
+		"""
+		Toggles whether the bottom bar will have an animation
+		"""
+		self.animated = not self.animated
+		self.config["animated"] = self.animated
+
+	def toggle_reversed(self):
+		"""
+		Toggles whether the motif should reverse every other motif.
+		"""
+		self.reversed = not self.reversed
+		self.config["reversed"] = self.reversed
 
 
 def init(app) -> CustomBottomBarStylingPlugin:

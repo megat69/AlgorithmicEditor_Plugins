@@ -190,11 +190,13 @@ class FileIndex(Plugin):
 		if not self.display_index: return
 		# Draws a column right next to the line numbers to separate them from the file index
 		for i in range(self.app.rows - 3 - self.app.top_placement_shift):
-			self.app.stdscr.addstr(
-				i + self.app.top_placement_shift,
-				self.app.left_placement_shift - 2,
-				"|"
-			)
+			try:
+				self.app.stdscr.addstr(
+					i + self.app.top_placement_shift,
+					self.app.left_placement_shift - 2,
+					"|"
+				)
+			except curses.error: pass
 		if self.app.top_placement_shift > 0:
 			self.app.stdscr.addstr(
 				self.app.top_placement_shift,

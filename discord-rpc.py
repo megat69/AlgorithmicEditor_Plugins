@@ -50,7 +50,7 @@ class DiscordRPCPlugin(Plugin):
 		self.RPC.close()
 
 
-	def update_on_keypress(self, key: str):
+	def fixed_update(self):
 		"""
 		Updates Rich Presence.
 		"""

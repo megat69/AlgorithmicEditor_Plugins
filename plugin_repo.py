@@ -442,7 +442,8 @@ class PluginRepo(Plugin):
 			elif user_wanted_plugin == "all":
 				def _install_all_plugins():
 					for plugin in self.list_online_plugins(show_user=False):
-						self._install_plugin(plugin)
+						if plugin != "flying_banana":
+							self._install_plugin(plugin)
 
 				display_menu(self.app.stdscr, (
 					(self.app.get_translation("yes"), _install_all_plugins),

@@ -93,18 +93,21 @@ class Updater(Plugin):
 			restarts the editor.
 		:param show_message_if_no_updates: Shows a message in the command bar if no updates were available.
 		"""
-		updatable_files = check_for_updates()
-		if updatable_files:
-			display_menu(
-				self.app.stdscr,
-				(
-					(self.translate("yes"), partial(self.update, updatable_files)),
-					(self.translate("no"), lambda: None)
-				),
-				label=self.translate("do_you_want_to_update")
-			)
-		elif show_message_if_no_updates:
-			self.app.stdscr.addstr(self.app.rows - 1, 3, self.translate("no_updates_available"))
+		if os.path.exists(os.path.join(os.path.dirname(__file__), '..', ".git")):
+			os.system("git pull")
+		else:
+			updatable_files = check_for_updates()
+			if updatable_files:
+				display_menu(
+					self.app.stdscr,
+					(
+						(self.translate("yes"), partial(self.update, updatable_files)),
+						(self.translate("no"), lambda: None)
+					),
+					label=self.translate("do_you_want_to_update")
+				)
+			elif show_message_if_no_updates:
+				self.app.stdscr.addstr(self.app.rows - 1, 3, self.translate("no_updates_available"))
 
 
 	def update(self, updatable_files: List[str]):

@@ -16,7 +16,7 @@ class DisableSyntaxHighlighting(Plugin):
 				"all_colors": "Toutes les couleurs"
 			}
 		}
-		self.state = self.get_config("current_state", True)
+		self.state = True
 		self.add_option(self.translate("option_name"), lambda: (
 			self.translate("no_colors")
 				if self.state else
@@ -25,6 +25,7 @@ class DisableSyntaxHighlighting(Plugin):
 
 
 	def init(self):
+		self.state = self.get_config("current_state", True)
 		self.base_function = self.app.syntax_highlighting
 		self.set_function()
 

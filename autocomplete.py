@@ -48,6 +48,11 @@ class AutocompletionPlugin(Plugin):
 			}
 		}
 
+
+	def init(self):
+		"""
+		Gets the config for the plugin (creates it if non-existent).
+		"""
 		# Initializes documentations for each of the base types
 		self.documentation = {}
 
@@ -74,11 +79,6 @@ class AutocompletionPlugin(Plugin):
 		self.auto_add_space = False
 		self.add_option(self.translate("autocomplete_cmd"), lambda: self.auto_add_space, self.toggle_auto_add_space)
 
-
-	def init(self):
-		"""
-		Gets the config for the plugin (creates it if non-existent).
-		"""
 		self.auto_add_space = self.get_config("auto_add_space", self.auto_add_space)
 
 		# Defining as color pair for the autocomplete the default curses color

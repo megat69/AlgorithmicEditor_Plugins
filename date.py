@@ -34,8 +34,8 @@ class DatePlugin(Plugin):
                 "date_day":"Afficher le jour"
             }
         }
-        self.display_date = self.get_config("display_date", True)
-        self.date_day = self.get_config("date_day", False)
+        self.display_date = True
+        self.date_day = False
 
         self.add_option(self.translate("display_date"), lambda:self.display_date, self.toggle_display_date)
         self.add_option(self.translate("date_day"), lambda: self.date_day, self.toggle_date_day)
@@ -45,6 +45,8 @@ class DatePlugin(Plugin):
 
     def init(self):
         self.color = self.create_pair(curses.COLOR_CYAN, self.app.default_bg)
+        self.display_date = self.get_config("display_date", True)
+        self.date_day = self.get_config("date_day", False)
 
 
     def toggle_display_date(self):

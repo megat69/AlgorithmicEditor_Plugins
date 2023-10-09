@@ -188,7 +188,8 @@ translations = {
 
 def r_get(url: str) -> requests.Response:
 	"""
-	Tries to make a request to the given URL. If so, returns it. If a connection error occurs, returns a code Response with a status code of -1.
+	Tries to make a request to the given URL. If so, returns it. If a connection error occurs,
+		returns a code Response with a status code of -1.
 	:param url: A URL.
 	:return: A requests object.
 	"""

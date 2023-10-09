@@ -59,7 +59,7 @@ class DatePlugin(Plugin):
         self.config["date_day"] = self.date_day
 
 
-    def update_on_keypress(self, key: str):
+    def fixed_update(self):
         if self.display_date:
             date = datetime.now()
             dateD_str = date.strftime("%d/%m/%Y")

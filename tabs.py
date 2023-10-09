@@ -4,6 +4,7 @@ from dataclasses import dataclass, asdict
 from functools import partial
 import json
 import sys
+from typing import Literal
 
 from plugin import Plugin
 from utils import browse_files, input_text, display_menu
@@ -69,7 +70,9 @@ class TabsPlugin(Plugin):
 				"find_tab": "Find tab",
 				"select_tab": "Select tab",
 				"track_save_status": "Track save status",
-				"tabs_top_window": "Put tabs at the top of the window"
+				"tabs_top_window": "Put tabs at the top of the window",
+				"change_bg": "Change the tabs background color",
+				"change_fg": "Change the tabs text color"
 			},
 			"fr": {
 				"untitled": "Sans titre",
@@ -81,7 +84,9 @@ class TabsPlugin(Plugin):
 				"find_tab": "Rechercher un onglet",
 				"select_tab": "Sélectionnez un onglet",
 				"track_save_status": "Traquer le status d'enregistrement",
-				"tabs_top_window": "Mettre les onglets en haut de la fenêtre"
+				"tabs_top_window": "Mettre les onglets en haut de la fenêtre",
+				"change_bg": "Changer la couleur de fond des onglets",
+				"change_fg": "Changer la couleur du texte des onglets"
 			}
 		}
 
@@ -158,6 +163,28 @@ class TabsPlugin(Plugin):
 			getattr(curses, f"COLOR_{bg_color}")
 		)
 
+		# Creates an option to change the colors of the tabs
+		self.add_option(self.translate("change_bg"), lambda: self.config["color_bg"], partial(
+			display_menu,
+			self.app.stdscr,
+			tuple(
+				(name[6:], partial(
+					self._change_colors, "bg", name
+				))
+				for name in dir(curses) if name.startswith("COLOR_")
+			)
+		))
+		self.add_option(self.translate("change_fg"), lambda: self.config["color_fg"], partial(
+			display_menu,
+			self.app.stdscr,
+			tuple(
+				(name[6:], partial(
+					self._change_colors, "fg", name
+				))
+				for name in dir(curses) if name.startswith("COLOR_")
+			)
+		))
+
 		# Refreshes the display with the new tab system
 		self.app.apply_stylings()
 
@@ -188,6 +215,31 @@ class TabsPlugin(Plugin):
 			self.app.commands["qs"][1],
 			self.app.commands["qs"][2]
 		)
+
+
+	def _change_colors(self, context: Literal["fg", "bg"], color: str) -> None:
+		"""
+		Changes the colors of the tabs to the given value.
+		:param context: Whether the change is aimed at the foreground 'fg' or background 'bg'.
+			Only accepts these two values.
+		:param color: A curses color name, e.g. COLOR_RED.
+		"""
+		# Sets the new config value
+		self.config[f"color_{context}"] = color[6:]
+
+		# Resets the pair
+		fg_color = self.get_config("color_fg", "default")
+		bg_color = self.get_config("color_bg", "default")
+		if fg_color == "default":
+			fg_color = "CYAN"
+		if bg_color == "default":
+			bg_color = "BLACK"
+		curses.init_pair(
+			self.selected_tab_pair_id,
+			getattr(curses, f"COLOR_{fg_color}"),
+			getattr(curses, f"COLOR_{bg_color}")
+		)
+
 
 
 	def _toggle_track_save_status(self):

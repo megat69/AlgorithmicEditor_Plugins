@@ -940,7 +940,7 @@ class PluginRepo(Plugin):
 				# Displays the status of each plugin
 				self.app.stdscr.addstr(
 					i + 2,
-					self.app.cols // 2 - plugin_status_text.find("-"),
+					self.app.cols // 2 - plugin_status_text.rfind("-"),
 					plugin_status_text,
 					plugin_style
 				)

@@ -107,6 +107,9 @@ class TabsPlugin(Plugin):
 		# Creates a new command to find a tab
 		self.add_command("ft", self.find_tab, self.translate("find_tab"), True)
 
+		# Creates a color for the tab
+		self.selected_tab_pair_id = 255
+
 
 	def init(self):
 		"""
@@ -142,6 +145,18 @@ class TabsPlugin(Plugin):
 				self.app.last_save_action,
 				self.app.marked_lines
 			))
+
+		# Gets a custom color pair
+		fg_color = self.get_config("color_fg", "default")
+		bg_color = self.get_config("color_bg", "default")
+		if fg_color == "default":
+			fg_color = "CYAN"
+		if bg_color == "default":
+			bg_color = "BLACK"
+		self.selected_tab_pair_id = self.create_pair(
+			getattr(curses, f"COLOR_{fg_color}"),
+			getattr(curses, f"COLOR_{bg_color}")
+		)
 
 		# Refreshes the display with the new tab system
 		self.app.apply_stylings()
@@ -363,7 +378,7 @@ class TabsPlugin(Plugin):
 			# Saves the text of the tab
 			tab_text = self.tabs[i].name
 			if i == self.current_tab:  # If it is the currently selected tab, applies special color
-				tab_styling |= curses.color_pair(self.app.color_pairs["instruction"]) | curses.A_REVERSE
+				tab_styling |= curses.color_pair(self.selected_tab_pair_id) | curses.A_REVERSE
 			if not self.tabs[i].saved and self.track_save_status:  # If the tab is not saved, makes it italic
 				tab_styling |= curses.A_ITALIC
 				tab_text = "⬤ " + tab_text

@@ -15,11 +15,13 @@ class StopwatchPlugin(Plugin):
 		self.translations = {
 			"en": {
 				"enable_stopwatch": "Enable stopwatch",
-				"label": "Select the time left to the stopwatch"
+				"label": "Select the time left to the stopwatch",
+				"prevent_key_input_on_stop": "Prevent any further input from the keyboard when the stopwatch stops"
 			},
 			"fr": {
 				"enable_stopwatch": "Compte à rebours",
-				"label": "Entrez le temps restant du chronomètre"
+				"label": "Entrez le temps restant du chronomètre",
+				"prevent_key_input_on_stop": "Retirer l'accès au clavier lorsque le compte à rebours atteint 0"
 			}
 		}
 		self.enabled = False
@@ -27,7 +29,12 @@ class StopwatchPlugin(Plugin):
 		self.start_time = time.time()
 		self.add_option(self.translate("enable_stopwatch"), lambda: '', self.enable_stopwatch)
 		self.stopwatch_value = [0, 0, 0]
-		self.prevent_key_input_on_stop = False  # TODO if True make sure the user cannot add characters upon stopwatch end
+		self.prevent_key_input_on_stop = False
+		self.add_option(
+			self.translate("prevent_key_input_on_stop"),
+			lambda: self.prevent_key_input_on_stop,
+			self.toggle_prevent_key_input_on_stop
+		)
 
 		# Prepares the colors
 		self.high_time_left_color = 0
@@ -40,6 +47,9 @@ class StopwatchPlugin(Plugin):
 		self.high_time_left_color = self.create_pair(curses.COLOR_GREEN, self.app.default_bg)
 		self.medium_time_left_color = self.create_pair(curses.COLOR_YELLOW, self.app.default_bg)
 		self.low_time_left_color = self.create_pair(curses.COLOR_RED, self.app.default_bg)
+
+		# Gets the config value for the toggle_prevent_key_input_on_stop
+		self.prevent_key_input_on_stop = self.get_config("toggle_prevent_key_input_on_stop", False)
 
 
 	def enable_stopwatch(self):
@@ -110,6 +120,7 @@ class StopwatchPlugin(Plugin):
 		self.end_time = int(time.time()) + self.stopwatch_value[2] + \
 			self.stopwatch_value[1] * 60 + self.stopwatch_value[0] * 3600
 		self.start_time = int(time.time())
+		self.app.input_locked = False
 
 		# Disables the stopwatch if all values are 0
 		if all(value == 0 for value in self.stopwatch_value):
@@ -144,6 +155,7 @@ class StopwatchPlugin(Plugin):
 			else:
 				color = self.low_time_left_color
 				blink = curses.A_REVERSE
+				self.app.input_locked = True
 
 			# Displays the current value
 			self.app.stdscr.addstr(
@@ -152,6 +164,11 @@ class StopwatchPlugin(Plugin):
 				":".join((str(e).zfill(2) for e in self.stopwatch_value)),
 				curses.color_pair(color) | blink
 			)
+
+
+	def toggle_prevent_key_input_on_stop(self):
+		self.prevent_key_input_on_stop = not self.prevent_key_input_on_stop
+		self.config["prevent_key_input_on_stop"] = self.prevent_key_input_on_stop
 
 
 

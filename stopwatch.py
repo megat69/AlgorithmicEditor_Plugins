@@ -1,4 +1,5 @@
 import curses
+import sys
 import time
 
 from plugin import Plugin
@@ -16,12 +17,14 @@ class StopwatchPlugin(Plugin):
 			"en": {
 				"enable_stopwatch": "Enable stopwatch",
 				"label": "Select the time left to the stopwatch",
-				"prevent_key_input_on_stop": "Prevent any further input from the keyboard when the stopwatch stops"
+				"prevent_key_input_on_stop": "Prevent any further input from the keyboard when the stopwatch stops",
+				"predefined_stopwatch": "The stopwatch ({countdown}) will start as soon as you press Enter."
 			},
 			"fr": {
 				"enable_stopwatch": "Compte à rebours",
 				"label": "Entrez le temps restant du chronomètre",
-				"prevent_key_input_on_stop": "Retirer l'accès au clavier lorsque le compte à rebours atteint 0"
+				"prevent_key_input_on_stop": "Retirer l'accès au clavier lorsque le compte à rebours atteint 0",
+				"predefined_stopwatch": "Le compte à rebours ({countdown}) commencera dès que vous appuierez sur Entrée."
 			}
 		}
 		self.enabled = False
@@ -29,6 +32,15 @@ class StopwatchPlugin(Plugin):
 		self.start_time = time.time()
 		self.add_option(self.translate("enable_stopwatch"), lambda: '', self.enable_stopwatch)
 		self.stopwatch_value = [0, 0, 0]
+		if "--stopwatch" in sys.argv:
+			try:
+				self.stopwatch_value = [int(e) for e in sys.argv[sys.argv.index("--stopwatch") + 1].split(":")]
+			except Exception:
+				raise Exception("Incorrect value for --stopwatch parameter.")
+			self.end_time = int(time.time()) + self.stopwatch_value[2] + \
+			                self.stopwatch_value[1] * 60 + self.stopwatch_value[0] * 3600
+			self.start_time = int(time.time())
+			self.app.input_locked = False
 		self.prevent_key_input_on_stop = False
 		self.add_option(
 			self.translate("prevent_key_input_on_stop"),
@@ -50,6 +62,33 @@ class StopwatchPlugin(Plugin):
 
 		# Gets the config value for the toggle_prevent_key_input_on_stop
 		self.prevent_key_input_on_stop = self.get_config("toggle_prevent_key_input_on_stop", False)
+
+		# If the stopwatch was pre-defined, waiting for the user to press enter to enable it
+		if "--stopwatch" in sys.argv:
+			self.prevent_key_input_on_stop = True
+			self.app.stdscr.clear()
+			self.app.stdscr.addstr(
+				self.app.rows // 2,
+				self.app.cols // 2 - len(
+					self.translate(
+						"predefined_stopwatch",
+						countdown=":".join((str(e).zfill(2) for e in self.stopwatch_value))
+					)
+				) // 2,
+				self.translate(
+					"predefined_stopwatch",
+					countdown=":".join((str(e).zfill(2) for e in self.stopwatch_value))
+				)
+			)
+			self.app.stdscr.refresh()
+			key = ''
+			while key != '\n':
+				key = self.app.stdscr.getkey()
+			self.app.stdscr.clear()
+			self.enabled = True
+			self.end_time = int(time.time()) + self.stopwatch_value[2] + \
+					self.stopwatch_value[1] * 60 + self.stopwatch_value[0] * 3600
+			self.start_time = int(time.time())
 
 
 	def enable_stopwatch(self):

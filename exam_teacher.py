@@ -2,6 +2,7 @@ import curses
 import sys
 import socket
 from functools import partial
+from typing import List
 
 from utils import display_menu
 from plugin import Plugin
@@ -52,6 +53,7 @@ class ExamTeacherPlugin(Plugin):
 		self.port = 25565
 		self.server_started = False
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.clients: List[socket] = []
 
 
 	def init(self):
@@ -84,6 +86,7 @@ class ExamTeacherPlugin(Plugin):
 
 		# Launches the socket server
 		self.socket.bind((self.hostname, self.port))
+		self.socket.listen(64)
 		# Shows the IP and host to show the students to connect
 		display_menu(
 			self.app.stdscr,
@@ -92,7 +95,9 @@ class ExamTeacherPlugin(Plugin):
 				(self.translate("port", port=self.port), lambda: None)
 			)
 		)
-
+		# TODO : Binds exactly one client for testing
+		self.clients.append(self.socket.accept())
+		print(self.clients[0])
 
 	def change_port(self, in_init_display_menu: bool = False):
 		"""

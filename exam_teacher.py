@@ -23,13 +23,19 @@ class ExamTeacherPlugin(Plugin):
 				"exam_options": "-- Exam Options --",
 				"change_port": "Change port : [{port}]",
 				"configure_stopwatch": "Configure exam time : [{stopwatch}]",
-				"start_server": "Start server"
+				"start_server": "Start server",
+				"ip": "IP : {ip}",
+				"port": "Port : {port}",
+				"server_online": "Server online !"
 			},
 			"fr": {
 				"exam_options": "-- Options des Examens --",
 				"change_port": "Changer de port : [{port}]",
 				"configure_stopwatch": "Modifier le temps donné pour l'examen : [{stopwatch}]",
-				"start_server": "Lancer le serveur"
+				"start_server": "Lancer le serveur",
+				"ip": "IP : {ip}",
+				"port": "Port : {port}",
+				"server_online": "Serveur en ligne !"
 			}
 		}
 		# Removes any stopwatch information from the CLI arguments
@@ -45,6 +51,7 @@ class ExamTeacherPlugin(Plugin):
 		self.ip = socket.gethostbyname(self.hostname)
 		self.port = 25565
 		self.server_started = False
+		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
 	def init(self):
@@ -75,8 +82,16 @@ class ExamTeacherPlugin(Plugin):
 				self.stopwatch_plugin.enabled = False
 			self.app.stdscr.clear()
 
-		# TODO Now launch the socket server
-		pass
+		# Launches the socket server
+		self.socket.bind((self.hostname, self.port))
+		# Shows the IP and host to show the students to connect
+		display_menu(
+			self.app.stdscr,
+			(
+				(self.translate("ip", ip=self.ip), lambda: None),
+				(self.translate("port", port=self.port), lambda: None)
+			)
+		)
 
 
 	def change_port(self, in_init_display_menu: bool = False):
@@ -122,6 +137,26 @@ class ExamTeacherPlugin(Plugin):
 			self.change_port()
 		else:
 			self.port = new_port_int
+
+
+	def update_on_keypress(self, key: str):
+		# Shows the IP and port in the bottom right corner of the screen
+		self.app.stdscr.addstr(
+			self.app.rows - 4,
+			self.app.cols - len(self.translate("port", port=self.port)),
+			self.translate("port", port=self.port)
+		)
+		self.app.stdscr.addstr(
+			self.app.rows - 5,
+			self.app.cols - len(self.translate("ip", ip=self.ip)),
+			self.translate("ip", ip=self.ip)
+		)
+
+		self.app.stdscr.addstr(
+			self.app.rows - 6,
+			self.app.cols - len(self.translate("server_online")),
+			self.translate("server_online")
+		)
 
 
 

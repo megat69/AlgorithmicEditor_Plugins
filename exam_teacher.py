@@ -53,7 +53,7 @@ class ExamTeacherPlugin(Plugin):
 			self.stopwatch_plugin.init()
 			self.stopwatch_plugin.was_initialized = True
 
-
+		# Shows a menu to change the port and the time left on the exam
 		self.app.stdscr.clear()
 		while not self.server_started:
 			display_menu(

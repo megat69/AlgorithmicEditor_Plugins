@@ -3,6 +3,7 @@ import sys
 import socket
 from functools import partial
 from typing import List
+import threading
 
 from utils import display_menu
 from plugin import Plugin
@@ -27,7 +28,8 @@ class ExamTeacherPlugin(Plugin):
 				"start_server": "Start server",
 				"ip": "IP : {ip}",
 				"port": "Port : {port}",
-				"server_online": "Server online !"
+				"server_online": "Server online !",
+				"clients_connected": "{count} clients connected"
 			},
 			"fr": {
 				"exam_options": "-- Options des Examens --",
@@ -36,7 +38,8 @@ class ExamTeacherPlugin(Plugin):
 				"start_server": "Lancer le serveur",
 				"ip": "IP : {ip}",
 				"port": "Port : {port}",
-				"server_online": "Serveur en ligne !"
+				"server_online": "Serveur en ligne !",
+				"clients_connected": "{count} clients connectés"
 			}
 		}
 		# Removes any stopwatch information from the CLI arguments
@@ -54,6 +57,9 @@ class ExamTeacherPlugin(Plugin):
 		self.server_started = False
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.clients: List[socket] = []
+
+		# Keeps in mind the server threads
+		self.client_connection_thread = threading.Thread(target=self.accept_client_connections)
 
 
 	def init(self):
@@ -95,9 +101,20 @@ class ExamTeacherPlugin(Plugin):
 				(self.translate("port", port=self.port), lambda: None)
 			)
 		)
-		# TODO : Binds exactly one client for testing
-		self.clients.append(self.socket.accept())
-		print(self.clients[0])
+
+		# Will start to accept clients in a loop
+		self.client_connection_thread.start()
+
+
+
+	def accept_client_connections(self):
+		"""
+		Accepts clients in a loop.
+		"""
+		while True:
+			self.clients.append(self.socket.accept())
+			print(self.clients[-1])
+
 
 	def change_port(self, in_init_display_menu: bool = False):
 		"""
@@ -156,9 +173,13 @@ class ExamTeacherPlugin(Plugin):
 			self.app.cols - len(self.translate("ip", ip=self.ip)),
 			self.translate("ip", ip=self.ip)
 		)
-
 		self.app.stdscr.addstr(
 			self.app.rows - 6,
+			self.app.cols - len(self.translate("clients_connected", count=len(self.clients))) - 2,
+			'(' + self.translate("clients_connected", count=len(self.clients)) + ')'
+		)
+		self.app.stdscr.addstr(
+			self.app.rows - 7,
 			self.app.cols - len(self.translate("server_online")),
 			self.translate("server_online")
 		)

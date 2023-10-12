@@ -56,9 +56,11 @@ class ExamTeacherPlugin(Plugin):
 		self.port = 25565
 		self.server_started = False
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.socket.settimeout(0.25)
 		self.clients: List[socket] = []
 
 		# Keeps in mind the server threads
+		self.threads_running = True
 		self.client_connection_thread = threading.Thread(target=self.accept_client_connections)
 
 
@@ -67,6 +69,13 @@ class ExamTeacherPlugin(Plugin):
 		if self.stopwatch_plugin.was_initialized is False:
 			self.stopwatch_plugin.init()
 			self.stopwatch_plugin.was_initialized = True
+
+		# Overloads the quit command to be able to close the sockets and threads in a clean manner
+		self._app_default_quit = self.app.quit
+		self.app.quit = self.overloaded_quit
+		self.app.commands["q"] = (self.overloaded_quit, self.app.get_translation("commands", "q"), False)
+		self.app.commands["q!"] = (partial(self.overloaded_quit, True), self.app.get_translation("commands"), True)
+		self.app.commands["qs!"] = (partial(self.overloaded_quit, True, True), self.app.get_translation("commands", "qs!"), True)
 
 		# Shows a menu to change the port and the time left on the exam
 		self.app.stdscr.clear()
@@ -111,9 +120,11 @@ class ExamTeacherPlugin(Plugin):
 		"""
 		Accepts clients in a loop.
 		"""
-		while True:
-			self.clients.append(self.socket.accept())
-			print(self.clients[-1])
+		while self.threads_running:
+			try:
+				self.clients.append(self.socket.accept())
+			except socket.timeout:
+				pass
 
 
 	def change_port(self, in_init_display_menu: bool = False):
@@ -183,6 +194,18 @@ class ExamTeacherPlugin(Plugin):
 			self.app.cols - len(self.translate("server_online")),
 			self.translate("server_online")
 		)
+
+
+	def overloaded_quit(self, *args, **kwargs) -> None:
+		"""
+		Overloads the quit command to exit the threads and sockets cleanly.
+		"""
+		self.threads_running = False
+		self.client_connection_thread.join()
+		self.socket.close()
+
+		# Calls the base quit
+		self._app_default_quit(*args, **kwargs)
 
 
 

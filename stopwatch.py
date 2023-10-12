@@ -54,6 +54,11 @@ class StopwatchPlugin(Plugin):
 		self.low_time_left_color = 0
 
 
+	@property
+	def stopwatch_str(self) -> str:
+		return ":".join((str(e).zfill(2) for e in self.stopwatch_value))
+
+
 	def init(self):
 		# Initializes the curses colors
 		self.high_time_left_color = self.create_pair(curses.COLOR_GREEN, self.app.default_bg)
@@ -72,12 +77,12 @@ class StopwatchPlugin(Plugin):
 				self.app.cols // 2 - len(
 					self.translate(
 						"predefined_stopwatch",
-						countdown=":".join((str(e).zfill(2) for e in self.stopwatch_value))
+						countdown=self.stopwatch_str
 					)
 				) // 2,
 				self.translate(
 					"predefined_stopwatch",
-					countdown=":".join((str(e).zfill(2) for e in self.stopwatch_value))
+					countdown=self.stopwatch_str
 				)
 			)
 			self.app.stdscr.refresh()
@@ -200,7 +205,7 @@ class StopwatchPlugin(Plugin):
 			self.app.stdscr.addstr(
 				self.app.rows - 4,
 				self.app.cols - 9,
-				":".join((str(e).zfill(2) for e in self.stopwatch_value)),
+				self.stopwatch_str,
 				curses.color_pair(color) | blink
 			)
 

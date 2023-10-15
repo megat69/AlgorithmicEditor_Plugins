@@ -195,30 +195,44 @@ class StopwatchPlugin(Plugin):
 				self.stopwatch_value[1] = (time_left // 60) % 60
 				self.stopwatch_value[0] = time_left // 3600
 
-				# Gets the correct color
-				percentage_time_left = time_left / (self.end_time - self.start_time)
-				blink = curses.A_NORMAL
-				if percentage_time_left < StopwatchPlugin.PERCENTAGE_LOW:
-					color = self.low_time_left_color
-					if percentage_time_left < StopwatchPlugin.PERCENTAGE_VERY_LOW and time_left % 2 == 0:
-						blink = curses.A_REVERSE
-				elif percentage_time_left < StopwatchPlugin.PERCENTAGE_MEDIUM:
-					color = self.medium_time_left_color
-				else:
-					color = self.high_time_left_color
+				self.display(time_left)
+
 			else:
+				if self.prevent_key_input_on_stop:
+					self.app.input_locked = True
+
+
+	def display(self, time_left: float):
+		"""
+		Displays the stopwatch.
+		:param time_left: How much time is left in the stopwatch.
+		"""
+		if any(value != 0 for value in self.stopwatch_value):
+			# Gets the correct color
+			try:
+				percentage_time_left = time_left / (self.end_time - self.start_time)
+			except ZeroDivisionError:
+				percentage_time_left = 0.0
+			blink = curses.A_NORMAL
+			if percentage_time_left < StopwatchPlugin.PERCENTAGE_LOW:
 				color = self.low_time_left_color
-				blink = curses.A_REVERSE
-				self.app.input_locked = True
+				if percentage_time_left < StopwatchPlugin.PERCENTAGE_VERY_LOW and time_left % 2 == 0:
+					blink = curses.A_REVERSE
+			elif percentage_time_left < StopwatchPlugin.PERCENTAGE_MEDIUM:
+				color = self.medium_time_left_color
+			else:
+				color = self.high_time_left_color
+		else:
+			color = self.low_time_left_color
+			blink = curses.A_REVERSE
 
-			# Displays the current value
-			self.app.stdscr.addstr(
-				self.app.rows - 4,
-				self.app.cols - 9,
-				self.stopwatch_str,
-				curses.color_pair(color) | blink
-			)
-
+		# Displays the current value
+		self.app.stdscr.addstr(
+			self.app.rows - 4,
+			self.app.cols - 9,
+			self.stopwatch_str,
+			curses.color_pair(color) | blink
+		)
 
 	def toggle_prevent_key_input_on_stop(self):
 		self.prevent_key_input_on_stop = not self.prevent_key_input_on_stop

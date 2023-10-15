@@ -112,7 +112,7 @@ class AliasesPlugin(Plugin):
 			# Which key was last pressed
 			key = ""
 
-			while key not in ("\n", "\t"):
+			while key not in ('\n', '\t', "PADENTER"):
 				# Displays each of the aliases already created
 				for i, alias in enumerate(self.aliases):
 					self.app.stdscr.addstr(

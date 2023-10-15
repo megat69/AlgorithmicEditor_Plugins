@@ -252,7 +252,7 @@ class FileIndex(Plugin):
 			self.selected_file_index = ((self.selected_file_index % len(menu_items)) + len(menu_items)) % len(menu_items)
 
 			# If the key is Enter or Tab, we move into the selected folder or open the selected file
-			if key in ("\n", "\t"):
+			if key in ('\n', '\t', "PADENTER"):
 				if self.open_new_file(menu_items): return
 
 

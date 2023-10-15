@@ -999,7 +999,7 @@ class PluginRepo(Plugin):
 			selected_plugin = ((selected_plugin % wrap_around) + wrap_around) % wrap_around
 
 			# If the key is Enter, executes the corresponding action
-			if key in ("\n", "\t"):
+			if key in ('\n', '\t', "PADENTER"):
 				# If the user selected to exit
 				if selected_plugin == len(plugin_list):
 					menu_open = False

@@ -65,7 +65,7 @@ class CopyPlugin(Plugin):
 		# If we are selecting something to copy
 		if self.within_copy:
 			# If the user hit Enter
-			if key == "\n":
+			if key in ('\n', "PADENTER"):
 				# We copy what has been selected
 				pyperclip.copy(
 					self.app.current_text[

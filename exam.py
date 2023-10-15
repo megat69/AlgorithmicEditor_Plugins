@@ -55,9 +55,6 @@ class ExamPlugin(Plugin):
 		self.client_started = False
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-		# Additional variables
-		self.stopwatch_enabled = False
-
 
 	def init(self):
 		# Inits the Stopwatch plugin
@@ -78,7 +75,7 @@ class ExamPlugin(Plugin):
 		stopwatch_value = [int(e) for e in temp_stopwatch_info.split(':')]
 		# Sets the stopwatch value to be as such, and currently inactive
 		self.stopwatch_plugin.stopwatch_value = stopwatch_value
-		self.stopwatch_plugin.enabled = True
+		self.stopwatch_plugin.enabled = False
 
 		# Removes input control from the user
 		self.app.input_locked = True
@@ -131,14 +128,14 @@ class ExamPlugin(Plugin):
 
 	def fixed_update(self):
 		# While the clock stopwatch is disabled, we reset its time
-		# self.stopwatch_plugin.fixed_update()
-		if self.stopwatch_enabled is False:
+		if self.stopwatch_plugin.enabled is False:
 			self.stopwatch_plugin.start_time = int(time.time())
 			self.stopwatch_plugin.end_time = (
 				int(time.time()) + self.stopwatch_plugin.stopwatch_value[2] +
 				self.stopwatch_plugin.stopwatch_value[1] * 60 +
 				self.stopwatch_plugin.stopwatch_value[0] * 3600
 			)
+			self.stopwatch_plugin.display(1.0)
 
 
 class EmptyExamPlugin(Plugin):

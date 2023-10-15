@@ -134,7 +134,7 @@ class ExamTeacherPlugin(Plugin):
 		# Awaits user input to change the port
 		new_port = ""
 		key = ''
-		while key != '\n':
+		while key not in ('\n', "PADENTER"):
 			# Adds a new digit if a number is inputted
 			if key.isdigit():
 				new_port += key

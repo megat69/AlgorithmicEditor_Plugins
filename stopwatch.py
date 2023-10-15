@@ -87,7 +87,7 @@ class StopwatchPlugin(Plugin):
 			)
 			self.app.stdscr.refresh()
 			key = ''
-			while key != '\n':
+			while key not in ('\n', "PADENTER"):
 				key = self.app.stdscr.getkey()
 			self.app.stdscr.clear()
 			self.enabled = True
@@ -106,7 +106,7 @@ class StopwatchPlugin(Plugin):
 		menu_items = self.stopwatch_value
 		current_menu_item = 0
 		key = ''
-		while key != '\n':
+		while key not in ('\n', "PADENTER"):
 			# Lets the user move around with tab, shift tab, and the side arrow keys
 			if key in ('\t', 'KEY_RIGHT'):
 				current_menu_item += 1

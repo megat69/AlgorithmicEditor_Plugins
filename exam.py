@@ -51,13 +51,25 @@ class ExamPlugin(Plugin):
 
 		# Connects to the server
 		# TODO: solid menu
+		self.connect_to_server()
+
+
+	def connect_to_server(self):
+		"""
+		Tries to connect to the teacher's computer (server).
+		"""
 		retry = True
 		while retry:
+			# Makes the user input the IP then the port
 			self.app.stdscr.clear()
 			self.app.stdscr.addstr(self.app.rows // 2, 4, self.translate("input_ip") + " : ")
 			self.server_ip = input_text(self.app.stdscr, 4 + len(self.translate("input_ip")) + 3, self.app.rows // 2)
 			self.app.stdscr.addstr(self.app.rows // 2, 4, self.translate("input_port") + " : ")
-			self.server_port = int(input_text(self.app.stdscr, 4 + len(self.translate("input_port")) + 3, self.app.rows // 2))
+			self.server_port = int(
+				input_text(self.app.stdscr, 4 + len(self.translate("input_port")) + 3, self.app.rows // 2)
+			)
+
+			# Connects to the server
 			try:
 				self.socket.connect((self.server_ip, self.server_port))
 			except ConnectionError:

@@ -133,10 +133,23 @@ class ExamTeacherPlugin(Plugin):
 		Accepts clients in a loop.
 		"""
 		while self.threads_running:
+			# Tries to receive an incoming connection from a client
 			try:
 				self.clients.append(self.socket.accept())
+
+			# If no connection is established within the given timeout, we skip over to the next iteration.
+			# This allows to kill the thread cleanly when the program terminates, rather than it being stuck forever.
 			except socket.timeout:
 				pass
+
+			# If this condition is reached, a connection was established and we are sending the corresponding
+			# information to the client.
+			else:
+				# Debug info
+				print(f"Connected to a student ! IP is {self.clients[-1][1]}.")
+
+				# Sending the stopwatch information to the client
+				self.send_information(self.stopwatch_plugin.stopwatch_str.encode("utf-8"), -1)
 
 
 	def change_port(self, in_init_display_menu: bool = False):
@@ -218,6 +231,51 @@ class ExamTeacherPlugin(Plugin):
 
 		# Calls the base quit
 		self._app_default_quit(*args, **kwargs)
+
+
+	def send_information(self, data: bytes, client_index: int = None) -> bool:
+		"""
+		Sends two requests to the client(s) : the first being 2 bytes long, and containing the amount of bytes
+			contained by the second request ; the second being up to 65535 bytes long, and containing the data passed
+			as parameter.
+		:param data: The data to be sent to the client. Has to be UTF-8 encoded bytes !
+		:param client_index: The index of the client to send the information to. If not specified or None,
+			will send the information to EVERY connected client !
+		:return: Whether the operation was successful. Be warned, this function CAN resize the
+			list of connected clients !
+		"""
+		# Sends the info to all clients
+		if client_index is None:
+			all_went_well = True
+			for client_socket, _ in self.clients.copy():
+				all_went_well = all_went_well and self.send_information(data, client_socket)
+			return all_went_well
+
+		# Finds the client
+		client: socket.socket = self.clients[client_index][0]
+
+		# Sends the amount of info to the specified client
+		bytes_to_send = str(len(data)).encode('utf-8')
+		sent = client.send(bytes_to_send)
+		if sent == 0:  # If the connection didn't go through
+			# Removes the client from the list of connected clients
+			self.clients.pop(client_index)
+			# Errors out
+			return False
+
+		# Sends the data to the client
+		total_data_sent = 0
+		while total_data_sent < len(data):
+			sent = client.send(data[total_data_sent:])
+			if sent == 0:  # If the connection didn't go through
+				# Removes the client from the list of connected clients
+				self.clients.pop(client_index)
+				# Errors out
+				return False
+			total_data_sent += sent
+
+		# If this part is reached, it means that everything went well, so we return True
+		return True
 
 
 

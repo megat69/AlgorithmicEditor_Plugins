@@ -172,7 +172,7 @@ class ExamTeacherPlugin(Plugin):
 			self.port = new_port_int
 
 
-	def update_on_keypress(self, key: str):
+	def fixed_update(self):
 		# Shows the IP and port in the bottom right corner of the screen
 		self.app.stdscr.addstr(
 			self.app.rows - 4,

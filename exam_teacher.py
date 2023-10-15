@@ -100,7 +100,7 @@ class ExamTeacherPlugin(Plugin):
 			self.app.stdscr.clear()
 
 		# Launches the socket server
-		self.socket.bind((self.hostname, self.port))
+		self.socket.bind(('0.0.0.0', self.port))
 		self.socket.listen(64)
 		# Shows the IP and host to show the students to connect
 		display_menu(

@@ -63,7 +63,8 @@ class ExamTeacherPlugin(Plugin):
 					"return_to_editor": "Return to editor",
 					"manage_students": "Manage students"
 				},
-				"cancel": "Cancel"
+				"cancel": "Cancel",
+				"client_shutdown": "{first_name} {last_name} has quit ! ({ip}, {port})"
 			},
 			"fr": {
 				"exam_options": "-- Options des Examens --",
@@ -81,7 +82,8 @@ class ExamTeacherPlugin(Plugin):
 					"return_to_editor": "Retourner à l'éditeur",
 					"manage_students": "Gérer les étudiants"
 				},
-				"cancel": "Annuler"
+				"cancel": "Annuler",
+				"client_shutdown": "{first_name} {last_name} a quitté ! ({ip}, {port})"
 			}
 		}
 		# Removes any stopwatch information from the CLI arguments
@@ -256,6 +258,23 @@ class ExamTeacherPlugin(Plugin):
 			client_student_info.first_name = student_info_data[1]
 			if student_info_data[2] != "STUDENT_NBR_NONE":
 				client_student_info.student_nbr = student_info_data[2]
+
+		elif request_header == "CLIENT_SHUTDOWN":  # When a client quits
+			message = self.translate(
+				"client_shutdown",
+				last_name=client_student_info.last_name,
+				first_name=client_student_info.first_name,
+				ip=client_ip,
+				port=client_port
+			)
+			self.app.stdscr.addstr(
+				self.app.rows // 2,
+				self.app.cols // 2 - len(message) // 2,
+				message,
+				curses.color_pair(self.stopwatch_plugin.low_time_left_color) | curses.A_REVERSE
+			)
+			print(message)
+			self.clients.pop(client_id)
 
 
 	def change_port(self, in_init_display_menu: bool = False):

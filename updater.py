@@ -25,6 +25,15 @@ class Updater(Plugin):
 	# Constants for the repository URL. Should not be touched.
 	REPO_INDIVIDUAL_FILE = f"https://raw.githubusercontent.com/{REPO_USER}/{REPO_NAME}/{REPO_BRANCH}"
 	REPO_URL = f"https://github.com/{REPO_USER}/{REPO_NAME}/tree/{REPO_BRANCH}/"
+	__singleton = None
+
+	def __new__(cls, *args, **kwargs):
+		"""
+		Creates a singleton of the class.
+		"""
+		if cls.__singleton is None:
+			cls.__singleton = super().__new__(cls)
+		return cls.__singleton
 
 
 	def __init__(self, app):

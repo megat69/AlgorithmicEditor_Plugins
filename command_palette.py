@@ -6,6 +6,17 @@ class CommandPalette(Plugin):
 	"""
 	Lets the user search through each of the available commands and find the correct one for your needs.
 	"""
+	__singleton = None
+
+	def __new__(cls, *args, **kwargs):
+		"""
+		Creates a singleton of the class.
+		"""
+		if cls.__singleton is None:
+			cls.__singleton = super().__new__(cls)
+		return cls.__singleton
+
+
 	def __init__(self, app):
 		super().__init__(app)
 		self.translations = {

@@ -18,6 +18,11 @@ else:
 
 
 class ExamTeacherPlugin(Plugin):
+	SERVER_BIND = (
+		"0.0.0.0"
+			if "--netdeb" not in sys.argv else
+		"127.0.0.1"
+	)
 	__singleton = None
 
 	def __new__(cls, *args, **kwargs):
@@ -112,7 +117,7 @@ class ExamTeacherPlugin(Plugin):
 			self.app.stdscr.clear()
 
 		# Launches the socket server
-		self.socket.bind(('0.0.0.0', self.port))
+		self.socket.bind((ExamTeacherPlugin.SERVER_BIND, self.port))
 		self.socket.listen(64)
 		# Shows the IP and host to show the students to connect
 		display_menu(

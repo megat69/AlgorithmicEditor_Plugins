@@ -46,7 +46,13 @@ class ExamTeacherPlugin(Plugin):
 				"ip": "IP : {ip}",
 				"port": "Port : {port}",
 				"server_online": "Server online !",
-				"clients_connected": "{count} clients connected"
+				"clients_connected": "{count} clients connected",
+				"open_exam_menu": "Open exam menu",
+				"exam_menu": {
+					"label": "Exam menu",
+					"start_exam": "/!\\ Start Exam /!\\",
+					"return_to_editor": "Return to editor"
+				}
 			},
 			"fr": {
 				"exam_options": "-- Options des Examens --",
@@ -56,7 +62,13 @@ class ExamTeacherPlugin(Plugin):
 				"ip": "IP : {ip}",
 				"port": "Port : {port}",
 				"server_online": "Serveur en ligne !",
-				"clients_connected": "{count} clients connectés"
+				"clients_connected": "{count} clients connectés",
+				"open_exam_menu": "Ouvrir le menu examen",
+				"exam_menu": {
+					"label": "Menu Examen",
+					"start_exam": "/!\\ Lancer l'examen /!\\",
+					"return_to_editor": "Retourner à l'éditeur"
+				}
 			}
 		}
 		# Removes any stopwatch information from the CLI arguments
@@ -79,6 +91,9 @@ class ExamTeacherPlugin(Plugin):
 		# Keeps in mind the server threads
 		self.threads_running = True
 		self.client_connection_thread = threading.Thread(target=self.accept_client_connections)
+
+		# Creates the command to access the exam menu
+		self.add_command("exam", self.open_exam_menu, self.translate("open_exam_menu"))
 
 
 	def init(self):
@@ -252,8 +267,8 @@ class ExamTeacherPlugin(Plugin):
 		# Sends the info to all clients
 		if client_index is None:
 			all_went_well = True
-			for client_socket, _ in self.clients.copy():
-				all_went_well = all_went_well and self.send_information(data, client_socket)
+			for i in range(len(self.clients)):
+				all_went_well = all_went_well and self.send_information(data, i)
 			return all_went_well
 
 		# Finds the client
@@ -281,6 +296,28 @@ class ExamTeacherPlugin(Plugin):
 
 		# If this part is reached, it means that everything went well, so we return True
 		return True
+
+
+	def open_exam_menu(self):
+		"""
+		Opens a menu with all the utilities for the exam.
+		"""
+		display_menu(
+			self.app.stdscr,
+			(
+				(
+					self.translate("exam_menu", "start_exam"),
+					partial(self.send_information, "START_EXAM:".encode("utf-8"))
+				),
+				(
+					self.translate("exam_menu", "return_to_editor"),
+					lambda: None
+				)
+			),
+			label = self.translate("exam_menu", "label"),
+			space_out_last_option = True,
+			allow_key_input = True
+		)
 
 
 

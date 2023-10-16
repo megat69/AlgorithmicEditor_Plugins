@@ -64,7 +64,8 @@ class ExamTeacherPlugin(Plugin):
 					"manage_students": "Manage students"
 				},
 				"cancel": "Cancel",
-				"client_shutdown": "{first_name} {last_name} has quit ! ({ip}, {port})"
+				"client_shutdown": "{first_name} {last_name} has quit ! ({ip}, {port})",
+				"client_join": "{first_name} {last_name} has joined ! ({ip}, {port})"
 			},
 			"fr": {
 				"exam_options": "-- Options des Examens --",
@@ -83,7 +84,8 @@ class ExamTeacherPlugin(Plugin):
 					"manage_students": "Gérer les étudiants"
 				},
 				"cancel": "Annuler",
-				"client_shutdown": "{first_name} {last_name} a quitté ! ({ip}, {port})"
+				"client_shutdown": "{first_name} {last_name} a quitté ! ({ip}, {port})",
+				"client_join": "{first_name} {last_name} a rejoint ! ({ip}, {port})"
 			}
 		}
 		# Removes any stopwatch information from the CLI arguments
@@ -192,7 +194,10 @@ class ExamTeacherPlugin(Plugin):
 				print(f"Connected to a student ! IP is {self.clients[-1][0][1]}.")
 
 				# Sending the stopwatch information to the client
-				self.send_information(self.stopwatch_plugin.stopwatch_str.encode("utf-8"), -1)
+				self.send_information(self.stopwatch_plugin.stopwatch_str.encode("utf-8"), len(self.clients) - 1)
+
+				# Getting the student name info
+				self.client_recv(len(self.clients) - 1)
 
 
 	def client_recv_all(self):
@@ -217,6 +222,7 @@ class ExamTeacherPlugin(Plugin):
 		Receives info from a specific client, then handles it using the appropriate function call.
 		:param client_id: The index of the client in the list of clients.
 		"""
+		print("Running recv for", client_id)
 		client_socket = self.clients[client_id][0][0]
 		# Reads a first two bytes of information : these contain the size of the message sent by the server
 		try:
@@ -258,6 +264,22 @@ class ExamTeacherPlugin(Plugin):
 			client_student_info.first_name = student_info_data[1]
 			if student_info_data[2] != "STUDENT_NBR_NONE":
 				client_student_info.student_nbr = student_info_data[2]
+			# Also warns the teacher a new student joined
+			message = self.translate(
+				"client_join",
+				last_name=client_student_info.last_name,
+				first_name=client_student_info.first_name,
+				ip=client_ip,
+				port=client_port
+			)
+			self.app.stdscr.addstr(
+				self.app.rows // 2,
+				self.app.cols // 2 - len(message) // 2,
+				message,
+				curses.color_pair(self.stopwatch_plugin.high_time_left_color)
+			)
+			print(client_student_info, student_info_data)
+			print(self.clients)
 
 		elif request_header == "CLIENT_SHUTDOWN":  # When a client quits
 			message = self.translate(

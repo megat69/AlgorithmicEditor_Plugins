@@ -1,3 +1,4 @@
+import curses
 import sys
 import socket
 import threading
@@ -35,12 +36,14 @@ class ExamPlugin(Plugin):
 			"en": {
 				"input_ip": "Input the IP",
 				"input_port": "Input the port",
-				"connection_error": "Couldn't connect to the server."
+				"connection_error": "Couldn't connect to the server.",
+				"exam_started": "The exam has started !"
 			},
 			"fr": {
 				"input_ip": "Entrez l'adresse IP",
 				"input_port": "Entrez le numéro du port",
-				"connection_error": "Impossible de se connecter au serveur."
+				"connection_error": "Impossible de se connecter au serveur.",
+				"exam_started": "L'examen a commencé !"
 			}
 		}
 		# Removes any stopwatch information from the CLI arguments
@@ -180,7 +183,25 @@ class ExamPlugin(Plugin):
 		Hands the information received from the server.
 		:param received_info: Info received straight from the server.
 		"""
-		pass
+		# Finds the header of the request and sets the body of the request
+		request_header = received_info.split(':')[0]
+		server_info = received_info[len(request_header):]
+
+		# Based on the request header, performs the correct operations
+		if request_header == "START_EXAM":  # Starts the exam
+			# Enables the stopwatch
+			self.stopwatch_plugin.enabled = True
+			# Unlocks the input and allows the user to type in the editor
+			self.app.input_locked = False
+			# Displays a message to warn the user that the exam is up
+			self.app.stdscr.addstr(
+				self.app.rows // 2,
+				self.app.cols // 2 - len(self.translate("exam_started")) // 2,
+				self.translate("exam_started"),
+				curses.color_pair(self.stopwatch_plugin.low_time_left_color) | curses.A_REVERSE
+			)
+
+
 
 	def overloaded_quit(self, *args, **kwargs) -> None:
 		"""

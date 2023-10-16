@@ -1,8 +1,9 @@
 import curses
 import sys
 import socket
+from dataclasses import dataclass
 from functools import partial
-from typing import List
+from typing import List, Optional, Tuple
 import threading
 
 from utils import display_menu
@@ -15,6 +16,14 @@ except ImportError:
 	print("You need to install the `stopwatch` plugin to use the exam plugin !")
 else:
 	STOPWATCH_PLUGIN_INSTALLED = True
+
+
+@dataclass
+class Student:
+	last_name: Optional[str] = None
+	first_name: Optional[str] = None
+	student_nbr: Optional[str] = None
+
 
 
 class ExamTeacherPlugin(Plugin):
@@ -51,8 +60,10 @@ class ExamTeacherPlugin(Plugin):
 				"exam_menu": {
 					"label": "Exam menu",
 					"start_exam": "/!\\ Start Exam /!\\",
-					"return_to_editor": "Return to editor"
-				}
+					"return_to_editor": "Return to editor",
+					"manage_students": "Manage students"
+				},
+				"cancel": "Cancel"
 			},
 			"fr": {
 				"exam_options": "-- Options des Examens --",
@@ -67,8 +78,10 @@ class ExamTeacherPlugin(Plugin):
 				"exam_menu": {
 					"label": "Menu Examen",
 					"start_exam": "/!\\ Lancer l'examen /!\\",
-					"return_to_editor": "Retourner à l'éditeur"
-				}
+					"return_to_editor": "Retourner à l'éditeur",
+					"manage_students": "Gérer les étudiants"
+				},
+				"cancel": "Annuler"
 			}
 		}
 		# Removes any stopwatch information from the CLI arguments
@@ -86,14 +99,18 @@ class ExamTeacherPlugin(Plugin):
 		self.server_started = False
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.socket.settimeout(0.25)
-		self.clients: List[socket] = []
+		self.clients: List[Tuple[Tuple[socket, Tuple[str, int]], Student]] = []
 
 		# Keeps in mind the server threads
 		self.threads_running = True
 		self.client_connection_thread = threading.Thread(target=self.accept_client_connections)
+		self.client_recv_thread = threading.Thread(target=self.client_recv_all)
 
 		# Creates the command to access the exam menu
 		self.add_command("exam", self.open_exam_menu, self.translate("open_exam_menu"))
+
+		# Additional variables
+		self.exam_started = False
 
 
 	def init(self):
@@ -145,6 +162,8 @@ class ExamTeacherPlugin(Plugin):
 
 		# Will start to accept clients in a loop
 		self.client_connection_thread.start()
+		# Will start to get client requests in a loop
+		self.client_recv_thread.start()
 
 
 
@@ -155,7 +174,9 @@ class ExamTeacherPlugin(Plugin):
 		while self.threads_running:
 			# Tries to receive an incoming connection from a client
 			try:
-				self.clients.append(self.socket.accept())
+				self.clients.append(
+					(self.socket.accept(), Student())
+				)
 
 			# If no connection is established within the given timeout, we skip over to the next iteration.
 			# This allows to kill the thread cleanly when the program terminates, rather than it being stuck forever.
@@ -166,10 +187,75 @@ class ExamTeacherPlugin(Plugin):
 			# information to the client.
 			else:
 				# Debug info
-				print(f"Connected to a student ! IP is {self.clients[-1][1]}.")
+				print(f"Connected to a student ! IP is {self.clients[-1][0][1]}.")
 
 				# Sending the stopwatch information to the client
 				self.send_information(self.stopwatch_plugin.stopwatch_str.encode("utf-8"), -1)
+
+
+	def client_recv_all(self):
+		"""
+		Receives information from each client in a loop.
+		"""
+		while self.threads_running:
+			client_threads = [
+				threading.Thread(
+					target = partial(self.client_recv, i)
+				)
+				for i in range(len(self.clients))
+			]
+			for thread in client_threads:
+				thread.start()
+			for thread in client_threads:
+				thread.join()
+
+
+	def client_recv(self, client_id: int) -> None:
+		"""
+		Receives info from a specific client, then handles it using the appropriate function call.
+		:param client_id: The index of the client in the list of clients.
+		"""
+		client_socket = self.clients[client_id][0][0]
+		# Reads a first two bytes of information : these contain the size of the message sent by the server
+		try:
+			message_size_bytes = client_socket.recv(2)
+		except socket.timeout:
+			return None
+		message_size = int(message_size_bytes.decode("utf-8"))
+
+		# Now reads from the server the amount of data to be received
+		try:
+			server_data = client_socket.recv(message_size)
+		except socket.timeout:
+			return None
+
+		# Decodes the data into a utf-8 string
+		decoded_data = server_data.decode("utf-8")
+
+		# Handles the data
+		self.handle_request(decoded_data, client_id)
+
+
+	def handle_request(self, data: str, client_id: int) -> None:
+		"""
+		Acts upon the client's request.
+		:param data: The data sent to the server.
+		:param client_id: The index of the client in the list of clients.
+		"""
+		# Finds the header of the request and sets the body of the request, along with the client info
+		request_header = data.split(':')[0]
+		server_info = data[len(request_header)+1:]
+		client_socket = self.clients[client_id][0][0]
+		client_ip, client_port = self.clients[client_id][0][1]
+		client_student_info = self.clients[client_id][1]
+
+		# Hands the request
+		if request_header == "SET_STUDENT_INFO":  # Sets the client's student info (name, student number, etc...)
+			student_info_data = server_info.split(":")
+			client_student_info.last_name = student_info_data[0]
+			client_student_info.first_name = student_info_data[1]
+			if student_info_data[2] != "STUDENT_NBR_NONE":
+				client_student_info.student_nbr = student_info_data[2]
 
 
 	def change_port(self, in_init_display_menu: bool = False):
@@ -245,8 +331,19 @@ class ExamTeacherPlugin(Plugin):
 		"""
 		Overloads the quit command to exit the threads and sockets cleanly.
 		"""
+		# Asks all the threads not to repeat running
 		self.threads_running = False
+
+		# Ends the thread accepting new clients
 		self.client_connection_thread.join()
+
+		# Tells all the clients that the connection is over
+		self.send_information("END_CONNECTION:".encode("utf-8"))
+
+		# Ends the thread accepting new requests
+		self.client_recv_thread.join()
+
+		# Closes the socket
 		self.socket.close()
 
 		# Calls the base quit
@@ -272,7 +369,7 @@ class ExamTeacherPlugin(Plugin):
 			return all_went_well
 
 		# Finds the client
-		client: socket.socket = self.clients[client_index][0]
+		client: socket.socket = self.clients[client_index][0][0]
 
 		# Sends the amount of info to the specified client
 		bytes_to_send = str(len(data)).encode('utf-8')
@@ -302,22 +399,65 @@ class ExamTeacherPlugin(Plugin):
 		"""
 		Opens a menu with all the utilities for the exam.
 		"""
-		display_menu(
-			self.app.stdscr,
-			(
+		commands = []
+		if self.exam_started is False:
+			def start_exam():
+				self.exam_started = True
+				self.send_information("START_EXAM:".encode("utf-8"))
+			commands.append(
 				(
 					self.translate("exam_menu", "start_exam"),
-					partial(self.send_information, "START_EXAM:".encode("utf-8"))
-				),
-				(
-					self.translate("exam_menu", "return_to_editor"),
-					lambda: None
+					start_exam
 				)
-			),
+			)
+		commands.append(
+			(
+				self.translate("exam_menu", "manage_students"),
+				self.manage_students
+			)
+		)
+		commands.append(
+			(
+				self.translate("exam_menu", "return_to_editor"),
+				lambda: None
+			)
+		)
+		display_menu(
+			self.app.stdscr,
+			tuple(commands),
 			label = self.translate("exam_menu", "label"),
 			space_out_last_option = True,
 			allow_key_input = True
 		)
+
+
+	def manage_students(self):
+		"""
+		Allows you to manage each student individually.
+		"""
+		commands = [
+			(
+				(
+					f"{student.last_name} {student.first_name}" +
+					 (' ' + student.student_nbr if student.student_nbr is not None else '')
+				),
+				partial(self.manage_individual_student, i)
+			)
+			for i, (_, student) in enumerate(self.clients)
+		]
+		commands.append((self.translate("cancel"), lambda: None))
+		display_menu(
+			self.app.stdscr,
+			tuple(commands),
+			label = self.translate("exam_menu", "manage_students"),
+			space_out_last_option = True,
+			allow_key_input = True,
+			align_left = True
+		)
+
+
+	def manage_individual_student(self, client_index: int):
+		pass
 
 
 

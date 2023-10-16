@@ -271,6 +271,7 @@ class ExamPlugin(Plugin):
 		"""
 		self.recv_thread_running = False
 		self.recv_thread.join()
+		self.send_information("CLIENT_SHUTDOWN:".encode("utf-8"))
 		self.socket.close()
 
 		# Calls the base quit

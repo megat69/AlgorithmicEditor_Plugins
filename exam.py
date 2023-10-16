@@ -37,13 +37,19 @@ class ExamPlugin(Plugin):
 				"input_ip": "Input the IP",
 				"input_port": "Input the port",
 				"connection_error": "Couldn't connect to the server.",
-				"exam_started": "The exam has started !"
+				"exam_started": "The exam has started !",
+				"input_last_name": "Input your last name",
+				"input_first_name": "Input your first name",
+				"input_student_nbr": "Input your student number"
 			},
 			"fr": {
 				"input_ip": "Entrez l'adresse IP",
 				"input_port": "Entrez le numéro du port",
 				"connection_error": "Impossible de se connecter au serveur.",
-				"exam_started": "L'examen a commencé !"
+				"exam_started": "L'examen a commencé !",
+				"input_last_name": "Entrez votre nom de famille",
+				"input_first_name": "Entrez votre prénom",
+				"input_student_nbr": "Entrez votre numéro étudiant"
 			}
 		}
 		# Removes any stopwatch information from the CLI arguments
@@ -64,6 +70,12 @@ class ExamPlugin(Plugin):
 		self.recv_thread_running = False
 		self.recv_thread = threading.Thread(target=self.information_reception_loop)
 
+		# Student information
+		self.no_student_nbr = "--nostudent" in sys.argv
+		self.student_last_name: str = None
+		self.student_first_name: str = None
+		self.student_nbr: str = None
+
 
 	def init(self):
 		# Inits the Stopwatch plugin
@@ -79,9 +91,15 @@ class ExamPlugin(Plugin):
 		self.app.commands["qs!"] = (partial(self.overloaded_quit, True, True), self.app.get_translation("commands", "qs!"), True)
 
 		# Connects to the server
+		self.get_student_info()
 		# TODO: solid menu
 		self.connect_to_server()
 		print(f"Connected to server {self.server_ip} !")
+		# Sends to the server the student information
+		self.send_information(
+			(f"SET_STUDENT_INFO:{self.student_last_name}:{self.student_first_name}:"
+			f"{self.student_nbr if self.no_student_nbr is False else 'STUDENT_NBR_NONE'}").encode("utf-8")
+		)
 
 		# Receives the stopwatch information from the server
 		temp_stopwatch_info = self.receive_information()
@@ -127,6 +145,20 @@ class ExamPlugin(Plugin):
 				retry = False
 
 
+	def get_student_info(self):
+		"""
+		Asks the user its student information.
+		"""
+		self.app.stdscr.clear()
+		self.app.stdscr.addstr(self.app.rows // 2, 4, self.translate("input_last_name") + " : ")
+		self.student_last_name = input_text(self.app.stdscr, 4 + len(self.translate("input_last_name")) + 3, self.app.rows // 2)
+		self.app.stdscr.addstr(self.app.rows // 2 + 1, 4, self.translate("input_first_name") + " : ")
+		self.student_first_name = input_text(self.app.stdscr, 4 + len(self.translate("input_first_name")) + 3, self.app.rows // 2 + 1)
+		if self.no_student_nbr is False:
+			self.app.stdscr.addstr(self.app.rows // 2 + 2, 4, self.translate("input_student_nbr") + " : ")
+			self.student_nbr = input_text(self.app.stdscr, 4 + len(self.translate("input_student_nbr")) + 3, self.app.rows // 2 + 2)
+
+
 	def receive_information(self) -> str:
 		"""
 		Receives the amount of information required from the server.
@@ -145,6 +177,34 @@ class ExamPlugin(Plugin):
 
 		# Returns the data
 		return decoded_data
+
+
+	def send_information(self, data: bytes) -> bool:
+		"""
+		Sends two requests to the server : the first being 2 bytes long, and containing the amount of bytes
+			contained by the second request ; the second being up to 65535 bytes long, and containing the data passed
+			as parameter.
+		:param data: The data to be sent to the client. Has to be UTF-8 encoded bytes !
+		:return: Whether the operation was successful.
+		"""
+		# Sends the amount of info to the specified client
+		bytes_to_send = str(len(data)).encode('utf-8')
+		sent = self.socket.send(bytes_to_send)
+		if sent == 0:  # If the connection didn't go through
+			# Errors out
+			return False
+
+		# Sends the data to the client
+		total_data_sent = 0
+		while total_data_sent < len(data):
+			sent = self.socket.send(data[total_data_sent:])
+			if sent == 0:  # If the connection didn't go through
+				# Errors out
+				return False
+			total_data_sent += sent
+
+		# If this part is reached, it means that everything went well, so we return True
+		return True
 
 
 	def information_reception_loop(self):
@@ -166,7 +226,6 @@ class ExamPlugin(Plugin):
 			else:
 				self.handle_received_information(received_info)
 
-
 	def fixed_update(self):
 		# While the clock stopwatch is disabled, we reset its time
 		if self.stopwatch_plugin.enabled is False:
@@ -178,6 +237,8 @@ class ExamPlugin(Plugin):
 			)
 			self.stopwatch_plugin.display(1.0)
 
+
+
 	def handle_received_information(self, received_info: str) -> None:
 		"""
 		Hands the information received from the server.
@@ -185,7 +246,7 @@ class ExamPlugin(Plugin):
 		"""
 		# Finds the header of the request and sets the body of the request
 		request_header = received_info.split(':')[0]
-		server_info = received_info[len(request_header):]
+		server_info = received_info[len(request_header)+1:]
 
 		# Based on the request header, performs the correct operations
 		if request_header == "START_EXAM":  # Starts the exam
@@ -201,7 +262,8 @@ class ExamPlugin(Plugin):
 				curses.color_pair(self.stopwatch_plugin.low_time_left_color) | curses.A_REVERSE
 			)
 
-
+		elif request_header == "END_CONNECTION":  # Ends the connection with the server
+			self.send_information("END_CONNECTION:".encode("utf-8"))
 
 	def overloaded_quit(self, *args, **kwargs) -> None:
 		"""

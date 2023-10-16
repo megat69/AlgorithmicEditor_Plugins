@@ -1,6 +1,8 @@
 import sys
 import socket
+import threading
 import time
+from functools import partial
 
 from plugin import Plugin
 from utils import display_menu, input_text
@@ -55,12 +57,23 @@ class ExamPlugin(Plugin):
 		self.client_started = False
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+		# Thread-related info
+		self.recv_thread_running = False
+		self.recv_thread = threading.Thread(target=self.information_reception_loop)
+
 
 	def init(self):
 		# Inits the Stopwatch plugin
 		if self.stopwatch_plugin.was_initialized is False:
 			self.stopwatch_plugin.init()
 			self.stopwatch_plugin.was_initialized = True
+
+		# Overloads the quit command to be able to close the sockets and threads in a clean manner
+		self._app_default_quit = self.app.quit
+		self.app.quit = self.overloaded_quit
+		self.app.commands["q"] = (self.overloaded_quit, self.app.get_translation("commands", "q"), False)
+		self.app.commands["q!"] = (partial(self.overloaded_quit, True), self.app.get_translation("commands"), True)
+		self.app.commands["qs!"] = (partial(self.overloaded_quit, True, True), self.app.get_translation("commands", "qs!"), True)
 
 		# Connects to the server
 		# TODO: solid menu
@@ -79,6 +92,11 @@ class ExamPlugin(Plugin):
 
 		# Removes input control from the user
 		self.app.input_locked = True
+
+		# Creates a thread to receive information from the server
+		self.recv_thread_running = True
+		self.socket.settimeout(0.25)
+		self.recv_thread.start()
 
 
 	def connect_to_server(self):
@@ -126,6 +144,26 @@ class ExamPlugin(Plugin):
 		return decoded_data
 
 
+	def information_reception_loop(self):
+		"""
+		Accepts clients in a loop.
+		"""
+		while self.recv_thread_running:
+			# Tries to receive an incoming connection from a client
+			try:
+				received_info = self.receive_information()
+
+			# If no connection is established within the given timeout, we skip over to the next iteration.
+			# This allows to kill the thread cleanly when the program terminates, rather than it being stuck forever.
+			except socket.timeout:
+				pass
+
+			# If this condition is reached, a connection was established and we are sending the corresponding
+			# information to the client.
+			else:
+				self.handle_received_information(received_info)
+
+
 	def fixed_update(self):
 		# While the clock stopwatch is disabled, we reset its time
 		if self.stopwatch_plugin.enabled is False:
@@ -136,6 +174,24 @@ class ExamPlugin(Plugin):
 				self.stopwatch_plugin.stopwatch_value[0] * 3600
 			)
 			self.stopwatch_plugin.display(1.0)
+
+	def handle_received_information(self, received_info: str) -> None:
+		"""
+		Hands the information received from the server.
+		:param received_info: Info received straight from the server.
+		"""
+		pass
+
+	def overloaded_quit(self, *args, **kwargs) -> None:
+		"""
+		Overloads the quit command to exit the threads and sockets cleanly.
+		"""
+		self.recv_thread_running = False
+		self.recv_thread.join()
+		self.socket.close()
+
+		# Calls the base quit
+		self._app_default_quit(*args, **kwargs)
 
 
 class EmptyExamPlugin(Plugin):

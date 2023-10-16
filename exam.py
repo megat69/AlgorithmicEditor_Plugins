@@ -96,9 +96,13 @@ class ExamPlugin(Plugin):
 		self.connect_to_server()
 		print(f"Connected to server {self.server_ip} !")
 		# Sends to the server the student information
+		student_info_request = f"SET_STUDENT_INFO:{self.student_last_name}:{self.student_first_name}:"
+		if self.no_student_nbr is False:
+			student_info_request += str(self.student_nbr)
+		else:
+			student_info_request += "STUDENT_NBR_NONE"
 		self.send_information(
-			(f"SET_STUDENT_INFO:{self.student_last_name}:{self.student_first_name}:"
-			f"{self.student_nbr if self.no_student_nbr is False else 'STUDENT_NBR_NONE'}").encode("utf-8")
+			student_info_request.encode("utf-8")
 		)
 
 		# Receives the stopwatch information from the server

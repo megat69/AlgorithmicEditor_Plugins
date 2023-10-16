@@ -507,7 +507,7 @@ class EmptyExamTeacherPlugin(Plugin):
 	An empty plugin, so it doesn't affect anybody.
 	"""
 	def __init__(self, app):
-		super().__init__(app)
+		super().__init__(app, suppress_warnings=True)
 
 
 def init(app):

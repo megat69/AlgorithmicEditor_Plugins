@@ -124,7 +124,8 @@ class ExamTeacherPlugin(Plugin):
 		# The functions handling all incoming requests
 		self.received_info_functions: Dict[str, Callable[[Self, int, str, socket.socket, str, int, Student], None]] = {
 			"SET_STUDENT_INFO": self.handle_SET_STUDENT_INFO,
-			"CLIENT_SHUTDOWN": self.handle_CLIENT_SHUTDOWN
+			"CLIENT_SHUTDOWN": self.handle_CLIENT_SHUTDOWN,
+			"END_CONNECTION": lambda *args: None
 		}
 
 
@@ -269,9 +270,12 @@ class ExamTeacherPlugin(Plugin):
 		client_student_info = self.clients[client_id][1]
 
 		# Hands the request
-		self.received_info_functions[request_header](
-			client_id, server_info, client_socket, client_ip, client_port, client_student_info
-		)
+		try:
+			self.received_info_functions[request_header](
+				client_id, server_info, client_socket, client_ip, client_port, client_student_info
+			)
+		except KeyError as e:
+			print(e)
 
 
 	def change_port(self, in_init_display_menu: bool = False):
@@ -399,8 +403,13 @@ class ExamTeacherPlugin(Plugin):
 		# Sends the data to the client
 		total_data_sent = 0
 		while total_data_sent < len(data):
-			sent = client.send(data[total_data_sent:])
-			if sent == 0:  # If the connection didn't go through
+			try:
+				sent = client.send(data[total_data_sent:])
+			except ConnectionError:
+				went_through = False
+			else:
+				went_through = True
+			if sent == 0 or not went_through:  # If the connection didn't go through
 				# Removes the client from the list of connected clients
 				self.clients.pop(client_index)
 				# Errors out
@@ -501,7 +510,6 @@ class ExamTeacherPlugin(Plugin):
 			message,
 			curses.color_pair(self.stopwatch_plugin.high_time_left_color)
 		)
-		# TODO: Debug clients being None None with --nostudent
 
 	def handle_CLIENT_SHUTDOWN(
 			self, client_index: int, server_info: str, client_socket: socket.socket, client_ip: str,

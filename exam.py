@@ -82,6 +82,7 @@ class ExamPlugin(Plugin):
 		if self.stopwatch_plugin.was_initialized is False:
 			self.stopwatch_plugin.init()
 			self.stopwatch_plugin.was_initialized = True
+			self.stopwatch_plugin.prevent_key_input_on_stop = True
 
 		# Overloads the quit command to be able to close the sockets and threads in a clean manner
 		self._app_default_quit = self.app.quit

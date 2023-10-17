@@ -148,16 +148,59 @@ class ExamPlugin(Plugin):
 		"""
 		Tries to connect to the teacher's computer (server).
 		"""
+		menu_items = ["", "25565"]
+		menu_translations = (
+			self.translate("input_ip"),
+			self.translate("input_port")
+		)
 		retry = True
 		while retry:
 			# Makes the user input the IP then the port
 			self.app.stdscr.clear()
-			self.app.stdscr.addstr(self.app.rows // 2, 4, self.translate("input_ip") + " : ")
-			self.server_ip = input_text(self.app.stdscr, 4 + len(self.translate("input_ip")) + 3, self.app.rows // 2)
-			self.app.stdscr.addstr(self.app.rows // 2, 4, self.translate("input_port") + " : ")
-			self.server_port = int(
-				input_text(self.app.stdscr, 4 + len(self.translate("input_port")) + 3, self.app.rows // 2)
-			)
+			key = ''
+			selected_item = 0
+			max_item = 2
+			while key not in ('\n', "PADENTER", '\t') or selected_item != max_item:
+				for i, val in enumerate(menu_items):
+					self.app.stdscr.addstr(
+						self.app.rows // 2 + i, 4,
+						menu_translations[i] + " : " + str(menu_items[i]),
+						curses.A_REVERSE if selected_item == i else curses.A_NORMAL
+					)
+				self.app.stdscr.addstr(
+					self.app.rows // 2 + max_item, 4,
+					"Done", curses.A_REVERSE if selected_item == max_item else curses.A_NORMAL
+				)
+
+				# Gets the new key
+				key = self.app.stdscr.getkey()
+				if key in ('\n', '\t', "PADENTER", "KEY_DOWN"):
+					if (selected_item == max_item and key == "KEY_DOWN") or selected_item != max_item:
+						selected_item += 1
+						selected_item %= max_item + 1
+				elif key == "KEY_UP":
+					selected_item -= 1
+					if selected_item < 0:
+						selected_item = max_item
+				elif key in ('\b', '\0', "KEY_BACKSPACE"):
+					if selected_item != max_item:
+						menu_items[selected_item] = menu_items[selected_item][:-1]
+					self.app.stdscr.clear()
+				elif selected_item != max_item:
+					if key in string.digits + ('.' if selected_item == 0 else ''):
+						menu_items[selected_item] += key
+
+
+			# Validates the ip and continues to next iteration if it is not valid
+			self.server_ip = menu_items[0]
+			print(self.server_ip, self.server_ip.count('.'), [len(e) > 3 or len(e) == 0 for e in self.server_ip.split('.')])
+			if self.server_ip.count('.') != 3 or any(len(e) > 3 or len(e) == 0 for e in self.server_ip.split('.')):
+				continue
+			try:
+				self.server_port = int(menu_items[1])
+			except ValueError:
+				continue
+			print("passed")
 
 			# Connects to the server
 			try:
@@ -208,7 +251,7 @@ class ExamPlugin(Plugin):
 				if selected_item < 0:
 					selected_item = max_menu_item
 			elif key in ('\b', '\0', "KEY_BACKSPACE"):
-				if menu_items != max_menu_item:
+				if selected_item != max_menu_item:
 					menu_items[selected_item] = menu_items[selected_item][:-1]
 				self.app.stdscr.clear()
 			elif key in string.ascii_uppercase + string.ascii_lowercase + string.digits + ' -/':

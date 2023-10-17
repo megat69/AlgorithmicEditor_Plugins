@@ -32,6 +32,11 @@ class ExamTeacherPlugin(Plugin):
 			if "--netdeb" not in sys.argv else
 		"127.0.0.1"
 	)
+	RECV_BASE_SIZE = (
+		2
+			if "--bytelen" not in sys.argv else
+		int(sys.argv[sys.argv.index("--bytelen") + 1])
+	)
 	__singleton = None
 
 	def __new__(cls, *args, **kwargs):
@@ -226,7 +231,7 @@ class ExamTeacherPlugin(Plugin):
 		client_socket = self.clients[client_id][0][0]
 		# Reads a first two bytes of information : these contain the size of the message sent by the server
 		try:
-			message_size_bytes = client_socket.recv(2)
+			message_size_bytes = client_socket.recv(ExamTeacherPlugin.RECV_BASE_SIZE)
 		except socket.timeout:
 			return None
 		message_size = int(message_size_bytes.decode("utf-8"))

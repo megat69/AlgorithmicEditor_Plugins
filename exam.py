@@ -121,9 +121,7 @@ class ExamPlugin(Plugin):
 			student_info_request += str(self.student_nbr)
 		else:
 			student_info_request += "STUDENT_NBR_NONE"
-		self.send_information(
-			student_info_request.encode("utf-8")
-		)
+		self.send_information(student_info_request.encode("utf-8"))
 
 		# Receives the stopwatch information from the server
 		temp_stopwatch_info = self.receive_information()
@@ -206,6 +204,9 @@ class ExamPlugin(Plugin):
 			except ConnectionError:
 				self.app.stdscr.addstr(self.app.rows // 2, 4, self.translate("connection_error"))
 				self.app.stdscr.getch()
+			except TimeoutError:
+				self.app.stdscr.addstr(self.app.rows // 2, 4, self.translate("connection_error"))
+				self.app.stdscr.getch()
 			else:
 				retry = False
 
@@ -255,6 +256,9 @@ class ExamPlugin(Plugin):
 			elif key in string.ascii_uppercase + string.ascii_lowercase + string.digits + ' -/':
 				if self.no_student_nbr is False or selected_item != 2:
 					menu_items[selected_item] += key
+
+		# Sets the student information
+		self.student_last_name, self.student_first_name, self.student_nbr = menu_items
 
 
 	def receive_information(self) -> str:

@@ -193,14 +193,12 @@ class ExamPlugin(Plugin):
 
 			# Validates the ip and continues to next iteration if it is not valid
 			self.server_ip = menu_items[0]
-			print(self.server_ip, self.server_ip.count('.'), [len(e) > 3 or len(e) == 0 for e in self.server_ip.split('.')])
 			if self.server_ip.count('.') != 3 or any(len(e) > 3 or len(e) == 0 for e in self.server_ip.split('.')):
 				continue
 			try:
 				self.server_port = int(menu_items[1])
 			except ValueError:
 				continue
-			print("passed")
 
 			# Connects to the server
 			try:

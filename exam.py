@@ -4,6 +4,7 @@ import socket
 import threading
 import time
 from functools import partial
+from typing import Dict, Callable, Self
 
 from plugin import Plugin
 from utils import display_menu, input_text
@@ -80,6 +81,12 @@ class ExamPlugin(Plugin):
 		self.student_last_name: str = None
 		self.student_first_name: str = None
 		self.student_nbr: str = None
+
+		# The functions handling all incoming requests
+		self.received_info_functions: Dict[str, Callable[[Self, str], None]] = {
+			"START_EXAM": self.handle_START_EXAM,
+			"END_CONNECTION": self.handle_END_CONNECTION
+		}
 
 
 	def init(self):
@@ -265,21 +272,32 @@ class ExamPlugin(Plugin):
 		server_info = received_info[len(request_header)+1:]
 
 		# Based on the request header, performs the correct operations
-		if request_header == "START_EXAM":  # Starts the exam
-			# Enables the stopwatch
-			self.stopwatch_plugin.enabled = True
-			# Unlocks the input and allows the user to type in the editor
-			self.app.input_locked = False
-			# Displays a message to warn the user that the exam is up
-			self.app.stdscr.addstr(
-				self.app.rows // 2,
-				self.app.cols // 2 - len(self.translate("exam_started")) // 2,
-				self.translate("exam_started"),
-				curses.color_pair(self.stopwatch_plugin.low_time_left_color) | curses.A_REVERSE
-			)
+		self.received_info_functions[request_header](server_info)
 
-		elif request_header == "END_CONNECTION":  # Ends the connection with the server
-			self.send_information("END_CONNECTION:".encode("utf-8"))
+
+	def handle_START_EXAM(self, server_info: str):
+		"""
+		Starts the exam on this client.
+		"""
+		# Enables the stopwatch
+		self.stopwatch_plugin.enabled = True
+		# Unlocks the input and allows the user to type in the editor
+		self.app.input_locked = False
+		# Displays a message to warn the user that the exam is up
+		self.app.stdscr.addstr(
+			self.app.rows // 2,
+			self.app.cols // 2 - len(self.translate("exam_started")) // 2,
+			self.translate("exam_started"),
+			curses.color_pair(self.stopwatch_plugin.low_time_left_color) | curses.A_REVERSE
+		)
+
+
+	def handle_END_CONNECTION(self, server_info: str):
+		"""
+		Ends the handshake with the server.
+		"""
+		self.send_information("END_CONNECTION:".encode("utf-8"))
+
 
 	def overloaded_quit(self, *args, **kwargs) -> None:
 		"""

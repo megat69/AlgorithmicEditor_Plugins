@@ -3,7 +3,7 @@ import sys
 import socket
 from dataclasses import dataclass
 from functools import partial
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict, Callable, Self
 import threading
 
 from utils import display_menu
@@ -120,6 +120,12 @@ class ExamTeacherPlugin(Plugin):
 
 		# Additional variables
 		self.exam_started = False
+
+		# The functions handling all incoming requests
+		self.received_info_functions: Dict[str, Callable[[Self, int, str, socket.socket, str, int, Student], None]] = {
+			"SET_STUDENT_INFO": self.handle_SET_STUDENT_INFO,
+			"CLIENT_SHUTDOWN": self.handle_CLIENT_SHUTDOWN
+		}
 
 
 	def init(self):
@@ -263,45 +269,9 @@ class ExamTeacherPlugin(Plugin):
 		client_student_info = self.clients[client_id][1]
 
 		# Hands the request
-		if request_header == "SET_STUDENT_INFO":  # Sets the client's student info (name, student number, etc...)
-			student_info_data = server_info.split(":")
-			client_student_info.last_name = student_info_data[0]
-			client_student_info.first_name = student_info_data[1]
-			if student_info_data[2] != "STUDENT_NBR_NONE":
-				client_student_info.student_nbr = student_info_data[2]
-			# Also warns the teacher a new student joined
-			message = self.translate(
-				"client_join",
-				last_name=client_student_info.last_name,
-				first_name=client_student_info.first_name,
-				ip=client_ip,
-				port=client_port
-			)
-			self.app.stdscr.addstr(
-				self.app.rows // 2,
-				self.app.cols // 2 - len(message) // 2,
-				message,
-				curses.color_pair(self.stopwatch_plugin.high_time_left_color)
-			)
-			print(client_student_info, student_info_data)
-			print(self.clients)
-
-		elif request_header == "CLIENT_SHUTDOWN":  # When a client quits
-			message = self.translate(
-				"client_shutdown",
-				last_name=client_student_info.last_name,
-				first_name=client_student_info.first_name,
-				ip=client_ip,
-				port=client_port
-			)
-			self.app.stdscr.addstr(
-				self.app.rows // 2,
-				self.app.cols // 2 - len(message) // 2,
-				message,
-				curses.color_pair(self.stopwatch_plugin.low_time_left_color) | curses.A_REVERSE
-			)
-			print(message)
-			self.clients.pop(client_id)
+		self.received_info_functions[request_header](
+			client_id, server_info, client_socket, client_ip, client_port, client_student_info
+		)
 
 
 	def change_port(self, in_init_display_menu: bool = False):
@@ -505,6 +475,56 @@ class ExamTeacherPlugin(Plugin):
 	def manage_individual_student(self, client_index: int):
 		pass
 
+	def handle_SET_STUDENT_INFO(
+			self, client_index: int, server_info: str, client_socket: socket.socket, client_ip: str,
+			client_port: int, client_student_info: Student
+	):
+		"""
+		Gets the student info from the client.
+		"""
+		student_info_data = server_info.split(":")
+		client_student_info.last_name = student_info_data[0]
+		client_student_info.first_name = student_info_data[1]
+		if student_info_data[2] != "STUDENT_NBR_NONE":
+			client_student_info.student_nbr = student_info_data[2]
+		# Also warns the teacher a new student joined
+		message = self.translate(
+			"client_join",
+			last_name=client_student_info.last_name,
+			first_name=client_student_info.first_name,
+			ip=client_ip,
+			port=client_port
+		)
+		self.app.stdscr.addstr(
+			self.app.rows // 2,
+			self.app.cols // 2 - len(message) // 2,
+			message,
+			curses.color_pair(self.stopwatch_plugin.high_time_left_color)
+		)
+		# TODO: Debug clients being None None with --nostudent
+
+	def handle_CLIENT_SHUTDOWN(
+			self, client_index: int, server_info: str, client_socket: socket.socket, client_ip: str,
+			client_port: int, client_student_info: Student
+	):
+		"""
+		When a client disconnects.
+		"""
+		message = self.translate(
+			"client_shutdown",
+			last_name=client_student_info.last_name,
+			first_name=client_student_info.first_name,
+			ip=client_ip,
+			port=client_port
+		)
+		self.app.stdscr.addstr(
+			self.app.rows // 2,
+			self.app.cols // 2 - len(message) // 2,
+			message,
+			curses.color_pair(self.stopwatch_plugin.low_time_left_color) | curses.A_REVERSE
+		)
+		print(message)
+		self.clients.pop(client_index)
 
 
 class EmptyExamTeacherPlugin(Plugin):

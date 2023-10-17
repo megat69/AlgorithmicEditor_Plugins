@@ -452,7 +452,9 @@ class ExamTeacherPlugin(Plugin):
 			tuple(commands),
 			label = self.translate("exam_menu", "label"),
 			space_out_last_option = True,
-			allow_key_input = True
+			allow_key_input = True,
+			highlight_indexes = (0,),
+			highlight_pair = self.stopwatch_plugin.low_time_left_color
 		)
 
 

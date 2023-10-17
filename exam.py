@@ -177,23 +177,20 @@ class ExamPlugin(Plugin):
 		key = ''
 		selected_item = 0
 		max_menu_item = (2 + (not self.no_student_nbr))
+		menu_items = [self.student_last_name, self.student_first_name, self.student_nbr]
+		menu_translations = [
+			self.translate("input_last_name"),
+			self.translate("input_first_name"),
+			self.translate("input_student_nbr")
+		]
 		while selected_item != max_menu_item or key not in ('\n', "PADENTER"):
-			self.app.stdscr.addstr(
-				self.app.rows // 2, 4,
-				self.translate("input_last_name") + " : " + self.student_last_name,
-				curses.A_REVERSE if selected_item == 0 else curses.A_NORMAL
-			)
-			self.app.stdscr.addstr(
-				self.app.rows // 2 + 1, 4,
-				self.translate("input_first_name") + " : " + self.student_first_name,
-				curses.A_REVERSE if selected_item == 1 else curses.A_NORMAL
-			)
-			if self.no_student_nbr is False:
-				self.app.stdscr.addstr(
-					self.app.rows // 2 + 2, 4,
-					self.translate("input_student_nbr") + " : " + self.student_nbr,
-					curses.A_REVERSE if selected_item == 2 else curses.A_NORMAL
-				)
+			for i, val in enumerate(menu_translations):
+				if self.no_student_nbr is False or i != 2:
+					self.app.stdscr.addstr(
+						self.app.rows // 2 + i, 4,
+						val + " : " + menu_items[i],
+						curses.A_REVERSE if selected_item == i else curses.A_NORMAL
+					)
 			self.app.stdscr.addstr(
 				self.app.rows // 2 + max_menu_item, 4,
 				"Done",
@@ -203,7 +200,7 @@ class ExamPlugin(Plugin):
 			# Gets the key input
 			key = self.app.stdscr.getkey()
 			if key in ('\n', '\t', "PADENTER", "KEY_DOWN"):
-				if not (key == '\n' and selected_item == max_menu_item):
+				if (selected_item == max_menu_item and key == "KEY_DOWN") or selected_item != max_menu_item:
 					selected_item += 1
 					selected_item %= max_menu_item + 1
 			elif key == "KEY_UP":
@@ -211,20 +208,12 @@ class ExamPlugin(Plugin):
 				if selected_item < 0:
 					selected_item = max_menu_item
 			elif key in ('\b', '\0', "KEY_BACKSPACE"):
-				if selected_item == 0:
-					self.student_last_name = self.student_last_name[:-1]
-				elif selected_item == 1:
-					self.student_first_name = self.student_first_name[:-1]
-				elif selected_item == 2 and self.no_student_nbr is False:
-					self.student_nbr = self.student_nbr[:-1]
+				if menu_items != max_menu_item:
+					menu_items[selected_item] = menu_items[selected_item][:-1]
 				self.app.stdscr.clear()
 			elif key in string.ascii_uppercase + string.ascii_lowercase + string.digits + ' -/':
-				if selected_item == 0:
-					self.student_last_name += key
-				elif selected_item == 1:
-					self.student_first_name += key
-				elif selected_item == 2 and self.no_student_nbr is False:
-					self.student_nbr += key
+				if self.no_student_nbr is False or selected_item != 2:
+					menu_items[selected_item] += key
 
 
 	def receive_information(self) -> str:

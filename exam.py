@@ -47,7 +47,8 @@ class ExamPlugin(Plugin):
 				"exam_started": "The exam has started !",
 				"input_last_name": "Input your last name",
 				"input_first_name": "Input your first name",
-				"input_student_nbr": "Input your student number"
+				"input_student_nbr": "Input your student number",
+				"exam_over": "The exam is over ! "
 			},
 			"fr": {
 				"input_ip": "Entrez l'adresse IP",
@@ -56,7 +57,8 @@ class ExamPlugin(Plugin):
 				"exam_started": "L'examen a commencé !",
 				"input_last_name": "Entrez votre nom de famille",
 				"input_first_name": "Entrez votre prénom",
-				"input_student_nbr": "Entrez votre numéro étudiant"
+				"input_student_nbr": "Entrez votre numéro étudiant",
+				"exam_over": "L'examen est terminé ! "
 			}
 		}
 		# Removes any stopwatch information from the CLI arguments
@@ -338,6 +340,14 @@ class ExamPlugin(Plugin):
 				self.stopwatch_plugin.stopwatch_value[0] * 3600
 			)
 			self.stopwatch_plugin.display(1.0)
+		elif all(value == 0 for value in self.stopwatch_plugin.stopwatch_value):
+			self.stopwatch_plugin.display(1.0)
+			self.app.stdscr.addstr(
+				self.app.rows - 4,
+				self.app.cols - 9 - len(self.translate("exam_over")),
+				self.translate("exam_over"),
+				curses.color_pair(self.stopwatch_plugin.low_time_left_color) | curses.A_REVERSE
+			)
 
 
 

@@ -18,6 +18,11 @@ else:
 
 
 class ExamPlugin(Plugin):
+	RECV_BASE_SIZE = (
+		2
+		if "--bytelen" not in sys.argv else
+		int(sys.argv[sys.argv.index("--bytelen") + 1])
+	)
 	__singleton = None
 
 	def __new__(cls, *args, **kwargs):
@@ -177,7 +182,7 @@ class ExamPlugin(Plugin):
 		:return: The data from the server as a string.
 		"""
 		# Reads a first two bytes of information : these contain the size of the message sent by the server
-		message_size_bytes = self.socket.recv(2)
+		message_size_bytes = self.socket.recv(ExamPlugin.RECV_BASE_SIZE)
 		message_size = int(message_size_bytes.decode("utf-8"))
 
 		# Now reads from the server the amount of data to be received

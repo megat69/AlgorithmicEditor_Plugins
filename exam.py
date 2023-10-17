@@ -84,6 +84,12 @@ class ExamPlugin(Plugin):
 			self.stopwatch_plugin.was_initialized = True
 			self.stopwatch_plugin.prevent_key_input_on_stop = True
 
+		# Removes the stopwatch option so that the student cannot change the time left
+		for option in self.app.options_list.copy():
+			if option[0] == self.stopwatch_plugin.translate("prevent_key_input_on_stop") or\
+					option[0] == self.stopwatch_plugin.translate("enable_stopwatch"):
+				self.app.options_list.remove(option)
+
 		# Overloads the quit command to be able to close the sockets and threads in a clean manner
 		self._app_default_quit = self.app.quit
 		self.app.quit = self.overloaded_quit

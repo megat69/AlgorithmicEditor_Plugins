@@ -48,7 +48,8 @@ class ExamPlugin(Plugin):
 				"input_last_name": "Input your last name",
 				"input_first_name": "Input your first name",
 				"input_student_nbr": "Input your student number",
-				"exam_over": "The exam is over ! "
+				"exam_over": "The exam is over ! ",
+				"no_stopwatch": "Display the stopwatch"
 			},
 			"fr": {
 				"input_ip": "Entrez l'adresse IP",
@@ -58,7 +59,8 @@ class ExamPlugin(Plugin):
 				"input_last_name": "Entrez votre nom de famille",
 				"input_first_name": "Entrez votre prénom",
 				"input_student_nbr": "Entrez votre numéro étudiant",
-				"exam_over": "L'examen est terminé ! "
+				"exam_over": "L'examen est terminé ! ",
+				"no_stopwatch": "Afficher le compte à rebours"
 			}
 		}
 		# Removes any stopwatch information from the CLI arguments
@@ -68,6 +70,7 @@ class ExamPlugin(Plugin):
 			sys.argv.pop(idx)  # Popping twice to remove the parameter
 		# Adds the stopwatch plugin to this
 		self.stopwatch_plugin = StopwatchPlugin(app)
+		self._stopwatch_display_function = self.stopwatch_plugin.display
 
 		# Remembers the current network info
 		self.server_ip = None
@@ -91,6 +94,9 @@ class ExamPlugin(Plugin):
 			"END_CONNECTION": self.handle_END_CONNECTION
 		}
 
+		# Additional variables
+		self.show_stopwatch = True
+
 
 	def init(self):
 		# Inits the Stopwatch plugin
@@ -104,6 +110,12 @@ class ExamPlugin(Plugin):
 			if option[0] == self.stopwatch_plugin.translate("prevent_key_input_on_stop") or\
 					option[0] == self.stopwatch_plugin.translate("enable_stopwatch"):
 				self.app.options_list.remove(option)
+
+		# Adds an option not to display the stopwatch
+		self.show_stopwatch = self.get_config("show_stopwatch", True)
+		self.add_option(self.translate("no_stopwatch"), lambda: self.show_stopwatch, self.toggle_stopwatch_display)
+		if self.show_stopwatch is False:
+			self.stopwatch_plugin.display = lambda n: None
 
 		# Overloads the quit command to be able to close the sockets and threads in a clean manner
 		self._app_default_quit = self.app.quit
@@ -399,6 +411,17 @@ class ExamPlugin(Plugin):
 
 		# Calls the base quit
 		self._app_default_quit(*args, **kwargs)
+
+
+	def toggle_stopwatch_display(self):
+		self.show_stopwatch = not self.show_stopwatch
+		self.config["show_stopwatch"] = self.show_stopwatch
+
+		# Removes or adds the function of the plugin back on
+		if self.show_stopwatch:
+			self.stopwatch_plugin.display = self._stopwatch_display_function
+		else:
+			self.stopwatch_plugin.display = lambda n: None
 
 
 class EmptyExamPlugin(Plugin):

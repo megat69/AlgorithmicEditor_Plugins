@@ -60,7 +60,7 @@ class ExamTeacherPlugin(Plugin):
 				"ip": "IP : {ip}",
 				"port": "Port : {port}",
 				"server_online": "Server online !",
-				"clients_connected": "{count} clients connected",
+				"clients_connected": "({count} clients connected)",
 				"open_exam_menu": "Open exam menu",
 				"exam_menu": {
 					"label": "Exam menu",
@@ -80,7 +80,7 @@ class ExamTeacherPlugin(Plugin):
 				"ip": "IP : {ip}",
 				"port": "Port : {port}",
 				"server_online": "Serveur en ligne !",
-				"clients_connected": "{count} clients connectés",
+				"clients_connected": "({count} clients connectés)",
 				"open_exam_menu": "Ouvrir le menu examen",
 				"exam_menu": {
 					"label": "Menu Examen",
@@ -325,26 +325,18 @@ class ExamTeacherPlugin(Plugin):
 
 	def fixed_update(self):
 		# Shows the IP and port in the bottom right corner of the screen
-		self.app.stdscr.addstr(
-			self.app.rows - 4,
-			self.app.cols - len(self.translate("port", port=self.port)),
-			self.translate("port", port=self.port)
-		)
-		self.app.stdscr.addstr(
-			self.app.rows - 5,
-			self.app.cols - len(self.translate("ip", ip=self.ip)),
-			self.translate("ip", ip=self.ip)
-		)
-		self.app.stdscr.addstr(
-			self.app.rows - 6,
-			self.app.cols - len(self.translate("clients_connected", count=len(self.clients))) - 2,
-			'(' + self.translate("clients_connected", count=len(self.clients)) + ')'
-		)
-		self.app.stdscr.addstr(
-			self.app.rows - 7,
-			self.app.cols - len(self.translate("server_online")),
+		BASE_HEIGHT = self.app.rows - 5
+		for i, msg in enumerate((
+			self.translate("port", port=self.port),
+			self.translate("ip", ip=self.ip),
+			self.translate("clients_connected", count=len(self.clients)),
 			self.translate("server_online")
-		)
+		)):
+			self.app.stdscr.addstr(
+				BASE_HEIGHT - i,
+				self.app.cols - len(msg),
+				msg
+			)
 
 
 	def overloaded_quit(self, *args, **kwargs) -> None:
@@ -428,6 +420,7 @@ class ExamTeacherPlugin(Plugin):
 		if self.exam_started is False:
 			def start_exam():
 				self.exam_started = True
+				self.stopwatch_plugin.enabled = True
 				self.send_information("START_EXAM:".encode("utf-8"))
 			commands.append(
 				(

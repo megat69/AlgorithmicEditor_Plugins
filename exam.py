@@ -161,6 +161,10 @@ class ExamPlugin(Plugin):
 		Tries to connect to the teacher's computer (server).
 		"""
 		menu_items = ["", "25565"]
+		if "--ip" in sys.argv:
+			menu_items[0] = sys.argv[sys.argv.index("--ip") + 1]
+		if "--port" in sys.argv:
+			menu_items[1] = sys.argv[sys.argv.index("--port") + 1]
 		menu_translations = (
 			self.translate("input_ip"),
 			self.translate("input_port")

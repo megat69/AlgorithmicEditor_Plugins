@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import os
 import hashlib
 from concurrent.futures import ThreadPoolExecutor
-from typing import List, Union
+from typing_extensions import List, Union
 
 from plugin import Plugin
 from utils import display_menu

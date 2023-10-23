@@ -4,7 +4,7 @@ from dataclasses import dataclass, asdict
 from functools import partial
 import json
 import sys
-from typing import Literal
+from typing_extensions import Literal
 
 from plugin import Plugin
 from utils import browse_files, input_text, display_menu

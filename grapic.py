@@ -1,4 +1,4 @@
-from typing import Callable
+from typing_extensions import Callable
 
 from plugin import Plugin
 from algorithmic_compiler import AlgorithmicCompiler

@@ -202,10 +202,12 @@ class StopwatchPlugin(Plugin):
 					self.app.input_locked = True
 
 
-	def display(self, time_left: float):
+	def display(self, time_left: float, position_y: int = None, position_x: int = None):
 		"""
 		Displays the stopwatch.
 		:param time_left: How much time is left in the stopwatch.
+		:param position_y: A position to display the stopwatch in, in rows. Optional.
+		:param position_x: A position to display the stopwatch in, in columns. Optional.
 		"""
 		if any(value != 0 for value in self.stopwatch_value):
 			# Gets the correct color
@@ -228,8 +230,8 @@ class StopwatchPlugin(Plugin):
 
 		# Displays the current value
 		self.app.stdscr.addstr(
-			self.app.rows - 4,
-			self.app.cols - 9,
+			self.app.rows - 4 if position_y is None else position_y,
+			self.app.cols - 9 if position_x is None else position_x,
 			self.stopwatch_str,
 			curses.color_pair(color) | blink
 		)

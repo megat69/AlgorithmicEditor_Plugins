@@ -377,7 +377,10 @@ class ExamPlugin(Plugin):
 		server_info = received_info[len(request_header)+1:]
 
 		# Based on the request header, performs the correct operations
-		self.received_info_functions[request_header](server_info)
+		try:
+			self.received_info_functions[request_header](server_info)
+		except KeyError:
+			print(f"Unknown server request header '{request_header}'")
 
 
 	def handle_START_EXAM(self, server_info: str):

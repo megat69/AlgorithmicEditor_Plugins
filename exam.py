@@ -4,7 +4,7 @@ import socket
 import threading
 import time
 from functools import partial
-from typing import Dict, Callable, Self
+from typing_extensions import Dict, Callable, Self
 import string
 
 from plugin import Plugin

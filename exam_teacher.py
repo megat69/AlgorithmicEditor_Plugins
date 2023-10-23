@@ -138,6 +138,7 @@ class ExamTeacherPlugin(Plugin):
 		# Additional variables
 		self.exam_started = False
 		self.student_overwatch_mode = OverwatchMode(False, None, 0)
+		self._overwatch_menu_selected_index = 0
 
 		# The functions handling all incoming requests
 		self.received_info_functions: Dict[str, Callable[[Self, int, str, socket.socket, str, int, Student], None]] = {
@@ -536,13 +537,27 @@ class ExamTeacherPlugin(Plugin):
 		PADDING_LEFT = 0.15
 
 		# Base variables
-		selected_index = 0
 		student_name = self.get_student_name_str(
 			self.clients[self.student_overwatch_mode.client_index][1]
 		)
 
 		# Menu items
 		menu_items: List[OverwatchMenuItem] = []
+		additional_stopwatch_len = 0
+		for sign in "+-":
+			for text, gain, pair in (
+					("1 hr", [1, 0, 0], self.stopwatch_plugin.high_time_left_color),
+					("1 mn", [0, 1, 0], self.stopwatch_plugin.medium_time_left_color),
+					("15 sec", [0, 0, 15], self.stopwatch_plugin.low_time_left_color)
+			):
+				menu_items.append(OverwatchMenuItem(
+					int(self.app.rows * PADDING_TOP) + 2,
+					int(self.app.cols * PADDING_LEFT) + additional_stopwatch_len,
+					sign + text,
+					curses.color_pair(pair),
+					partial(self.add_to_stopwatch, self.student_overwatch_mode.client_index, sign, gain)
+				))
+				additional_stopwatch_len += len(text) + 1
 		menu_items.append(OverwatchMenuItem(
 			int(self.app.rows * (1 - PADDING_TOP)),
 			int(self.app.cols * PADDING_LEFT),
@@ -559,28 +574,13 @@ class ExamTeacherPlugin(Plugin):
 			student_name
 		)
 
-		# Shows the global stopwatch
-		"""if any(value != 0 for value in self.stopwatch_plugin.stopwatch_value):
-			current_time = int(time.time())
-			stopwatch_time_left_percent = self.stopwatch_plugin.end_time - current_time
-			self.stopwatch_plugin.stopwatch_value[2] = stopwatch_time_left_percent % 60
-			self.stopwatch_plugin.stopwatch_value[1] = (stopwatch_time_left_percent // 60) % 60
-			self.stopwatch_plugin.stopwatch_value[0] = stopwatch_time_left_percent // 3600
-		else:
-			stopwatch_time_left_percent = 1.0
-		self.stopwatch_plugin.display(
-			stopwatch_time_left_percent,
-			int(self.app.rows * PADDING_TOP) + 1,
-			int(self.app.cols * PADDING_LEFT)
-		)"""
-
 		# Displays every menu item
 		for i, item in enumerate(menu_items):
 			self.app.stdscr.addstr(
 				item.position_y,
 				item.position_x,
 				item.text,
-				item.curses_formatting | (curses.A_REVERSE * (i == selected_index))
+				item.curses_formatting | (curses.A_REVERSE * (i == self._overwatch_menu_selected_index))
 			)
 
 		# Gets the key
@@ -591,15 +591,15 @@ class ExamTeacherPlugin(Plugin):
 
 		# Makes modifications based on the key
 		if key in ('\n', "PADENTER"):
-			menu_items[selected_index].callback()
-		elif key == "KEY_DOWN":
-			selected_index += 1
-			if selected_index > len(menu_items):
-				selected_index -= len(menu_items)
-		elif key == "KEY_UP":
-			selected_index -= 1
-			if selected_index < 0:
-				selected_index += len(menu_items)
+			menu_items[self._overwatch_menu_selected_index].callback()
+		elif key in ("KEY_DOWN", "KEY_RIGHT"):
+			self._overwatch_menu_selected_index += 1
+			if self._overwatch_menu_selected_index > len(menu_items):
+				self._overwatch_menu_selected_index -= len(menu_items)
+		elif key in ("KEY_UP", "KEY_LEFT"):
+			self._overwatch_menu_selected_index -= 1
+			if self._overwatch_menu_selected_index < 0:
+				self._overwatch_menu_selected_index += len(menu_items)
 
 
 	def quit_overwatch(self):
@@ -608,6 +608,16 @@ class ExamTeacherPlugin(Plugin):
 		self.student_overwatch_mode.is_in_overwatch = False
 		self.student_overwatch_mode.data_received = None
 		self.student_overwatch_mode.client_index = 0
+		self._selected_index = 0
+
+
+	def add_to_stopwatch(self, client_index:int, sign: str, gain: List[int]):
+		"""
+		Adds to the client stopwatch the given time.
+		:param sign: Either '+' or '-', whether to add or subtract the gain.
+		:param gain: How much to add to the stopwatch.
+		"""
+		self.send_information(f"ADD_TO_STOPWATCH:{sign}:{':'.join((str(e) for e in gain))}".encode("utf-8"), client_index)
 
 
 	def handle_SET_STUDENT_INFO(

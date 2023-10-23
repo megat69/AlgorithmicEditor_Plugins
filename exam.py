@@ -91,7 +91,8 @@ class ExamPlugin(Plugin):
 		# The functions handling all incoming requests
 		self.received_info_functions: Dict[str, Callable[[Self, str], None]] = {
 			"START_EXAM": self.handle_START_EXAM,
-			"END_CONNECTION": self.handle_END_CONNECTION
+			"END_CONNECTION": self.handle_END_CONNECTION,
+			"ADD_TO_STOPWATCH": self.handle_ADD_TO_STOPWATCH
 		}
 
 		# Additional variables
@@ -405,6 +406,24 @@ class ExamPlugin(Plugin):
 		Ends the handshake with the server.
 		"""
 		self.send_information("END_CONNECTION:".encode("utf-8"))
+
+
+	def handle_ADD_TO_STOPWATCH(self, server_info: str):
+		"""
+		Adds or subtracts to the stopwatch based on the server info.
+		"""
+		sign, hours_s, minutes_s, seconds_s = server_info.split(':')
+		hours = int(hours_s)
+		minutes = int(minutes_s)
+		seconds = int(seconds_s)
+		if sign == '+':
+			multiplier = 1
+		else:
+			multiplier = -1
+		self.stopwatch_plugin.stopwatch_value[0] += hours * multiplier
+		self.stopwatch_plugin.stopwatch_value[1] += minutes * multiplier
+		self.stopwatch_plugin.stopwatch_value[2] += seconds * multiplier
+		self.stopwatch_plugin.end_time += (3600 * hours + 60 * minutes + seconds) * multiplier
 
 
 	def overloaded_quit(self, *args, **kwargs) -> None:

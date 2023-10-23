@@ -1,9 +1,10 @@
 import curses
 import sys
 import socket
+import time
 from dataclasses import dataclass
 from functools import partial
-from typing_extensions import List, Optional, Tuple, Dict, Callable, Self
+from typing_extensions import List, Optional, Tuple, Dict, Callable, Any, Self
 import threading
 
 from utils import display_menu
@@ -23,6 +24,22 @@ class Student:
 	last_name: Optional[str] = None
 	first_name: Optional[str] = None
 	student_nbr: Optional[str] = None
+
+
+@dataclass
+class OverwatchMode:
+	is_in_overwatch: bool
+	client_index: int
+	data_received: Optional[dict] = None
+
+
+@dataclass
+class OverwatchMenuItem:
+	position_y: int
+	position_x: int
+	text: str
+	curses_formatting: int
+	callback: Callable[[], Any]
 
 
 
@@ -120,6 +137,7 @@ class ExamTeacherPlugin(Plugin):
 
 		# Additional variables
 		self.exam_started = False
+		self.student_overwatch_mode = OverwatchMode(False, None, 0)
 
 		# The functions handling all incoming requests
 		self.received_info_functions: Dict[str, Callable[[Self, int, str, socket.socket, str, int, Student], None]] = {
@@ -324,13 +342,25 @@ class ExamTeacherPlugin(Plugin):
 
 
 	def fixed_update(self):
+		"""
+		Updates the IP widget and student overwatch
+		"""
 		# Shows the IP and port in the bottom right corner of the screen
+		self.ip_widget()
+
+		# Updates based on the overwatch information
+		if self.student_overwatch_mode.is_in_overwatch:
+			self.overwatch_menu()
+
+
+	def ip_widget(self):
+		""" Shows the IP and port in the bottom right corner of the screen """
 		BASE_HEIGHT = self.app.rows - 5
 		for i, msg in enumerate((
-			self.translate("port", port=self.port),
-			self.translate("ip", ip=self.ip),
-			self.translate("clients_connected", count=len(self.clients)),
-			self.translate("server_online")
+				self.translate("port", port=self.port),
+				self.translate("ip", ip=self.ip),
+				self.translate("clients_connected", count=len(self.clients)),
+				self.translate("server_online")
 		)):
 			self.app.stdscr.addstr(
 				BASE_HEIGHT - i,
@@ -420,6 +450,9 @@ class ExamTeacherPlugin(Plugin):
 		if self.exam_started is False:
 			def start_exam():
 				self.exam_started = True
+				self.stopwatch_plugin.start_time = int(time.time())
+				self.stopwatch_plugin.end_time = int(time.time()) + self.stopwatch_plugin.stopwatch_value[2] + \
+						self.stopwatch_plugin.stopwatch_value[1] * 60 + self.stopwatch_plugin.stopwatch_value[0] * 3600
 				self.stopwatch_plugin.enabled = True
 				self.send_information("START_EXAM:".encode("utf-8"))
 			commands.append(
@@ -451,16 +484,20 @@ class ExamTeacherPlugin(Plugin):
 		)
 
 
+	def get_student_name_str(self, student: Student):
+		student_str = f"{student.last_name} {student.first_name}"
+		if student.student_nbr is not None:
+			student_str += ' ' + student.student_nbr
+		return student_str
+
+
 	def manage_students(self):
 		"""
 		Allows you to manage each student individually.
 		"""
 		commands = [
 			(
-				(
-					f"{student.last_name} {student.first_name}" +
-					 (' ' + student.student_nbr if student.student_nbr is not None else '')
-				),
+				self.get_student_name_str(student),
 				partial(self.manage_individual_student, i)
 			)
 			for i, (_, student) in enumerate(self.clients)
@@ -477,7 +514,101 @@ class ExamTeacherPlugin(Plugin):
 
 
 	def manage_individual_student(self, client_index: int):
-		pass
+		"""
+		Allows to get info or change info from an individual student.
+		:param client_index: The index of the client/student.
+		"""
+		# Asks the student for its information
+		self.send_information("GET_FULL_OVERWATCH:".encode("utf-8"), client_index)
+
+		# Keeps in mind that we are in student overwatch mode
+		self.student_overwatch_mode.is_in_overwatch = True
+		self.student_overwatch_mode.data_received = None
+		self.student_overwatch_mode.client_index = client_index
+
+
+	def overwatch_menu(self):
+		"""
+		Displays and updates a pretty menu for the overwatch.
+		"""
+		# Display config
+		PADDING_TOP = 0.1
+		PADDING_LEFT = 0.15
+
+		# Base variables
+		selected_index = 0
+		student_name = self.get_student_name_str(
+			self.clients[self.student_overwatch_mode.client_index][1]
+		)
+
+		# Menu items
+		menu_items: List[OverwatchMenuItem] = []
+		menu_items.append(OverwatchMenuItem(
+			int(self.app.rows * (1 - PADDING_TOP)),
+			int(self.app.cols * PADDING_LEFT),
+			self.translate("cancel"),
+			curses.A_NORMAL,
+			self.quit_overwatch
+		))
+
+		# Shows the name of the student
+		self.app.stdscr.clear()
+		self.app.stdscr.addstr(
+			int(self.app.rows * PADDING_TOP),
+			int(self.app.cols * PADDING_LEFT),
+			student_name
+		)
+
+		# Shows the global stopwatch
+		"""if any(value != 0 for value in self.stopwatch_plugin.stopwatch_value):
+			current_time = int(time.time())
+			stopwatch_time_left_percent = self.stopwatch_plugin.end_time - current_time
+			self.stopwatch_plugin.stopwatch_value[2] = stopwatch_time_left_percent % 60
+			self.stopwatch_plugin.stopwatch_value[1] = (stopwatch_time_left_percent // 60) % 60
+			self.stopwatch_plugin.stopwatch_value[0] = stopwatch_time_left_percent // 3600
+		else:
+			stopwatch_time_left_percent = 1.0
+		self.stopwatch_plugin.display(
+			stopwatch_time_left_percent,
+			int(self.app.rows * PADDING_TOP) + 1,
+			int(self.app.cols * PADDING_LEFT)
+		)"""
+
+		# Displays every menu item
+		for i, item in enumerate(menu_items):
+			self.app.stdscr.addstr(
+				item.position_y,
+				item.position_x,
+				item.text,
+				item.curses_formatting | (curses.A_REVERSE * (i == selected_index))
+			)
+
+		# Gets the key
+		try:
+			key = self.app.stdscr.getkey()
+		except curses.error:
+			key = ''
+
+		# Makes modifications based on the key
+		if key in ('\n', "PADENTER"):
+			menu_items[selected_index].callback()
+		elif key == "KEY_DOWN":
+			selected_index += 1
+			if selected_index > len(menu_items):
+				selected_index -= len(menu_items)
+		elif key == "KEY_UP":
+			selected_index -= 1
+			if selected_index < 0:
+				selected_index += len(menu_items)
+
+
+	def quit_overwatch(self):
+		""" Stops overwatch """
+		self.send_information("STOP_OVERWATCH".encode("utf-8"), self.student_overwatch_mode.client_index)
+		self.student_overwatch_mode.is_in_overwatch = False
+		self.student_overwatch_mode.data_received = None
+		self.student_overwatch_mode.client_index = 0
+
 
 	def handle_SET_STUDENT_INFO(
 			self, client_index: int, server_info: str, client_socket: socket.socket, client_ip: str,

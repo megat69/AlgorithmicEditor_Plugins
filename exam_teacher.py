@@ -3,7 +3,7 @@ import sys
 import socket
 from dataclasses import dataclass
 from functools import partial
-from typing import List, Optional, Tuple, Dict, Callable, Self
+from typing_extensions import List, Optional, Tuple, Dict, Callable, Self
 import threading
 
 from utils import display_menu

@@ -92,7 +92,8 @@ class ExamPlugin(Plugin):
 		self.received_info_functions: Dict[str, Callable[[Self, str], None]] = {
 			"START_EXAM": self.handle_START_EXAM,
 			"END_CONNECTION": self.handle_END_CONNECTION,
-			"ADD_TO_STOPWATCH": self.handle_ADD_TO_STOPWATCH
+			"ADD_TO_STOPWATCH": self.handle_ADD_TO_STOPWATCH,
+			"GET_STOPWATCH": self.handle_GET_STOPWATCH
 		}
 
 		# Additional variables
@@ -406,6 +407,13 @@ class ExamPlugin(Plugin):
 		Ends the handshake with the server.
 		"""
 		self.send_information("END_CONNECTION:".encode("utf-8"))
+
+
+	def handle_GET_STOPWATCH(self, server_info: str):
+		"""
+		Sends the stopwatch info back to the server.
+		"""
+		self.send_information(f"SET_STOPWATCH:{self.stopwatch_plugin.stopwatch_str}".encode("utf-8"))
 
 
 	def handle_ADD_TO_STOPWATCH(self, server_info: str):

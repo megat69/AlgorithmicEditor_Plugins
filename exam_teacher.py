@@ -137,13 +137,14 @@ class ExamTeacherPlugin(Plugin):
 
 		# Additional variables
 		self.exam_started = False
-		self.student_overwatch_mode = OverwatchMode(False, None, 0)
+		self.student_overwatch_mode = OverwatchMode(False, 0, None)
 		self._overwatch_menu_selected_index = 0
 
 		# The functions handling all incoming requests
 		self.received_info_functions: Dict[str, Callable[[Self, int, str, socket.socket, str, int, Student], None]] = {
 			"SET_STUDENT_INFO": self.handle_SET_STUDENT_INFO,
 			"CLIENT_SHUTDOWN": self.handle_CLIENT_SHUTDOWN,
+			"SET_STOPWATCH": self.handle_SET_STOPWATCH,
 			"END_CONNECTION": lambda *args: None
 		}
 
@@ -351,6 +352,7 @@ class ExamTeacherPlugin(Plugin):
 
 		# Updates based on the overwatch information
 		if self.student_overwatch_mode.is_in_overwatch:
+			self.send_information("GET_STOPWATCH:".encode("utf-8"))
 			self.overwatch_menu()
 
 
@@ -543,6 +545,15 @@ class ExamTeacherPlugin(Plugin):
 
 		# Menu items
 		menu_items: List[OverwatchMenuItem] = []
+		if (self.student_overwatch_mode.data_received is not None and
+				"stopwatch" in self.student_overwatch_mode.data_received):
+			menu_items.append(OverwatchMenuItem(
+				int(self.app.rows * PADDING_TOP) + 1,
+				int(self.app.cols * PADDING_LEFT),
+				self.student_overwatch_mode.data_received["stopwatch"],
+				curses.A_NORMAL,
+				lambda i: None
+			))
 		additional_stopwatch_len = 0
 		for sign in "+-":
 			for text, gain, pair in (
@@ -618,6 +629,7 @@ class ExamTeacherPlugin(Plugin):
 		:param gain: How much to add to the stopwatch.
 		"""
 		self.send_information(f"ADD_TO_STOPWATCH:{sign}:{':'.join((str(e) for e in gain))}".encode("utf-8"), client_index)
+		self.send_information("GET_STOPWATCH:".encode("utf-8"))
 
 
 	def handle_SET_STUDENT_INFO(
@@ -646,6 +658,18 @@ class ExamTeacherPlugin(Plugin):
 			message,
 			curses.color_pair(self.stopwatch_plugin.high_time_left_color)
 		)
+
+	def handle_SET_STOPWATCH(
+			self, client_index: int, server_info: str, client_socket: socket.socket, client_ip: str,
+			client_port: int, client_student_info: Student
+	):
+		"""
+		Sets the stopwatch of the overwatch.
+		"""
+		if self.student_overwatch_mode.data_received is None:
+			self.student_overwatch_mode.data_received = {}
+		self.student_overwatch_mode.data_received["stopwatch"] = server_info
+
 
 	def handle_CLIENT_SHUTDOWN(
 			self, client_index: int, server_info: str, client_socket: socket.socket, client_ip: str,

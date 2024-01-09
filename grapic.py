@@ -1,3 +1,4 @@
+import typing_extensions
 from typing import Callable
 
 from plugin import Plugin

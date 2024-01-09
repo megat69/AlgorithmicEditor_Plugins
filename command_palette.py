@@ -51,9 +51,14 @@ class CommandPalette(Plugin):
 
 	def update_on_keypress(self, key: str):
 		"""
-		Binds the F3 key to the command palette.
+		Binds the F3 key and CTRL+P to the command palette.
 		"""
-		if key == "KEY_F(3)": self.command_palette()
+		# Evaluates if the key is F3 or a CTRL+P.
+		# A CTRL + letter key combo will have the value of 1 + the position of the letter in the alphabet in ASCII,
+		# so here ord(key) will return 16 if the user pressed CTRL+P.
+		if key == "KEY_F(3)" or (len(key) == 1 and ord(key) == 16):
+			# Opens the command palette
+			self.command_palette()
 
 
 def init(app):

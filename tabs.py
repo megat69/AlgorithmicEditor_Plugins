@@ -9,6 +9,7 @@ from typing import Literal
 
 from plugin import Plugin
 from utils import browse_files, input_text, display_menu
+from custom_types import CommandType
 
 
 TABS_CRASH_FILE_NAME = "tabs.crash.json"
@@ -210,11 +211,11 @@ class TabsPlugin(Plugin):
 		self.default_save = self.app.save
 		self.app.save = self.custom_save
 		# Updates the commands to use the new method
-		self.app.commands["s"] = (self.app.save, self.app.commands["s"][1], self.app.commands["s"][2])
-		self.app.commands["qs"] = (
+		self.app.commands["s"] = CommandType(self.app.save, self.app.commands["s"].name, self.app.commands["s"].hidden)
+		self.app.commands["qs"] = CommandType(
 			partial(self.app.save, quick_save=True),
-			self.app.commands["qs"][1],
-			self.app.commands["qs"][2]
+			self.app.commands["qs"].name,
+			self.app.commands["qs"].hidden
 		)
 
 

@@ -1,4 +1,5 @@
 from plugin import Plugin
+from custom_types import CommandType
 from functools import partial
 
 
@@ -68,7 +69,7 @@ class ChangeCommandSymbol(Plugin):
 				if ckey != key:
 					new_commands[ckey] = value
 				else:
-					new_commands[key] = (
+					new_commands[key] = CommandType(
 						partial(
 							self.app.add_char_to_text,
 							self.app.command_symbol

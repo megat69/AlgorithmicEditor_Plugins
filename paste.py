@@ -33,6 +33,7 @@ class PastePlugin(Plugin):
 
 		# Adds the command
 		self.add_command("v", self.paste, self.translate("paste"))
+		self.bind_control('v', 'v')
 
 
 	def paste(self):

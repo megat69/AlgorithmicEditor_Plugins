@@ -103,10 +103,12 @@ class TabsPlugin(Plugin):
 
 		# Creates the two commands to open new tabs
 		self.add_command("n", self.user_new_tab, self.translate("new_empty"))
+		self.bind_control('n', 'n')
 		self.add_command("no", self.user_open_new_tab, self.translate("new_open"))
 
 		# Creates the command to close a tab
 		self.add_command("w", self.close_tab, self.translate("close_tab"))
+		self.bind_control('w', 'w')
 
 		# Creates a new command to rename a tab
 		self.add_command("tr", self.rename_current_tab, self.translate("rename"), True)
